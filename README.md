@@ -2,9 +2,9 @@
 |Name|Github|Photo
 |---|---|---|
 |Elyse Yao|<a href="https://github.com/elyseyao">elyseyao|<img src="img/elyse.jpg">|
-|Nihar Mitra|<a href="https://github.com/niharmitra">|<img src="img/nihar">|
-|Alan Guan|<a href="https://github.com/alanguan98">|<img src="img/alan.jpg">|
-|Juan Estrada|<a href="https://github.com/TheeOnlyJuan">|<img src="img/juan.jpg">|
+|Nihar Mitra|<a href="https://github.com/niharmitra">niharmitra|<img src="img/nihar">|
+|Alan Guan|<a href="https://github.com/alanguan98">alanguan98|<img src="img/alan.jpg">|
+|Juan Estrada|<a href="https://github.com/TheeOnlyJuan">TheeOnlyJuan|<img src="img/juan.jpg">|
 
 Welcome to Cloud City!
 
