@@ -1,14 +1,12 @@
-import React, { Component } from 'react';
+//import React, { Component } from 'react';
+import * as React from 'react';
 
-export default class Game extends Component<any, any> {
+export default class Game extends React.Component<any, any> {
   playerWords = ["", "", ""];
   board: string[] = [];
   constructor(props: any) {
     super(props);
     this.state = {
-      //squares: initialiseChessBoard(),
-      whiteFallenSoldiers: [],
-      blackFallenSoldiers: [],
       player: 1,
       sourceSelection: -1,
       status: '',
