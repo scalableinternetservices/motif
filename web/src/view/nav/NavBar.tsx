@@ -30,6 +30,10 @@ const otherTabs = [
     name: 'playground',
     path: getPath(Route.PLAYGROUND),
   },
+  {
+    name: 'Juan Testing',
+    path: getPath(Route.JUAN_TESTING),
+  }
 ]
 
 export function NavBar() {
