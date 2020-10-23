@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "server.ts (restart on edit)",
-      "type": "node",
+      "type": "pwa-node",
       "request": "launch",
       "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ts-node-dev",
       "stopOnEntry": false,
@@ -22,7 +22,7 @@
     },
     {
       "name": "server.ts (no restart)",
-      "type": "node",
+      "type": "pwa-node",
       "request": "launch",
       "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ts-node",
       "stopOnEntry": false,
@@ -41,7 +41,7 @@
     },
     {
       "name": "loadtest.ts",
-      "type": "node",
+      "type": "pwa-node",
       "request": "launch",
       "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ts-node",
       "stopOnEntry": false,

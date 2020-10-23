@@ -33,7 +33,7 @@ const otherTabs = [
   {
     name: 'Juan Testing',
     path: getPath(Route.JUAN_TESTING),
-  }
+  },
 ]
 
 export function NavBar() {
