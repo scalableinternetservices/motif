@@ -2,6 +2,8 @@ import { readFileSync } from 'fs'
 import { PubSub } from 'graphql-yoga'
 import path from 'path'
 import { check } from '../../../common/src/util'
+import { Lobby } from '../entities/Lobby'
+import { Player } from '../entities/Player'
 import { Survey } from '../entities/Survey'
 import { SurveyAnswer } from '../entities/SurveyAnswer'
 import { SurveyQuestion } from '../entities/SurveyQuestion'
@@ -27,6 +29,8 @@ export const graphqlRoot: Resolvers<Context> = {
     self: (_, args, ctx) => ctx.user,
     survey: async (_, { surveyId }) => (await Survey.findOne({ where: { id: surveyId } })) || null,
     surveys: () => Survey.find(),
+    lobbies: () => Lobby.find(),
+    lobbyMoves: async (_, { lobbyId }) => (await Lobby.findOne({ where: { id: lobbyId } }))?.moves || null,
   },
   Mutation: {
     answerSurvey: async (_, { input }, ctx) => {
@@ -50,6 +54,42 @@ export const graphqlRoot: Resolvers<Context> = {
       await survey.save()
       ctx.pubsub.publish('SURVEY_UPDATE_' + surveyId, survey)
       return survey
+    },
+    joinLobby: async (_, { userId, lobbyId }, ctx) => {
+      // TODO: need to validate: remove user from current lobbies, is lobby in right state, etc
+      const player = check(await Player.findOne(userId))
+      const oldLobby = player.lobby
+      const newLobby = check(await Lobby.findOne(lobbyId))
+
+      if (oldLobby && oldLobby.players.indexOf(player) > -1) {
+        oldLobby.players.splice(oldLobby.players.indexOf(player), 1)
+      }
+      await oldLobby.save()
+      if (newLobby.maxUsers > newLobby.players.length) {
+        newLobby.players.push(player)
+        await newLobby.save()
+      } else {
+        return false
+      }
+      player.lobby = newLobby
+      await player.save()
+      return true
+    },
+    makeMove: async (_, { input }, ctx) => {
+      // TODO: check if move is valid, insert in db, then return true/false
+      switch (input.moveType) {
+        case 'SelectTile':
+          break
+        case 'DeselectTile':
+          break
+        case 'Submit':
+          break
+        case 'Scramble':
+          break
+        case 'SpawnTiles':
+          break
+      }
+      return false
     },
   },
   Subscription: {

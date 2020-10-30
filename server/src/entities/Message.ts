@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
-import { Game } from './Game'
+import { Lobby } from './Lobby'
 import { User } from './User'
 
 @Entity()
@@ -7,9 +7,9 @@ export class Message {
   @PrimaryGeneratedColumn()
   id: number
 
-  @OneToOne(() => Game)
+  @OneToOne(() => Lobby)
   @JoinColumn()
-  game: Game
+  lobby: Lobby
 
   @OneToOne(() => User)
   @JoinColumn()

@@ -12,10 +12,29 @@ export interface Scalars {
   Float: number
 }
 
+export interface Query {
+  __typename?: 'Query'
+  self?: Maybe<User>
+  surveys: Array<Survey>
+  survey?: Maybe<Survey>
+  lobbies?: Maybe<Array<Lobby>>
+  lobbyMoves?: Maybe<Array<Move>>
+}
+
+export interface QuerySurveyArgs {
+  surveyId: Scalars['Int']
+}
+
+export interface QueryLobbyMovesArgs {
+  lobbyId: Scalars['Int']
+}
+
 export interface Mutation {
   __typename?: 'Mutation'
   answerSurvey: Scalars['Boolean']
   nextSurveyQuestion?: Maybe<Survey>
+  joinLobby: Scalars['Boolean']
+  makeMove: Scalars['Boolean']
 }
 
 export interface MutationAnswerSurveyArgs {
@@ -26,15 +45,13 @@ export interface MutationNextSurveyQuestionArgs {
   surveyId: Scalars['Int']
 }
 
-export interface Query {
-  __typename?: 'Query'
-  self?: Maybe<User>
-  surveys: Array<Survey>
-  survey?: Maybe<Survey>
+export interface MutationJoinLobbyArgs {
+  userId: Scalars['Int']
+  lobbyId: Scalars['Int']
 }
 
-export interface QuerySurveyArgs {
-  surveyId: Scalars['Int']
+export interface MutationMakeMoveArgs {
+  input: MoveInput
 }
 
 export interface Subscription {
@@ -46,6 +63,19 @@ export interface SubscriptionSurveyUpdatesArgs {
   surveyId: Scalars['Int']
 }
 
+export interface User {
+  __typename?: 'User'
+  id: Scalars['Int']
+  userType: UserType
+  email: Scalars['String']
+  name: Scalars['String']
+}
+
+export enum UserType {
+  Admin = 'ADMIN',
+  User = 'USER',
+}
+
 export interface Survey {
   __typename?: 'Survey'
   id: Scalars['Int']
@@ -54,6 +84,15 @@ export interface Survey {
   isCompleted: Scalars['Boolean']
   currentQuestion?: Maybe<SurveyQuestion>
   questions: Array<Maybe<SurveyQuestion>>
+}
+
+export interface SurveyQuestion {
+  __typename?: 'SurveyQuestion'
+  id: Scalars['Int']
+  prompt: Scalars['String']
+  choices?: Maybe<Array<Scalars['String']>>
+  answers: Array<SurveyAnswer>
+  survey: Survey
 }
 
 export interface SurveyAnswer {
@@ -68,26 +107,109 @@ export interface SurveyInput {
   answer: Scalars['String']
 }
 
-export interface SurveyQuestion {
-  __typename?: 'SurveyQuestion'
+export interface Player {
+  __typename?: 'Player'
   id: Scalars['Int']
-  prompt: Scalars['String']
-  choices?: Maybe<Array<Scalars['String']>>
-  answers: Array<SurveyAnswer>
-  survey: Survey
+  lobby?: Maybe<Lobby>
 }
 
-export interface User {
-  __typename?: 'User'
-  id: Scalars['Int']
-  userType: UserType
-  email: Scalars['String']
-  name: Scalars['String']
+export enum TileType {
+  Normal = 'Normal',
+  Double = 'Double',
+  Dud = 'Dud',
 }
 
-export enum UserType {
-  Admin = 'ADMIN',
-  User = 'USER',
+export interface Tile {
+  __typename?: 'Tile'
+  letter: Scalars['String']
+  pointValue: Scalars['Int']
+  tileType: TileType
+}
+
+export enum MoveType {
+  SelectTile = 'SelectTile',
+  DeselectTile = 'DeselectTile',
+  Submit = 'Submit',
+  Scramble = 'Scramble',
+  SpawnTiles = 'SpawnTiles',
+}
+
+export interface Move {
+  playerId: Scalars['Int']
+  time: Scalars['Float']
+  moveType: MoveType
+}
+
+export interface SelectTile extends Move {
+  __typename?: 'SelectTile'
+  playerId: Scalars['Int']
+  time: Scalars['Float']
+  moveType: MoveType
+  tile: Tile
+  tileLocation: Scalars['Int']
+}
+
+export interface DeselectTile extends Move {
+  __typename?: 'DeselectTile'
+  playerId: Scalars['Int']
+  time: Scalars['Float']
+  moveType: MoveType
+  tile: Tile
+}
+
+export interface Submit extends Move {
+  __typename?: 'Submit'
+  playerId: Scalars['Int']
+  time: Scalars['Float']
+  moveType: MoveType
+  tiles: Array<Tile>
+  pointValue: Scalars['Int']
+}
+
+export interface Scramble extends Move {
+  __typename?: 'Scramble'
+  playerId: Scalars['Int']
+  time: Scalars['Float']
+  moveType: MoveType
+}
+
+export interface SpawnTiles extends Move {
+  __typename?: 'SpawnTiles'
+  playerId: Scalars['Int']
+  time: Scalars['Float']
+  moveType: MoveType
+  tiles: Array<Tile>
+}
+
+export interface TileInput {
+  letter: Scalars['String']
+  pointValue: Scalars['Int']
+  tileType: TileType
+}
+
+export interface MoveInput {
+  playerId: Scalars['Int']
+  time: Scalars['Float']
+  moveType: MoveType
+  tiles?: Maybe<Array<TileInput>>
+  pointValue?: Maybe<Scalars['Int']>
+  tileLocation?: Maybe<Scalars['Int']>
+}
+
+export enum LobbyState {
+  Public = 'PUBLIC',
+  Private = 'PRIVATE',
+  InGame = 'IN_GAME',
+  Replay = 'REPLAY',
+}
+
+export interface Lobby {
+  __typename?: 'Lobby'
+  id: Scalars['Int']
+  state: LobbyState
+  players?: Maybe<Array<Player>>
+  spectators: Array<Player>
+  moves?: Maybe<Array<Move>>
 }
 
 export type ResolverTypeWrapper<T> = Promise<T> | T
@@ -168,32 +290,90 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   Query: ResolverTypeWrapper<{}>
-  User: ResolverTypeWrapper<User>
   Int: ResolverTypeWrapper<Scalars['Int']>
-  UserType: UserType
-  String: ResolverTypeWrapper<Scalars['String']>
-  Survey: ResolverTypeWrapper<Survey>
+  Mutation: ResolverTypeWrapper<{}>
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>
+  Subscription: ResolverTypeWrapper<{}>
+  User: ResolverTypeWrapper<User>
+  String: ResolverTypeWrapper<Scalars['String']>
+  UserType: UserType
+  Survey: ResolverTypeWrapper<Survey>
   SurveyQuestion: ResolverTypeWrapper<SurveyQuestion>
   SurveyAnswer: ResolverTypeWrapper<SurveyAnswer>
-  Mutation: ResolverTypeWrapper<{}>
   SurveyInput: SurveyInput
-  Subscription: ResolverTypeWrapper<{}>
+  Player: ResolverTypeWrapper<Player>
+  TileType: TileType
+  Tile: ResolverTypeWrapper<Tile>
+  MoveType: MoveType
+  Move:
+    | ResolversTypes['SelectTile']
+    | ResolversTypes['DeselectTile']
+    | ResolversTypes['Submit']
+    | ResolversTypes['Scramble']
+    | ResolversTypes['SpawnTiles']
+  Float: ResolverTypeWrapper<Scalars['Float']>
+  SelectTile: ResolverTypeWrapper<SelectTile>
+  DeselectTile: ResolverTypeWrapper<DeselectTile>
+  Submit: ResolverTypeWrapper<Submit>
+  Scramble: ResolverTypeWrapper<Scramble>
+  SpawnTiles: ResolverTypeWrapper<SpawnTiles>
+  TileInput: TileInput
+  MoveInput: MoveInput
+  LobbyState: LobbyState
+  Lobby: ResolverTypeWrapper<Lobby>
 }
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   Query: {}
-  User: User
   Int: Scalars['Int']
+  Mutation: {}
+  Boolean: Scalars['Boolean']
+  Subscription: {}
+  User: User
   String: Scalars['String']
   Survey: Survey
-  Boolean: Scalars['Boolean']
   SurveyQuestion: SurveyQuestion
   SurveyAnswer: SurveyAnswer
-  Mutation: {}
   SurveyInput: SurveyInput
-  Subscription: {}
+  Player: Player
+  Tile: Tile
+  Move:
+    | ResolversParentTypes['SelectTile']
+    | ResolversParentTypes['DeselectTile']
+    | ResolversParentTypes['Submit']
+    | ResolversParentTypes['Scramble']
+    | ResolversParentTypes['SpawnTiles']
+  Float: Scalars['Float']
+  SelectTile: SelectTile
+  DeselectTile: DeselectTile
+  Submit: Submit
+  Scramble: Scramble
+  SpawnTiles: SpawnTiles
+  TileInput: TileInput
+  MoveInput: MoveInput
+  Lobby: Lobby
+}
+
+export type QueryResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']
+> = {
+  self?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>
+  surveys?: Resolver<Array<ResolversTypes['Survey']>, ParentType, ContextType>
+  survey?: Resolver<
+    Maybe<ResolversTypes['Survey']>,
+    ParentType,
+    ContextType,
+    RequireFields<QuerySurveyArgs, 'surveyId'>
+  >
+  lobbies?: Resolver<Maybe<Array<ResolversTypes['Lobby']>>, ParentType, ContextType>
+  lobbyMoves?: Resolver<
+    Maybe<Array<ResolversTypes['Move']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryLobbyMovesArgs, 'lobbyId'>
+  >
 }
 
 export type MutationResolvers<
@@ -212,20 +392,13 @@ export type MutationResolvers<
     ContextType,
     RequireFields<MutationNextSurveyQuestionArgs, 'surveyId'>
   >
-}
-
-export type QueryResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']
-> = {
-  self?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>
-  surveys?: Resolver<Array<ResolversTypes['Survey']>, ParentType, ContextType>
-  survey?: Resolver<
-    Maybe<ResolversTypes['Survey']>,
+  joinLobby?: Resolver<
+    ResolversTypes['Boolean'],
     ParentType,
     ContextType,
-    RequireFields<QuerySurveyArgs, 'surveyId'>
+    RequireFields<MutationJoinLobbyArgs, 'userId' | 'lobbyId'>
   >
+  makeMove?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationMakeMoveArgs, 'input'>>
 }
 
 export type SubscriptionResolvers<
@@ -241,6 +414,17 @@ export type SubscriptionResolvers<
   >
 }
 
+export type UserResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']
+> = {
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  userType?: Resolver<ResolversTypes['UserType'], ParentType, ContextType>
+  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType>
+}
+
 export type SurveyResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Survey'] = ResolversParentTypes['Survey']
@@ -251,16 +435,6 @@ export type SurveyResolvers<
   isCompleted?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   currentQuestion?: Resolver<Maybe<ResolversTypes['SurveyQuestion']>, ParentType, ContextType>
   questions?: Resolver<Array<Maybe<ResolversTypes['SurveyQuestion']>>, ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType>
-}
-
-export type SurveyAnswerResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes['SurveyAnswer'] = ResolversParentTypes['SurveyAnswer']
-> = {
-  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  answer?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  question?: Resolver<ResolversTypes['SurveyQuestion'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType>
 }
 
@@ -276,25 +450,134 @@ export type SurveyQuestionResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType>
 }
 
-export type UserResolvers<
+export type SurveyAnswerResolvers<
   ContextType = any,
-  ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']
+  ParentType extends ResolversParentTypes['SurveyAnswer'] = ResolversParentTypes['SurveyAnswer']
 > = {
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  userType?: Resolver<ResolversTypes['UserType'], ParentType, ContextType>
-  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  answer?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  question?: Resolver<ResolversTypes['SurveyQuestion'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType>
+}
+
+export type PlayerResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Player'] = ResolversParentTypes['Player']
+> = {
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  lobby?: Resolver<Maybe<ResolversTypes['Lobby']>, ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType>
+}
+
+export type TileResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Tile'] = ResolversParentTypes['Tile']
+> = {
+  letter?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  pointValue?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  tileType?: Resolver<ResolversTypes['TileType'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType>
+}
+
+export type MoveResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Move'] = ResolversParentTypes['Move']
+> = {
+  __resolveType: TypeResolveFn<
+    'SelectTile' | 'DeselectTile' | 'Submit' | 'Scramble' | 'SpawnTiles',
+    ParentType,
+    ContextType
+  >
+  playerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  time?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  moveType?: Resolver<ResolversTypes['MoveType'], ParentType, ContextType>
+}
+
+export type SelectTileResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['SelectTile'] = ResolversParentTypes['SelectTile']
+> = {
+  playerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  time?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  moveType?: Resolver<ResolversTypes['MoveType'], ParentType, ContextType>
+  tile?: Resolver<ResolversTypes['Tile'], ParentType, ContextType>
+  tileLocation?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType>
+}
+
+export type DeselectTileResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['DeselectTile'] = ResolversParentTypes['DeselectTile']
+> = {
+  playerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  time?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  moveType?: Resolver<ResolversTypes['MoveType'], ParentType, ContextType>
+  tile?: Resolver<ResolversTypes['Tile'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType>
+}
+
+export type SubmitResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Submit'] = ResolversParentTypes['Submit']
+> = {
+  playerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  time?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  moveType?: Resolver<ResolversTypes['MoveType'], ParentType, ContextType>
+  tiles?: Resolver<Array<ResolversTypes['Tile']>, ParentType, ContextType>
+  pointValue?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType>
+}
+
+export type ScrambleResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Scramble'] = ResolversParentTypes['Scramble']
+> = {
+  playerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  time?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  moveType?: Resolver<ResolversTypes['MoveType'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType>
+}
+
+export type SpawnTilesResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['SpawnTiles'] = ResolversParentTypes['SpawnTiles']
+> = {
+  playerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  time?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  moveType?: Resolver<ResolversTypes['MoveType'], ParentType, ContextType>
+  tiles?: Resolver<Array<ResolversTypes['Tile']>, ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType>
+}
+
+export type LobbyResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Lobby'] = ResolversParentTypes['Lobby']
+> = {
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  state?: Resolver<ResolversTypes['LobbyState'], ParentType, ContextType>
+  players?: Resolver<Maybe<Array<ResolversTypes['Player']>>, ParentType, ContextType>
+  spectators?: Resolver<Array<ResolversTypes['Player']>, ParentType, ContextType>
+  moves?: Resolver<Maybe<Array<ResolversTypes['Move']>>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType>
 }
 
 export type Resolvers<ContextType = any> = {
-  Mutation?: MutationResolvers<ContextType>
   Query?: QueryResolvers<ContextType>
+  Mutation?: MutationResolvers<ContextType>
   Subscription?: SubscriptionResolvers<ContextType>
-  Survey?: SurveyResolvers<ContextType>
-  SurveyAnswer?: SurveyAnswerResolvers<ContextType>
-  SurveyQuestion?: SurveyQuestionResolvers<ContextType>
   User?: UserResolvers<ContextType>
+  Survey?: SurveyResolvers<ContextType>
+  SurveyQuestion?: SurveyQuestionResolvers<ContextType>
+  SurveyAnswer?: SurveyAnswerResolvers<ContextType>
+  Player?: PlayerResolvers<ContextType>
+  Tile?: TileResolvers<ContextType>
+  Move?: MoveResolvers<ContextType>
+  SelectTile?: SelectTileResolvers<ContextType>
+  DeselectTile?: DeselectTileResolvers<ContextType>
+  Submit?: SubmitResolvers<ContextType>
+  Scramble?: ScrambleResolvers<ContextType>
+  SpawnTiles?: SpawnTilesResolvers<ContextType>
+  Lobby?: LobbyResolvers<ContextType>
 }
 
 /**

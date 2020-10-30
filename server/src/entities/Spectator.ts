@@ -1,17 +1,17 @@
 import { Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
-import { Game } from './Game'
-import { User } from './User'
+import { Lobby } from './Lobby'
+import { Player } from './Player'
 
 @Entity()
 export class Spectator {
   @PrimaryGeneratedColumn()
   id: number
 
-  @OneToOne(() => User)
+  @OneToOne(() => Player)
   @JoinColumn()
-  user: User
+  player: Player
 
-  @OneToOne(() => Game)
+  @OneToOne(() => Lobby)
   @JoinColumn()
-  game: Game
+  lobby: Lobby
 }
