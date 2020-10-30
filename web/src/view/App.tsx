@@ -14,6 +14,8 @@ import { HomePage } from './page/HomePage'
 import { LecturesPage } from './page/LecturesPage'
 import { PlaygroundPage } from './page/PlaygroundPage'
 import { ProjectsPage } from './page/ProjectsPage'
+import { LobbySearchMain } from './playground/LobbySearch'
+import { LobbyWaitMain } from './playground/LobbyWait'
 
 const Styletron = require('styletron-engine-monolithic')
 
@@ -57,6 +59,8 @@ export function AppBody() {
         <ProjectsPage path={Route.PROJECTS} />
         <PlaygroundPage path={Route.PLAYGROUND} />
         <PlaygroundPage path={Route.PLAYGROUND_APP} />
+        <LobbySearchMain path={Route.LobbySearch}/>
+        <LobbyWaitMain path={Route.LobbyWait}/>
       </Router>
       <Footer>
         <FooterText>© 2020 John Rothfels</FooterText>

@@ -1,23 +1,33 @@
+import { RouteComponentProps } from '@reach/router';
 import * as React from 'react';
 import { Button } from '../../style/button';
 import { Input } from '../../style/input';
+import { AppRouteParams } from '../nav/route';
+import { Page } from '../page/Page';
 
-export function LobbySearchMain() {
+interface LobbySearchProps extends RouteComponentProps, AppRouteParams {}
+
+
+export function LobbySearchMain(props: LobbySearchProps) {
   return (
-    <div>
-        <LobbyContainer/>
+    <Page>
+      <div className="baseCanvas">
+      <LobbyContainer/>
       </div>
+    </Page>
     );
 }
 
 function LobbyContainer() {
   return (
+
         <div className="mw6 center">
           <div className="ba h3 mb3 bg-black-10 flex items-center">
              <h1 className="center">Lobbies</h1>
           </div>
           <LobbyList/>
         </div>
+
   )
 }
 
@@ -62,8 +72,9 @@ function LobbyEntry(p : LobbyEntryProps) {
 
 
 function LobbyList() {
-  let [lobbies, setLobbies] =  React.useState([]);
+  //let [lobbies, setLobbies] =  React.useState([]);
   const [field, setField] = React.useState("");
+
   /*
   Do some query for the available lobbies
   */
@@ -78,8 +89,10 @@ function LobbyList() {
 
   return (
     <div>
-      <Input  placeholder="Search..." $onChange={setField}>
-              </Input>
+      <div className="flex justify-center">
+        <Input  placeholder="Search..." $onChange={setField}>
+                </Input>
+        </div>
       {tempLobbyList
       .filter(lobby => lobby.name.toLocaleLowerCase().includes(field.toLowerCase()))
       .map((lobby, i) => (
