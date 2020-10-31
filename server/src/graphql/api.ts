@@ -98,4 +98,10 @@ export const graphqlRoot: Resolvers<Context> = {
       resolve: (payload: any) => payload,
     },
   },
+  // Apollo requires that a GraphQL interface has this resolver to distinguish implementations
+  Move: {
+    __resolveType(move, context, info) {
+      return move.moveType
+    },
+  },
 }
