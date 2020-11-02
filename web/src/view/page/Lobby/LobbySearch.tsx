@@ -1,9 +1,11 @@
 import { RouteComponentProps } from '@reach/router';
 import * as React from 'react';
-import { Button } from '../../style/button';
-import { Input } from '../../style/input';
-import { AppRouteParams } from '../nav/route';
-import { Page } from '../page/Page';
+import { Button } from '../../../style/button';
+import { Input } from '../../../style/input';
+import { style } from '../../../style/styled';
+import { AppRouteParams } from '../../nav/route';
+import { Page } from '../Page';
+import { CreateLobby } from './CreateLobby';
 
 interface LobbySearchProps extends RouteComponentProps, AppRouteParams {}
 
@@ -11,9 +13,16 @@ interface LobbySearchProps extends RouteComponentProps, AppRouteParams {}
 export function LobbySearchMain(props: LobbySearchProps) {
   return (
     <Page>
-      <div className="baseCanvas">
-      <LobbyContainer/>
-      </div>
+      <Content>
+        <LContent>
+          <div className="baseCanvas">
+            <LobbyContainer/>
+          </div>
+        </LContent>
+        <RContent>
+          <CreateLobby/>
+        </RContent>
+      </Content>
     </Page>
     );
 }
@@ -21,7 +30,7 @@ export function LobbySearchMain(props: LobbySearchProps) {
 function LobbyContainer() {
   return (
 
-        <div className="mw6 center">
+        <div className="mw6">
           <div className="ba h3 mb3 bg-black-10 flex items-center">
              <h1 className="center">Lobbies</h1>
           </div>
@@ -104,3 +113,9 @@ function LobbyList() {
     </div>
   );
 }
+
+
+
+const LContent = style('div', 'flex-grow-0 w-70-l ')
+const RContent = style('div', 'flex-grow-0  w-30-l')
+const Content = style('div', 'flex-l')

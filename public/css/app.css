@@ -80,6 +80,13 @@ div.settingsBar{
   background-color: lightskyblue;
 }
 
+div.createLobby {
+  display: block;
+  width: fit-content;
+  height: fit-content;
+  padding: 5%;
+  background-color: lightyellow;
+}
 
 
  /*

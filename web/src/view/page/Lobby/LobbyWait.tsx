@@ -1,8 +1,8 @@
 import { RouteComponentProps } from '@reach/router';
 import * as React from 'react';
-import { Button } from '../../style/button';
-import { AppRouteParams } from '../nav/route';
-import { Page } from '../page/Page';
+import { Button } from '../../../style/button';
+import { AppRouteParams } from '../../nav/route';
+import { Page } from '../Page';
 interface LobbyWaitProps extends RouteComponentProps, AppRouteParams {}
 
 export function LobbyWaitMain(props: LobbyWaitProps) {

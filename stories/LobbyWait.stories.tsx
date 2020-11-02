@@ -1,6 +1,6 @@
 import { Meta, Story } from '@storybook/react'
 import * as React from 'react'
-import { LobbyWaitMain as LobbyWaitComponent } from '../web/src/view/playground/LobbyWait'
+import { LobbyWaitMain as LobbyWaitComponent } from '../web/src/view/page/Lobby/LobbyWait'
 
 export default {
   title: 'LobbyWait',

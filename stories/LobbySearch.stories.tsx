@@ -1,6 +1,6 @@
 import { Meta, Story } from '@storybook/react'
 import * as React from 'react'
-import { LobbySearchMain as LobbySearchComponent } from '../web/src/view/playground/LobbySearch'
+import { LobbySearchMain as LobbySearchComponent } from '../web/src/view/page/Lobby/LobbySearch'
 
 export default {
   title: 'LobbySearch',
