@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { BaseEntity, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Lobby } from './Lobby'
 import { User } from './User'
 
@@ -11,7 +11,6 @@ export class Player extends BaseEntity {
   @JoinColumn()
   user: User
 
-  @OneToOne(() => Lobby)
-  @JoinColumn()
+  @ManyToOne(() => Lobby, lobby => lobby.players)
   lobby: Lobby
 }

@@ -1,5 +1,9 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
-import { LobbyState, Move, Player } from '../graphql/schema.types'
+import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
+import { LobbyState } from '../graphql/schema.types'
+import { Message } from './Message'
+import { Move } from './Move'
+import { Player } from './Player'
+import { Spectator } from './Spectator'
 
 @Entity()
 export class Lobby extends BaseEntity {
@@ -13,9 +17,6 @@ export class Lobby extends BaseEntity {
   // TODO store in minutes, decide on a min/max
   gameTime: number
 
-  @Column()
-  moves: Move[]
-
   @Column({
     type: 'enum',
     enum: LobbyState,
@@ -23,9 +24,15 @@ export class Lobby extends BaseEntity {
   })
   state: LobbyState
 
-  @Column()
+  @OneToMany(() => Move, move => move.lobby)
+  moves: Move[]
+
+  @OneToMany(() => Player, player => player.lobby)
   players: Player[]
 
-  @Column()
-  spectators: Player[]
+  @OneToMany(() => Spectator, spectator => spectator.lobby)
+  spectators: Spectator[]
+
+  @OneToMany(() => Message, message => message.lobby)
+  messages: Message[]
 }

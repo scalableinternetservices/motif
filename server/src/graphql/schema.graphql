@@ -25,7 +25,7 @@ type Query {
   survey (surveyId: Int!): Survey
 
   lobbies: [Lobby!] # get all lobbies
-  lobbyMoves (lobbyId: Int!): [Move!] # get moves in a lobby
+  lobby (lobbyId: Int!): Lobby
 }
 
 # Special "Type" - Mutations for the API
@@ -37,7 +37,7 @@ type Mutation {
   nextSurveyQuestion (surveyId: Int!): Survey
 
   joinLobby (userId: Int!, lobbyId: Int!): Boolean!
-  makeMove (input: MoveInput!): Boolean!
+  # makeMove (input: MoveInput!): Boolean!
 }
 
 type Subscription {
@@ -108,8 +108,10 @@ type Player {
 
 enum TileType {Normal, Double, Dud}
 type Tile {
+  id: Int!
+  value: Int!
+  location: Int!
   letter: String!
-  pointValue: Int!
   tileType: TileType!
 }
 
@@ -122,71 +124,74 @@ type Tile {
 # Server Move:
 #   5) generate Tiles
 
+scalar Date
+
 enum MoveType {SelectTile, DeselectTile, Submit, Scramble, SpawnTiles}
 interface Move {
-  playerId: Int!
-  time: Float!
+  player: Player!
+  time: Date!
   moveType: MoveType!
 }
 
 type SelectTile implements Move {
-  playerId: Int!
-  time: Float!
+  player: Player!
+  time: Date!
   moveType: MoveType!
-  tile: Tile!
-  tileLocation: Int!
+  tiles: [Tile!]!
 }
 
 type DeselectTile implements Move {
-  playerId: Int!
-  time: Float!
+  player: Player!
+  time: Date!
   moveType: MoveType!
-  tile: Tile!
+  tiles: [Tile!]!
 }
 
 type Submit implements Move {
-  playerId: Int!
-  time: Float!
+  id: Int!,
+  player: Player!
+  time: Date!
   moveType: MoveType!
   tiles: [Tile!]!
   pointValue: Int!
 }
 
 type Scramble implements Move {
-  playerId: Int!
-  time: Float!
+  player: Player!
+  time: Date!
   moveType: MoveType!
 }
 
 type SpawnTiles implements Move {
-  playerId: Int!
-  time: Float!
+  player: Player!
+  time: Date!
   moveType: MoveType!
   tiles: [Tile!]!
 }
 
-input TileInput {
-  letter: String!
-  pointValue: Int!
-  tileType: TileType!
-}
+# input TileInput {
+#   letter: String!
+#   pointValue: Int!
+#   tileType: TileType!
+#   location: Int!
+# }
 
-input MoveInput {
-  playerId: Int!
-  time: Float!
-  moveType: MoveType!
-  # existence depends on move type
-  tiles: [TileInput!]
-  pointValue: Int
-  tileLocation: Int
-}
+# input MoveInput {
+#   playerId: Int!
+#   time: Date!
+#   moveType: MoveType!
+#   # existence depends on move type
+#   tiles: [TileInput!]
+#   pointValue: Int
+#   tileLocation: Int
+# }
 
 # public/private = waiting, game = in progress, replay = done?
 enum LobbyState {PUBLIC, PRIVATE, IN_GAME, REPLAY}
 type Lobby {
   id: Int!
   state: LobbyState!
-  players: [Player!]
+  players: [Player!]!
   spectators: [Player!]!
-  moves: [Move!]
+  moves: [Move!]!
 }

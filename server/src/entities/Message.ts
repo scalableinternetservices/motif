@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Lobby } from './Lobby'
 import { User } from './User'
 
@@ -7,8 +7,7 @@ export class Message {
   @PrimaryGeneratedColumn()
   id: number
 
-  @OneToOne(() => Lobby)
-  @JoinColumn()
+  @ManyToOne(() => Lobby, lobby => lobby.messages)
   lobby: Lobby
 
   @OneToOne(() => User)
@@ -18,6 +17,6 @@ export class Message {
   @Column()
   content: string
 
-  @Column()
+  @CreateDateColumn()
   timestamp: Date
 }

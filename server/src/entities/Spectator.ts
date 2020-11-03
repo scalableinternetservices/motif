@@ -1,4 +1,4 @@
-import { Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Lobby } from './Lobby'
 import { Player } from './Player'
 
@@ -11,7 +11,6 @@ export class Spectator {
   @JoinColumn()
   player: Player
 
-  @OneToOne(() => Lobby)
-  @JoinColumn()
+  @ManyToOne(() => Lobby, lobby => lobby.spectators)
   lobby: Lobby
 }

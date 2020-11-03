@@ -1,9 +1,9 @@
 import { readFileSync } from 'fs'
+import { GraphQLScalarType, Kind } from 'graphql'
 import { PubSub } from 'graphql-yoga'
 import path from 'path'
 import { check } from '../../../common/src/util'
 import { Lobby } from '../entities/Lobby'
-import { Player } from '../entities/Player'
 import { Survey } from '../entities/Survey'
 import { SurveyAnswer } from '../entities/SurveyAnswer'
 import { SurveyQuestion } from '../entities/SurveyQuestion'
@@ -25,12 +25,28 @@ interface Context {
 }
 
 export const graphqlRoot: Resolvers<Context> = {
+  Date: new GraphQLScalarType({
+    name: 'Date',
+    description: 'Date custom scalar',
+    parseValue(value) {
+      return new Date(value)
+    },
+    serialize(value) {
+      return value.getTime()
+    },
+    parseLiteral(ast) {
+      if (ast.kind === Kind.INT) {
+        return parseInt(ast.value, 10)
+      }
+      return null
+    },
+  }),
   Query: {
     self: (_, args, ctx) => ctx.user,
     survey: async (_, { surveyId }) => (await Survey.findOne({ where: { id: surveyId } })) || null,
     surveys: () => Survey.find(),
     lobbies: () => Lobby.find(),
-    lobbyMoves: async (_, { lobbyId }) => (await Lobby.findOne({ where: { id: lobbyId } }))?.moves || null,
+    lobby: async (_, { lobbyId }) => (await Lobby.findOne({ where: { id: lobbyId } })) || null,
   },
   Mutation: {
     answerSurvey: async (_, { input }, ctx) => {
@@ -57,7 +73,8 @@ export const graphqlRoot: Resolvers<Context> = {
     },
     joinLobby: async (_, { userId, lobbyId }, ctx) => {
       // TODO: need to validate: remove user from current lobbies, is lobby in right state, etc
-      const player = check(await Player.findOne(userId))
+      const user = check(await User.findOne({ where: { id: userId } }))
+      const player = user.player
       const oldLobby = player.lobby
       const newLobby = check(await Lobby.findOne(lobbyId))
 
@@ -75,22 +92,22 @@ export const graphqlRoot: Resolvers<Context> = {
       await player.save()
       return true
     },
-    makeMove: async (_, { input }, ctx) => {
-      // TODO: check if move is valid, insert in db, then return true/false
-      switch (input.moveType) {
-        case 'SelectTile':
-          break
-        case 'DeselectTile':
-          break
-        case 'Submit':
-          break
-        case 'Scramble':
-          break
-        case 'SpawnTiles':
-          break
-      }
-      return false
-    },
+    // makeMove: async (_, { input }, ctx) => {
+    //   // TODO: check if move is valid, insert in db, then return true/false
+    //   switch (input.moveType) {
+    //     case 'SelectTile':
+    //       break
+    //     case 'DeselectTile':
+    //       break
+    //     case 'Submit':
+    //       break
+    //     case 'Scramble':
+    //       break
+    //     case 'SpawnTiles':
+    //       break
+    //   }
+    //   return false
+    // },
   },
   Subscription: {
     surveyUpdates: {

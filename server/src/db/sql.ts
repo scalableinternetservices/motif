@@ -1,12 +1,15 @@
 import { createPool, PoolConnection, QueryOptions } from 'mysql2'
 import { createConnection } from 'typeorm'
 import { Lobby } from '../entities/Lobby'
+import { Message } from '../entities/Message'
+import { Move } from '../entities/Move'
 import { Player } from '../entities/Player'
 import { Session } from '../entities/Session'
 import { Spectator } from '../entities/Spectator'
 import { Survey } from '../entities/Survey'
 import { SurveyAnswer } from '../entities/SurveyAnswer'
 import { SurveyQuestion } from '../entities/SurveyQuestion'
+import { Tile } from '../entities/Tile'
 import { User } from '../entities/User'
 
 const baseConfig = {
@@ -23,7 +26,7 @@ export async function initORM() {
     username: process.env.MYSQL_USER || 'root',
     synchronize: true,
     logging: false,
-    entities: [User, Session, Survey, SurveyQuestion, SurveyAnswer, Player, Lobby, Spectator],
+    entities: [User, Session, Survey, SurveyQuestion, SurveyAnswer, Player, Lobby, Spectator, Move, Tile, Message],
     extra: {
       connectionLimit: 5,
     },

@@ -1,4 +1,4 @@
-import { GraphQLResolveInfo } from 'graphql'
+import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql'
 export type Maybe<T> = T | null
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] }
 export type RequireFields<T, K extends keyof T> = { [X in Exclude<keyof T, K>]?: T[X] } &
@@ -10,6 +10,7 @@ export interface Scalars {
   Boolean: boolean
   Int: number
   Float: number
+  Date: any
 }
 
 export interface Query {
@@ -18,14 +19,14 @@ export interface Query {
   surveys: Array<Survey>
   survey?: Maybe<Survey>
   lobbies?: Maybe<Array<Lobby>>
-  lobbyMoves?: Maybe<Array<Move>>
+  lobby?: Maybe<Lobby>
 }
 
 export interface QuerySurveyArgs {
   surveyId: Scalars['Int']
 }
 
-export interface QueryLobbyMovesArgs {
+export interface QueryLobbyArgs {
   lobbyId: Scalars['Int']
 }
 
@@ -34,7 +35,6 @@ export interface Mutation {
   answerSurvey: Scalars['Boolean']
   nextSurveyQuestion?: Maybe<Survey>
   joinLobby: Scalars['Boolean']
-  makeMove: Scalars['Boolean']
 }
 
 export interface MutationAnswerSurveyArgs {
@@ -48,10 +48,6 @@ export interface MutationNextSurveyQuestionArgs {
 export interface MutationJoinLobbyArgs {
   userId: Scalars['Int']
   lobbyId: Scalars['Int']
-}
-
-export interface MutationMakeMoveArgs {
-  input: MoveInput
 }
 
 export interface Subscription {
@@ -121,8 +117,10 @@ export enum TileType {
 
 export interface Tile {
   __typename?: 'Tile'
+  id: Scalars['Int']
+  value: Scalars['Int']
+  location: Scalars['Int']
   letter: Scalars['String']
-  pointValue: Scalars['Int']
   tileType: TileType
 }
 
@@ -135,32 +133,32 @@ export enum MoveType {
 }
 
 export interface Move {
-  playerId: Scalars['Int']
-  time: Scalars['Float']
+  player: Player
+  time: Scalars['Date']
   moveType: MoveType
 }
 
 export interface SelectTile extends Move {
   __typename?: 'SelectTile'
-  playerId: Scalars['Int']
-  time: Scalars['Float']
+  player: Player
+  time: Scalars['Date']
   moveType: MoveType
-  tile: Tile
-  tileLocation: Scalars['Int']
+  tiles: Array<Tile>
 }
 
 export interface DeselectTile extends Move {
   __typename?: 'DeselectTile'
-  playerId: Scalars['Int']
-  time: Scalars['Float']
+  player: Player
+  time: Scalars['Date']
   moveType: MoveType
-  tile: Tile
+  tiles: Array<Tile>
 }
 
 export interface Submit extends Move {
   __typename?: 'Submit'
-  playerId: Scalars['Int']
-  time: Scalars['Float']
+  id: Scalars['Int']
+  player: Player
+  time: Scalars['Date']
   moveType: MoveType
   tiles: Array<Tile>
   pointValue: Scalars['Int']
@@ -168,32 +166,17 @@ export interface Submit extends Move {
 
 export interface Scramble extends Move {
   __typename?: 'Scramble'
-  playerId: Scalars['Int']
-  time: Scalars['Float']
+  player: Player
+  time: Scalars['Date']
   moveType: MoveType
 }
 
 export interface SpawnTiles extends Move {
   __typename?: 'SpawnTiles'
-  playerId: Scalars['Int']
-  time: Scalars['Float']
+  player: Player
+  time: Scalars['Date']
   moveType: MoveType
   tiles: Array<Tile>
-}
-
-export interface TileInput {
-  letter: Scalars['String']
-  pointValue: Scalars['Int']
-  tileType: TileType
-}
-
-export interface MoveInput {
-  playerId: Scalars['Int']
-  time: Scalars['Float']
-  moveType: MoveType
-  tiles?: Maybe<Array<TileInput>>
-  pointValue?: Maybe<Scalars['Int']>
-  tileLocation?: Maybe<Scalars['Int']>
 }
 
 export enum LobbyState {
@@ -207,9 +190,9 @@ export interface Lobby {
   __typename?: 'Lobby'
   id: Scalars['Int']
   state: LobbyState
-  players?: Maybe<Array<Player>>
+  players: Array<Player>
   spectators: Array<Player>
-  moves?: Maybe<Array<Move>>
+  moves: Array<Move>
 }
 
 export type ResolverTypeWrapper<T> = Promise<T> | T
@@ -304,6 +287,7 @@ export type ResolversTypes = {
   Player: ResolverTypeWrapper<Player>
   TileType: TileType
   Tile: ResolverTypeWrapper<Tile>
+  Date: ResolverTypeWrapper<Scalars['Date']>
   MoveType: MoveType
   Move:
     | ResolversTypes['SelectTile']
@@ -311,14 +295,11 @@ export type ResolversTypes = {
     | ResolversTypes['Submit']
     | ResolversTypes['Scramble']
     | ResolversTypes['SpawnTiles']
-  Float: ResolverTypeWrapper<Scalars['Float']>
   SelectTile: ResolverTypeWrapper<SelectTile>
   DeselectTile: ResolverTypeWrapper<DeselectTile>
   Submit: ResolverTypeWrapper<Submit>
   Scramble: ResolverTypeWrapper<Scramble>
   SpawnTiles: ResolverTypeWrapper<SpawnTiles>
-  TileInput: TileInput
-  MoveInput: MoveInput
   LobbyState: LobbyState
   Lobby: ResolverTypeWrapper<Lobby>
 }
@@ -338,20 +319,18 @@ export type ResolversParentTypes = {
   SurveyInput: SurveyInput
   Player: Player
   Tile: Tile
+  Date: Scalars['Date']
   Move:
     | ResolversParentTypes['SelectTile']
     | ResolversParentTypes['DeselectTile']
     | ResolversParentTypes['Submit']
     | ResolversParentTypes['Scramble']
     | ResolversParentTypes['SpawnTiles']
-  Float: Scalars['Float']
   SelectTile: SelectTile
   DeselectTile: DeselectTile
   Submit: Submit
   Scramble: Scramble
   SpawnTiles: SpawnTiles
-  TileInput: TileInput
-  MoveInput: MoveInput
   Lobby: Lobby
 }
 
@@ -368,12 +347,7 @@ export type QueryResolvers<
     RequireFields<QuerySurveyArgs, 'surveyId'>
   >
   lobbies?: Resolver<Maybe<Array<ResolversTypes['Lobby']>>, ParentType, ContextType>
-  lobbyMoves?: Resolver<
-    Maybe<Array<ResolversTypes['Move']>>,
-    ParentType,
-    ContextType,
-    RequireFields<QueryLobbyMovesArgs, 'lobbyId'>
-  >
+  lobby?: Resolver<Maybe<ResolversTypes['Lobby']>, ParentType, ContextType, RequireFields<QueryLobbyArgs, 'lobbyId'>>
 }
 
 export type MutationResolvers<
@@ -398,7 +372,6 @@ export type MutationResolvers<
     ContextType,
     RequireFields<MutationJoinLobbyArgs, 'userId' | 'lobbyId'>
   >
-  makeMove?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationMakeMoveArgs, 'input'>>
 }
 
 export type SubscriptionResolvers<
@@ -473,10 +446,16 @@ export type TileResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Tile'] = ResolversParentTypes['Tile']
 > = {
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  value?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  location?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   letter?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  pointValue?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   tileType?: Resolver<ResolversTypes['TileType'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType>
+}
+
+export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
+  name: 'Date'
 }
 
 export type MoveResolvers<
@@ -488,8 +467,8 @@ export type MoveResolvers<
     ParentType,
     ContextType
   >
-  playerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  time?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  player?: Resolver<ResolversTypes['Player'], ParentType, ContextType>
+  time?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
   moveType?: Resolver<ResolversTypes['MoveType'], ParentType, ContextType>
 }
 
@@ -497,11 +476,10 @@ export type SelectTileResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['SelectTile'] = ResolversParentTypes['SelectTile']
 > = {
-  playerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  time?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  player?: Resolver<ResolversTypes['Player'], ParentType, ContextType>
+  time?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
   moveType?: Resolver<ResolversTypes['MoveType'], ParentType, ContextType>
-  tile?: Resolver<ResolversTypes['Tile'], ParentType, ContextType>
-  tileLocation?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  tiles?: Resolver<Array<ResolversTypes['Tile']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType>
 }
 
@@ -509,10 +487,10 @@ export type DeselectTileResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['DeselectTile'] = ResolversParentTypes['DeselectTile']
 > = {
-  playerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  time?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  player?: Resolver<ResolversTypes['Player'], ParentType, ContextType>
+  time?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
   moveType?: Resolver<ResolversTypes['MoveType'], ParentType, ContextType>
-  tile?: Resolver<ResolversTypes['Tile'], ParentType, ContextType>
+  tiles?: Resolver<Array<ResolversTypes['Tile']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType>
 }
 
@@ -520,8 +498,9 @@ export type SubmitResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Submit'] = ResolversParentTypes['Submit']
 > = {
-  playerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  time?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  player?: Resolver<ResolversTypes['Player'], ParentType, ContextType>
+  time?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
   moveType?: Resolver<ResolversTypes['MoveType'], ParentType, ContextType>
   tiles?: Resolver<Array<ResolversTypes['Tile']>, ParentType, ContextType>
   pointValue?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
@@ -532,8 +511,8 @@ export type ScrambleResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Scramble'] = ResolversParentTypes['Scramble']
 > = {
-  playerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  time?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  player?: Resolver<ResolversTypes['Player'], ParentType, ContextType>
+  time?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
   moveType?: Resolver<ResolversTypes['MoveType'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType>
 }
@@ -542,8 +521,8 @@ export type SpawnTilesResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['SpawnTiles'] = ResolversParentTypes['SpawnTiles']
 > = {
-  playerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  time?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  player?: Resolver<ResolversTypes['Player'], ParentType, ContextType>
+  time?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
   moveType?: Resolver<ResolversTypes['MoveType'], ParentType, ContextType>
   tiles?: Resolver<Array<ResolversTypes['Tile']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType>
@@ -555,9 +534,9 @@ export type LobbyResolvers<
 > = {
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   state?: Resolver<ResolversTypes['LobbyState'], ParentType, ContextType>
-  players?: Resolver<Maybe<Array<ResolversTypes['Player']>>, ParentType, ContextType>
+  players?: Resolver<Array<ResolversTypes['Player']>, ParentType, ContextType>
   spectators?: Resolver<Array<ResolversTypes['Player']>, ParentType, ContextType>
-  moves?: Resolver<Maybe<Array<ResolversTypes['Move']>>, ParentType, ContextType>
+  moves?: Resolver<Array<ResolversTypes['Move']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType>
 }
 
@@ -571,6 +550,7 @@ export type Resolvers<ContextType = any> = {
   SurveyAnswer?: SurveyAnswerResolvers<ContextType>
   Player?: PlayerResolvers<ContextType>
   Tile?: TileResolvers<ContextType>
+  Date?: GraphQLScalarType
   Move?: MoveResolvers<ContextType>
   SelectTile?: SelectTileResolvers<ContextType>
   DeselectTile?: DeselectTileResolvers<ContextType>
