@@ -34,6 +34,6 @@ export class Move {
   @CreateDateColumn()
   time: Date
 
-  @OneToMany(() => Tile, tile => tile.move)
+  @OneToMany(() => Tile, tile => tile.move, { eager: true })
   tiles: Tile[]
 }

@@ -24,10 +24,10 @@ export class Lobby extends BaseEntity {
   })
   state: LobbyState
 
-  @OneToMany(() => Move, move => move.lobby)
+  @OneToMany(() => Move, move => move.lobby, { eager: true })
   moves: Move[]
 
-  @OneToMany(() => Player, player => player.lobby)
+  @OneToMany(() => Player, player => player.lobby, { eager: true })
   players: Player[]
 
   @OneToMany(() => Spectator, spectator => spectator.lobby)

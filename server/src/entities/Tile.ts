@@ -19,8 +19,9 @@ export class Tile {
   @Column({
     type: 'enum',
     enum: TileType,
+    default: TileType.Normal,
   })
-  tiletype: TileType
+  tileType: TileType
 
   @ManyToOne(() => Move, move => move.tiles)
   move: Move
