@@ -36,6 +36,7 @@ type Mutation {
   # Moves the survey to the next question (or starts it if it hasn't started). ADMIN only.
   nextSurveyQuestion (surveyId: Int!): Survey
 
+  createUser (name: String!): Boolean!
   joinLobby (userId: Int!, lobbyId: Int!): Boolean!
   leaveLobby (userId: Int!): Boolean!
 

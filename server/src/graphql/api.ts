@@ -149,6 +149,13 @@ export const graphqlRoot: Resolvers<Context> = {
       await lobby.save()
       return true
     },
+    createUser: async (_, { name }, ctx) => {
+      const user = new User()
+      user.name = name
+      user.email = 'testemailplsignore@ucla.edu'
+      await user.save()
+      return true
+    },
     // makeMove: async (_, { input }, ctx) => {
     //   // TODO: check if move is valid, insert in db, then return true/false
     //   switch (input.moveType) {
