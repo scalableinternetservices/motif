@@ -35,6 +35,7 @@ export interface Mutation {
   answerSurvey: Scalars['Boolean']
   nextSurveyQuestion?: Maybe<Survey>
   joinLobby: Scalars['Boolean']
+  leaveLobby: Scalars['Boolean']
   createLobby: Scalars['Int']
 }
 
@@ -49,6 +50,10 @@ export interface MutationNextSurveyQuestionArgs {
 export interface MutationJoinLobbyArgs {
   userId: Scalars['Int']
   lobbyId: Scalars['Int']
+}
+
+export interface MutationLeaveLobbyArgs {
+  userId: Scalars['Int']
 }
 
 export interface MutationCreateLobbyArgs {
@@ -379,6 +384,12 @@ export type MutationResolvers<
     ParentType,
     ContextType,
     RequireFields<MutationJoinLobbyArgs, 'userId' | 'lobbyId'>
+  >
+  leaveLobby?: Resolver<
+    ResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationLeaveLobbyArgs, 'userId'>
   >
   createLobby?: Resolver<
     ResolversTypes['Int'],

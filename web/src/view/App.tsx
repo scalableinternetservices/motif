@@ -13,6 +13,8 @@ import { Route } from './nav/route'
 import { BoardPage } from './page/BoardPage'
 import { HomePage } from './page/HomePage'
 import { LecturesPage } from './page/LecturesPage'
+import { LobbySearchMain } from './page/Lobby/LobbySearch'
+import { LobbyWaitMain } from './page/Lobby/LobbyWait'
 import { PlaygroundPage } from './page/PlaygroundPage'
 import { ProjectsPage } from './page/ProjectsPage'
 
@@ -58,6 +60,8 @@ export function AppBody() {
         <ProjectsPage path={Route.PROJECTS} />
         <PlaygroundPage path={Route.PLAYGROUND} />
         <PlaygroundPage path={Route.PLAYGROUND_APP} />
+        <LobbySearchMain path={Route.LobbySearch}/>
+        <LobbyWaitMain path={Route.LobbyWait}/>
         <BoardPage path={Route.JUAN_TESTING} />
       </Router>
       <Footer>

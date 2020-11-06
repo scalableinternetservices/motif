@@ -10,6 +10,8 @@ export enum Route {
   PROJECTS = 'app/projects',
   PLAYGROUND = 'app/playground',
   PLAYGROUND_APP = 'app/playground/:app',
+  LobbySearch = 'app/LobbySearch',
+  LobbyWait = 'app/LobbyWait',
   JUAN_TESTING = 'app/board',
 }
 
@@ -30,6 +32,15 @@ export function getLoginPath() {
 export function getPlaygroundPath() {
   return getPath(Route.PLAYGROUND)
 }
+
+export function getLobbySearchPath() {
+  return getPath(Route.LobbySearch)
+}
+
+export function getLobbyWaitPath() {
+  return getPath(Route.LobbyWait)
+}
+
 export function getBoardPath() {
   return getPath(Route.JUAN_TESTING)
 }

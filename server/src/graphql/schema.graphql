@@ -37,6 +37,7 @@ type Mutation {
   nextSurveyQuestion (surveyId: Int!): Survey
 
   joinLobby (userId: Int!, lobbyId: Int!): Boolean!
+  leaveLobby (userId: Int!): Boolean!
   # makeMove (input: MoveInput!): Boolean!
 
   # Creates a game hosted by userId (user limit maxUsers, time limit maxTime minutes)

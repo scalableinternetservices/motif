@@ -73,7 +73,7 @@ export const graphqlRoot: Resolvers<Context> = {
       return survey
     },
     createLobby: async (_, { userId, maxUsers, maxTime, state }, ctx) => {
-      const user = check(await User.findOne({ where: { id: userId } }))
+      const user = check(await User.findOne({ where: { id: userId }, relations: ['player'] }))
       // Create new player if DNE
       let player
       if (!user.player) {
@@ -88,10 +88,9 @@ export const graphqlRoot: Resolvers<Context> = {
       // Remove player from old lobby
       if (oldLobby && oldLobby.players.indexOf(player) > -1) {
         oldLobby.players.splice(oldLobby.players.indexOf(player), 1)
+        await oldLobby.save()
       }
-      await oldLobby.save()
       // Add player to new lobby
-      newLobby.players.push(player)
       newLobby.state = state ? LobbyState.Public : LobbyState.Private
       newLobby.maxUsers = maxUsers
       newLobby.gameTime = maxTime
@@ -102,7 +101,7 @@ export const graphqlRoot: Resolvers<Context> = {
     },
     joinLobby: async (_, { userId, lobbyId }, ctx) => {
       // TODO: need to validate: remove user from current lobbies, is lobby in right state, etc
-      const user = check(await User.findOne({ where: { id: userId } }))
+      const user = check(await User.findOne({ where: { id: userId }, relations: ['player'] }))
       let player
       if (!user.player) {
         player = new Player()
@@ -116,8 +115,8 @@ export const graphqlRoot: Resolvers<Context> = {
 
       if (oldLobby && oldLobby.players.indexOf(player) > -1) {
         oldLobby.players.splice(oldLobby.players.indexOf(player), 1)
+        await oldLobby.save()
       }
-      await oldLobby.save()
       if (newLobby.maxUsers > newLobby.players.length) {
         newLobby.players.push(player)
         await newLobby.save()
@@ -126,6 +125,19 @@ export const graphqlRoot: Resolvers<Context> = {
       }
       player.lobby = newLobby
       await player.save()
+      return true
+    },
+    leaveLobby: async (_, { userId }, ctx) => {
+      const player = check(await Player.findOne({ where: { user: userId }, relations: ['user', 'lobby'] }))
+      const lobby = player.lobby
+      if (!lobby) return false
+      if (lobby.players.length == 1) {
+        // TODO delete lobbies that have not started
+        lobby.state = LobbyState.Replay
+        await lobby.save()
+      }
+      // delete as Player, since user no longer in any lobbies
+      await Player.remove(player)
       return true
     },
     // makeMove: async (_, { input }, ctx) => {

@@ -40,7 +40,7 @@ export class User extends BaseEntity implements GraphqlUser {
   })
   name: string
 
-  @OneToOne(() => Player)
+  @OneToOne(() => Player, { onDelete: 'SET NULL' })
   @JoinColumn()
   player: Player
 }

@@ -31,9 +31,17 @@ const otherTabs = [
     path: getPath(Route.PLAYGROUND),
   },
   {
-    name: 'Juan Testing',
-    path: getPath(Route.JUAN_TESTING),
+    name: 'LobbySearch',
+    path: getPath(Route.LobbySearch)
   },
+  {
+    name: 'LobbyWait',
+    path: getPath(Route.LobbyWait)
+  },
+  {
+    name: 'Juan Testing',
+    path: getPath(Route.JUAN_TESTING)
+  }
 ]
 
 export function NavBar() {
