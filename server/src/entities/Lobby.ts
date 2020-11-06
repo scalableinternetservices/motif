@@ -27,7 +27,7 @@ export class Lobby extends BaseEntity {
   @OneToMany(() => Move, move => move.lobby, { eager: true })
   moves: Move[]
 
-  @OneToMany(() => Player, player => player.lobby, { eager: true })
+  @OneToMany(() => Player, player => player.lobby, { eager: true, onDelete: 'NO ACTION' })
   players: Player[]
 
   @OneToMany(() => Spectator, spectator => spectator.lobby)

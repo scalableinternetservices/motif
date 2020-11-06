@@ -18,7 +18,7 @@ export class Move {
   @PrimaryGeneratedColumn()
   id: number
 
-  @OneToOne(() => Player)
+  @OneToOne(() => Player, { onDelete: 'SET NULL' })
   @JoinColumn()
   player: Player
 
