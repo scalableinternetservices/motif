@@ -24,6 +24,44 @@ export interface FetchUserContext {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: FetchLobbies
+// ====================================================
+
+export interface FetchLobbies_lobbies {
+  __typename: "Lobby";
+  id: number;
+}
+
+export interface FetchLobbies {
+  lobbies: FetchLobbies_lobbies[] | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: CreateLobby
+// ====================================================
+
+export interface CreateLobby {
+  createLobby: number;
+}
+
+export interface CreateLobbyVariables {
+  userId: number;
+  maxUsers: number;
+  maxTime: number;
+  state: boolean;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: FetchSurveys
 // ====================================================
 
