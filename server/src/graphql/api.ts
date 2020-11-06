@@ -4,11 +4,12 @@ import { PubSub } from 'graphql-yoga'
 import path from 'path'
 import { check } from '../../../common/src/util'
 import { Lobby } from '../entities/Lobby'
+import { Player } from '../entities/Player'
 import { Survey } from '../entities/Survey'
 import { SurveyAnswer } from '../entities/SurveyAnswer'
 import { SurveyQuestion } from '../entities/SurveyQuestion'
 import { User } from '../entities/User'
-import { Resolvers } from './schema.types'
+import { LobbyState, Resolvers } from './schema.types'
 
 export const pubsub = new PubSub()
 
@@ -71,10 +72,45 @@ export const graphqlRoot: Resolvers<Context> = {
       ctx.pubsub.publish('SURVEY_UPDATE_' + surveyId, survey)
       return survey
     },
+    createLobby: async (_, { userId, maxUsers, maxTime, state }, ctx) => {
+      const user = check(await User.findOne({ where: { id: userId } }))
+      // Create new player if DNE
+      let player
+      if (!user.player) {
+        player = new Player()
+        player.user = user
+        await player.save()
+      } else {
+        player = user.player
+      }
+      const oldLobby = player.lobby
+      const newLobby = new Lobby()
+      // Remove player from old lobby
+      if (oldLobby && oldLobby.players.indexOf(player) > -1) {
+        oldLobby.players.splice(oldLobby.players.indexOf(player), 1)
+      }
+      await oldLobby.save()
+      // Add player to new lobby
+      newLobby.players.push(player)
+      newLobby.state = state ? LobbyState.Public : LobbyState.Private
+      newLobby.maxUsers = maxUsers
+      newLobby.gameTime = maxTime
+      await newLobby.save()
+      player.lobby = newLobby
+      await player.save()
+      return newLobby.id
+    },
     joinLobby: async (_, { userId, lobbyId }, ctx) => {
       // TODO: need to validate: remove user from current lobbies, is lobby in right state, etc
       const user = check(await User.findOne({ where: { id: userId } }))
-      const player = user.player
+      let player
+      if (!user.player) {
+        player = new Player()
+        player.user = user
+        await player.save()
+      } else {
+        player = user.player
+      }
       const oldLobby = player.lobby
       const newLobby = check(await Lobby.findOne(lobbyId))
 

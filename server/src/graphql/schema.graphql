@@ -38,6 +38,11 @@ type Mutation {
 
   joinLobby (userId: Int!, lobbyId: Int!): Boolean!
   # makeMove (input: MoveInput!): Boolean!
+
+  # Creates a game hosted by userId (user limit maxUsers, time limit maxTime minutes)
+  # Private if state = 0, public otherwise
+  # Returns either lobby ID (if successful) or -1
+  createLobby (userId: Int!, maxUsers: Int!, maxTime: Int!, state: Boolean!): Int!
 }
 
 type Subscription {

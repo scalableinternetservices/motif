@@ -35,6 +35,7 @@ export interface Mutation {
   answerSurvey: Scalars['Boolean']
   nextSurveyQuestion?: Maybe<Survey>
   joinLobby: Scalars['Boolean']
+  createLobby: Scalars['Int']
 }
 
 export interface MutationAnswerSurveyArgs {
@@ -48,6 +49,13 @@ export interface MutationNextSurveyQuestionArgs {
 export interface MutationJoinLobbyArgs {
   userId: Scalars['Int']
   lobbyId: Scalars['Int']
+}
+
+export interface MutationCreateLobbyArgs {
+  userId: Scalars['Int']
+  maxUsers: Scalars['Int']
+  maxTime: Scalars['Int']
+  state: Scalars['Boolean']
 }
 
 export interface Subscription {
@@ -371,6 +379,12 @@ export type MutationResolvers<
     ParentType,
     ContextType,
     RequireFields<MutationJoinLobbyArgs, 'userId' | 'lobbyId'>
+  >
+  createLobby?: Resolver<
+    ResolversTypes['Int'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationCreateLobbyArgs, 'userId' | 'maxUsers' | 'maxTime' | 'state'>
   >
 }
 
