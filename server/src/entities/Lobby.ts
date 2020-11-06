@@ -24,6 +24,9 @@ export class Lobby extends BaseEntity {
   })
   state: LobbyState
 
+  @Column({ type: 'timestamp', precision: 3, nullable: true })
+  startTime: Date
+
   @OneToMany(() => Move, move => move.lobby, { eager: true })
   moves: Move[]
 

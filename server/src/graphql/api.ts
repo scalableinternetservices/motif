@@ -145,6 +145,7 @@ export const graphqlRoot: Resolvers<Context> = {
       const lobby = check(await Lobby.findOne({ where: { id: lobbyId } }))
       if (lobby.state != LobbyState.Private && lobby.state != LobbyState.Public) return false
       lobby.state = LobbyState.InGame
+      lobby.startTime = new Date()
       await lobby.save()
       return true
     },
