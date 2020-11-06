@@ -8,26 +8,42 @@
 # Queries and mutations behave similarly, except: on the server queries may be
 # run in parallel, while mutations run one at a time. On the client, queries
 # may use a cached response, while mutations always result in a request.
+
+# Schema defines the GraphQL API
 schema {
   query: Query
   mutation: Mutation
   subscription: Subscription
 }
 
+# Special "Type" - Queries for the API
 type Query {
   # Returns the logged-in user making the query, or null if anonymous.
   self: User
 
   surveys: [Survey!]!
   survey (surveyId: Int!): Survey
+
+  lobbies: [Lobby!] # get all lobbies
+  lobby (lobbyId: Int!): Lobby
 }
 
+# Special "Type" - Mutations for the API
 type Mutation {
   # Records an answer to a survey question presented in class.
   answerSurvey (input: SurveyInput!): Boolean!
 
   # Moves the survey to the next question (or starts it if it hasn't started). ADMIN only.
   nextSurveyQuestion (surveyId: Int!): Survey
+
+  joinLobby (userId: Int!, lobbyId: Int!): Boolean!
+  leaveLobby (userId: Int!): Boolean!
+  # makeMove (input: MoveInput!): Boolean!
+
+  # Creates a game hosted by userId (user limit maxUsers, time limit maxTime minutes)
+  # Private if state = 0, public otherwise
+  # Returns either lobby ID (if successful) or -1
+  createLobby (userId: Int!, maxUsers: Int!, maxTime: Int!, state: Boolean!): Int!
 }
 
 type Subscription {
@@ -89,3 +105,99 @@ input SurveyInput {
   answer: String!
 }
 
+#### Game Schema ####
+
+type Player {
+  id: Int!
+  lobby: Lobby
+}
+
+enum TileType {Normal, Double, Dud}
+type Tile {
+  id: Int!
+  value: Int!
+  location: Int!
+  letter: String!
+  tileType: TileType!
+}
+
+# Moves are the changes to the model of one player's game state
+# Player Moves:
+#   1) select a Tile (from their current board)
+#   2) deselect last Tile
+#   3) submit
+#   4) scramble?
+# Server Move:
+#   5) generate Tiles
+
+scalar Date
+
+enum MoveType {SelectTile, DeselectTile, Submit, Scramble, SpawnTiles}
+interface Move {
+  player: Player!
+  time: Date!
+  moveType: MoveType!
+}
+
+type SelectTile implements Move {
+  player: Player!
+  time: Date!
+  moveType: MoveType!
+  tiles: [Tile!]!
+}
+
+type DeselectTile implements Move {
+  player: Player!
+  time: Date!
+  moveType: MoveType!
+  tiles: [Tile!]!
+}
+
+type Submit implements Move {
+  id: Int!,
+  player: Player!
+  time: Date!
+  moveType: MoveType!
+  tiles: [Tile!]!
+  pointValue: Int!
+}
+
+type Scramble implements Move {
+  player: Player!
+  time: Date!
+  moveType: MoveType!
+}
+
+type SpawnTiles implements Move {
+  player: Player!
+  time: Date!
+  moveType: MoveType!
+  tiles: [Tile!]!
+}
+
+# input TileInput {
+#   letter: String!
+#   pointValue: Int!
+#   tileType: TileType!
+#   location: Int!
+# }
+
+# input MoveInput {
+#   playerId: Int!
+#   time: Date!
+#   moveType: MoveType!
+#   # existence depends on move type
+#   tiles: [TileInput!]
+#   pointValue: Int
+#   tileLocation: Int
+# }
+
+# public/private = waiting, game = in progress, replay = done?
+enum LobbyState {PUBLIC, PRIVATE, IN_GAME, REPLAY}
+type Lobby {
+  id: Int!
+  state: LobbyState!
+  players: [Player!]!
+  spectators: [Player!]!
+  moves: [Move!]!
+}
