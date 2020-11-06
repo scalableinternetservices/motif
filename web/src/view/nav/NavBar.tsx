@@ -37,6 +37,10 @@ const otherTabs = [
   {
     name: 'LobbyWait',
     path: getPath(Route.LobbyWait)
+  },
+  {
+    name: 'Juan Testing',
+    path: getPath(Route.JUAN_TESTING)
   }
 ]
 

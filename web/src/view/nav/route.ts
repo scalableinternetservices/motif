@@ -11,7 +11,8 @@ export enum Route {
   PLAYGROUND = 'app/playground',
   PLAYGROUND_APP = 'app/playground/:app',
   LobbySearch = 'app/LobbySearch',
-  LobbyWait = 'app/LobbyWait'
+  LobbyWait = 'app/LobbyWait',
+  JUAN_TESTING = 'app/board',
 }
 
 export enum PlaygroundApp {
@@ -40,6 +41,9 @@ export function getLobbyWaitPath() {
   return getPath(Route.LobbyWait)
 }
 
+export function getBoardPath() {
+  return getPath(Route.JUAN_TESTING)
+}
 /**
  * Example: getPath(ROUTES.TASK) returns "/leasing/tasks" while getPath(ROUTES.TASK, {taskId: 5}) returns "leasing/tasks/task/5".
  *
