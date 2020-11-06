@@ -36,6 +36,7 @@ export interface Mutation {
   nextSurveyQuestion?: Maybe<Survey>
   joinLobby: Scalars['Boolean']
   leaveLobby: Scalars['Boolean']
+  startGame: Scalars['Boolean']
   createLobby: Scalars['Int']
 }
 
@@ -54,6 +55,10 @@ export interface MutationJoinLobbyArgs {
 
 export interface MutationLeaveLobbyArgs {
   userId: Scalars['Int']
+}
+
+export interface MutationStartGameArgs {
+  lobbyId: Scalars['Int']
 }
 
 export interface MutationCreateLobbyArgs {
@@ -206,6 +211,8 @@ export interface Lobby {
   players: Array<Player>
   spectators: Array<Player>
   moves: Array<Move>
+  gameTime: Scalars['Int']
+  maxUsers: Scalars['Int']
 }
 
 export type ResolverTypeWrapper<T> = Promise<T> | T
@@ -391,6 +398,12 @@ export type MutationResolvers<
     ContextType,
     RequireFields<MutationLeaveLobbyArgs, 'userId'>
   >
+  startGame?: Resolver<
+    ResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationStartGameArgs, 'lobbyId'>
+  >
   createLobby?: Resolver<
     ResolversTypes['Int'],
     ParentType,
@@ -562,6 +575,8 @@ export type LobbyResolvers<
   players?: Resolver<Array<ResolversTypes['Player']>, ParentType, ContextType>
   spectators?: Resolver<Array<ResolversTypes['Player']>, ParentType, ContextType>
   moves?: Resolver<Array<ResolversTypes['Move']>, ParentType, ContextType>
+  gameTime?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  maxUsers?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType>
 }
 

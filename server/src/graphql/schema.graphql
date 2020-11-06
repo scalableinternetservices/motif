@@ -38,6 +38,10 @@ type Mutation {
 
   joinLobby (userId: Int!, lobbyId: Int!): Boolean!
   leaveLobby (userId: Int!): Boolean!
+
+  startGame (lobbyId: Int!): Boolean!
+
+  # sendMessage (userId: Int!, lobbyId: Int!, message: String!): Boolean!
   # makeMove (input: MoveInput!): Boolean!
 
   # Creates a game hosted by userId (user limit maxUsers, time limit maxTime minutes)
@@ -200,4 +204,6 @@ type Lobby {
   players: [Player!]!
   spectators: [Player!]!
   moves: [Move!]!
+  gameTime: Int!
+  maxUsers: Int!
 }

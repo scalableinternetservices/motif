@@ -140,6 +140,14 @@ export const graphqlRoot: Resolvers<Context> = {
       await Player.remove(player)
       return true
     },
+    startGame: async (_, { lobbyId }, ctx) => {
+      // TODO take player param and check if in lobby
+      const lobby = check(await Lobby.findOne({ where: { id: lobbyId } }))
+      if (lobby.state != LobbyState.Private && lobby.state != LobbyState.Public) return false
+      lobby.state = LobbyState.InGame
+      await lobby.save()
+      return true
+    },
     // makeMove: async (_, { input }, ctx) => {
     //   // TODO: check if move is valid, insert in db, then return true/false
     //   switch (input.moveType) {
