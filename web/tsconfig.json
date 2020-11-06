@@ -1,4 +1,6 @@
 {
   "extends": "../tsconfig",
   "include": ["./src/**/*", "../common/src/**/*"],
+  "noUnusedLocals": false,
+  "noUnusedParameters": false,
 }
