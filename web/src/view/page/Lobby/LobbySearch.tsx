@@ -1,3 +1,4 @@
+import { useQuery } from '@apollo/client';
 import { RouteComponentProps } from '@reach/router';
 import * as React from 'react';
 import { Button } from '../../../style/button';
@@ -6,6 +7,7 @@ import { style } from '../../../style/styled';
 import { AppRouteParams } from '../../nav/route';
 import { Page } from '../Page';
 import { CreateLobby } from './CreateLobby';
+import { fetchLobbies } from './fetchLobbies';
 
 interface LobbySearchProps extends RouteComponentProps, AppRouteParams {}
 
@@ -78,23 +80,31 @@ function LobbyEntry(p : LobbyEntryProps) {
   );
 }
 
-
+export interface FetchLobbies_lobbies {
+  __typename: "Lobby";
+  id: number;
+}
+export interface FetchLobbies {
+  lobbies: FetchLobbies_lobbies[];
+}
 
 function LobbyList() {
   //let [lobbies, setLobbies] =  React.useState([]);
-  const [field, setField] = React.useState("");
-
+  const [, setField] = React.useState("");
+  const { loading, data } = useQuery<FetchLobbies>(fetchLobbies);
+  if (loading) {
+    return <div>loading...</div>
+  }
+  if (!data || data.lobbies.length == 0) {
+    return <div>no lobbies</div>
+  }
   /*
   Do some query for the available lobbies
   */
 
+
   //Currently a substitute for querying a list of lobbies
-  const tempLobbyList = [
-    {name : "Lobby1", maxPlayers: 4, curPlayers:2, active : true},
-    {name : "Lobby2", maxPlayers: 6, curPlayers:5, active : true},
-    {name : "Lobby3", maxPlayers: 2, curPlayers:2, active : false},
-    {name : "Lobby4", maxPlayers: 4, curPlayers:3, active : true},
-  ];
+
 
   return (
     <div>
@@ -102,14 +112,22 @@ function LobbyList() {
         <Input  placeholder="Search..." $onChange={setField}>
                 </Input>
         </div>
-      {tempLobbyList
+      {data.lobbies
+      .filter(lobby => lobby.id > 0)
+      .map((lobby, i) => (
+      <div key={i}>
+        <LobbyEntry name={lobby.id.toString()} maxPlayers={lobby.id}
+                    curPlayers={lobby.id} active={lobby.id > 0}
+          />
+      </div>))}
+      {/*{tempLobbyList
       .filter(lobby => lobby.name.toLocaleLowerCase().includes(field.toLowerCase()))
       .map((lobby, i) => (
       <div key={i}>
         <LobbyEntry name={lobby.name} maxPlayers={lobby.maxPlayers}
                     curPlayers={lobby.curPlayers} active={lobby.active}
           />
-      </div>))}
+      </div>))}*/}
     </div>
   );
 }
