@@ -12,11 +12,6 @@ export function BoardPage(props: PlaygroundPageProps) {
   return (
     <Page>
       <Game />
-      <div>
-        <button className="button" onClick={tryy}>
-          JUANS PAGE
-        </button>
-      </div>
     </Page>
   )
 }
