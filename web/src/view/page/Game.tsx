@@ -43,20 +43,30 @@ const pointVal: { [letter: string]: number } = {
   Y: 4,
   Z: 10,
 }
-export default class Game extends React.Component<any, any> {
+export default class Game extends React.Component<
+  {
+    playerID: number
+    timeLimit: number
+    lobbyID: number
+    move?: number
+  },
+  any
+> {
   playerWords = ''
   board: string[] = []
   board2: Tile[] = []
   active: boolean[] = []
   moveStack: number[] = []
   startTime = new Date().getTime()
-  //we will probably pass in player ID and lobby
-  playerID: Player = { id: 0 } //lobby is missing
+  player: Player = { id: 0 }
+  dictionary: string[] = []
 
   constructor(props: any) {
     super(props)
     this.state = {
-      player: 1,
+      playerID: props.playerID,
+      timeLimit: props.timeLimit,
+      lobbyID: props.lobbyID,
       move: 0,
     }
     //bind methods needed so they can be called when clicked
@@ -65,12 +75,39 @@ export default class Game extends React.Component<any, any> {
     this.submitWord = this.submitWord.bind(this)
 
     //variable setups
-    console.log(this.startTime)
+    //this.lobbyid = this.state.lobbyID
+    //this.playerID.id = this.state.playerID
+    //this.timeLimit = this.state.timeLimit
+    //console.log(this.startTime)
     for (let i = 0; i < 16; i++) {
       this.active.push(false)
       this.board.push('X')
       this.board2.push({ id: 0, letter: 'X', value: 0, location: 0, tileType: TileType.Normal })
     }
+  }
+
+  initalizeDictionary() {
+    const fs = require('fs')
+    fs.readFile('../../../../public/assests/words.txt', (text: string) => {
+      this.dictionary = (text + '').split('\n')
+    })
+  }
+  isInDictionary(word: string) {
+    const n = this.dictionary.length
+    let left = 0
+    let right = n - 1
+    let middle = 0
+    while (left <= right) {
+      middle = (left + right) / 2
+      if (word === this.dictionary[middle]) return true
+
+      if (this.dictionary[middle] > word) {
+        right = middle - 1
+      } else {
+        left = middle + 1
+      }
+    }
+    return false
   }
   initalizeBoard() {
     for (let i = 0; i < 16; i++) {
@@ -78,7 +115,6 @@ export default class Game extends React.Component<any, any> {
       this.board[i] = c
       this.board2[i] = { id: 0, letter: this.board[i], value: pointVal[c], location: i, tileType: TileType.Normal }
     }
-    //this.setState({ move: 1 })
   }
   randomizeBoard() {
     for (let i = 0; i < 16; i++) {
@@ -89,14 +125,16 @@ export default class Game extends React.Component<any, any> {
       this.board2[i].value = pointVal[c]
     }
     const scramble: Scramble = {
-      player: this.playerID,
+      player: this.player,
       time: new Date().getTime() - this.startTime,
       moveType: MoveType.Scramble,
     }
     console.log('send scramble: ' + scramble.time)
 
     this.playerWords = ''
-    this.setState({ move: 1 })
+    this.setState({
+      move: this.state.move + 1,
+    })
     this.moveStack = []
   }
   getRandomLetter() {
@@ -112,7 +150,7 @@ export default class Game extends React.Component<any, any> {
     const len = this.moveStack.length
     if (len > 0 && key == this.moveStack[len - 1]) {
       const deselect: DeselectTile = {
-        player: this.playerID,
+        player: this.player,
         moveType: MoveType.DeselectTile,
         time: new Date().getTime() - this.startTime,
         tiles: this.board2,
@@ -122,7 +160,9 @@ export default class Game extends React.Component<any, any> {
       this.moveStack.pop()
       this.playerWords = this.playerWords.slice(0, -1)
       this.active[key] = false
-      this.setState({ move: 1 })
+      this.setState({
+        move: this.state.move + 1,
+      })
       return
     }
     if (this.active[key] == true) return
@@ -133,13 +173,15 @@ export default class Game extends React.Component<any, any> {
     console.log('current word:' + this.playerWords)
 
     const select: SelectTile = {
-      player: this.playerID,
+      player: this.player,
       moveType: MoveType.DeselectTile,
       time: new Date().getTime() - this.startTime,
       tiles: this.board2,
     }
     console.log('send selectTile: ' + select.time)
-    this.setState({ move: 1 })
+    this.setState({
+      move: this.state.move + 1,
+    })
   }
 
   submitWord() {
@@ -159,7 +201,7 @@ export default class Game extends React.Component<any, any> {
     }
     const submit: Submit = {
       id: 0,
-      player: this.playerID,
+      player: this.player,
       time: new Date().getTime() - this.startTime,
       moveType: MoveType.Submit,
       tiles: this.board2,
@@ -169,7 +211,9 @@ export default class Game extends React.Component<any, any> {
 
     this.moveStack = []
     this.playerWords = ''
-    this.setState({ move: 1 })
+    this.setState({
+      move: this.state.move + 1,
+    })
 
     //Send word to server
   }

@@ -11,7 +11,7 @@ interface PlaygroundPageProps extends RouteComponentProps, AppRouteParams { }
 export function BoardPage(props: PlaygroundPageProps) {
   return (
     <Page>
-      <Game />
+      <Game playerID={0} timeLimit={300} lobbyID={0} />
     </Page>
   )
 }
@@ -34,7 +34,6 @@ export function getBoardApp() {
   return (
     <div>
       <h2 onClick={tryy}>JUANS PAGE </h2>
-      <Game />
     </div>
   )
 }
