@@ -15,7 +15,6 @@ import {
 import { Spacer } from '../../style/spacer'
 import { style } from '../../style/styled'
 
-const time = new Date()
 const pointVal: { [letter: string]: number } = {
   A: 1,
   B: 3,
@@ -50,7 +49,7 @@ export default class Game extends React.Component<any, any> {
   board2: Tile[] = []
   active: boolean[] = []
   moveStack: number[] = []
-  startTime = time.getTime()
+  startTime = new Date().getTime()
   //we will probably pass in player ID and lobby
   playerID: Player = { id: 0 } //lobby is missing
 
@@ -91,7 +90,7 @@ export default class Game extends React.Component<any, any> {
     }
     const scramble: Scramble = {
       player: this.playerID,
-      time: time.getTime() - this.startTime,
+      time: new Date().getTime() - this.startTime,
       moveType: MoveType.Scramble,
     }
     console.log('send scramble: ' + scramble.time)
@@ -115,7 +114,7 @@ export default class Game extends React.Component<any, any> {
       const deselect: DeselectTile = {
         player: this.playerID,
         moveType: MoveType.DeselectTile,
-        time: time.getTime() - this.startTime,
+        time: new Date().getTime() - this.startTime,
         tiles: this.board2,
       }
       console.log('send DeselectTile: ' + deselect.time)
@@ -136,7 +135,7 @@ export default class Game extends React.Component<any, any> {
     const select: SelectTile = {
       player: this.playerID,
       moveType: MoveType.DeselectTile,
-      time: time.getTime() - this.startTime,
+      time: new Date().getTime() - this.startTime,
       tiles: this.board2,
     }
     console.log('send selectTile: ' + select.time)
@@ -161,13 +160,12 @@ export default class Game extends React.Component<any, any> {
     const submit: Submit = {
       id: 0,
       player: this.playerID,
-      time: time.getTime() + this.startTime,
+      time: new Date().getTime() - this.startTime,
       moveType: MoveType.Submit,
       tiles: this.board2,
       pointValue: score,
     }
     console.log('send submit: ' + submit.time)
-    console.log(time.getTime())
 
     this.moveStack = []
     this.playerWords = ''

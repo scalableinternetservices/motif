@@ -60,8 +60,8 @@ export function AppBody() {
         <ProjectsPage path={Route.PROJECTS} />
         <PlaygroundPage path={Route.PLAYGROUND} />
         <PlaygroundPage path={Route.PLAYGROUND_APP} />
-        <LobbySearchMain path={Route.LobbySearch}/>
-        <LobbyWaitMain path={Route.LobbyWait}/>
+        <LobbySearchMain path={Route.LobbySearch} />
+        <LobbyWaitMain path={Route.LobbyWait} />
         <BoardPage path={Route.JUAN_TESTING} />
       </Router>
       <Footer>
