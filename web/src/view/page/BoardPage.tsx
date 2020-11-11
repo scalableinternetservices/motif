@@ -1,5 +1,6 @@
 import { RouteComponentProps } from '@reach/router'
 import * as React from 'react'
+import { Lobby, LobbyState } from '../../../../server/src/graphql/schema.types'
 import { AppRouteParams } from '../nav/route'
 import Game from './Game'
 import { Page } from './Page'
@@ -9,9 +10,18 @@ interface PlaygroundPageProps extends RouteComponentProps, AppRouteParams { }
 
 //export function BoardPage(props: PlaygroundPageProps) {
 export function BoardPage(props: PlaygroundPageProps) {
+  const lobby: Lobby = {
+    id: -1,
+    state: LobbyState.Public,
+    players: [],
+    spectators: [],
+    moves: [],
+    gameTime: 300,
+    maxUsers: 3,
+  }
   return (
     <Page>
-      <Game playerID={0} timeLimit={300} lobbyID={0} />
+      <Game playerID={9} timeLimit={300} lobbyinfo={lobby} />
     </Page>
   )
 }

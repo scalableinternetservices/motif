@@ -3,6 +3,7 @@ import * as React from 'react'
 import { ColorName, Colors } from '../../../../common/src/colors'
 import {
   DeselectTile,
+  Lobby,
   MoveType,
   Player,
   Scramble,
@@ -47,18 +48,17 @@ export default class Game extends React.Component<
   {
     playerID: number
     timeLimit: number
-    lobbyID: number
+    lobbyinfo: Lobby
     move?: number
   },
   any
 > {
   playerWords = ''
-  board: string[] = []
-  board2: Tile[] = []
+  board: Tile[] = []
   active: boolean[] = []
   moveStack: number[] = []
   startTime = new Date().getTime()
-  player: Player = { id: 0 }
+  player: Player = { id: -1 }
   dictionary: string[] = []
 
   constructor(props: any) {
@@ -66,7 +66,7 @@ export default class Game extends React.Component<
     this.state = {
       playerID: props.playerID,
       timeLimit: props.timeLimit,
-      lobbyID: props.lobbyID,
+      lobbyinfo: props.lobbyinfo,
       move: 0,
     }
     //bind methods needed so they can be called when clicked
@@ -74,15 +74,11 @@ export default class Game extends React.Component<
     this.tileClicked = this.tileClicked.bind(this)
     this.submitWord = this.submitWord.bind(this)
 
-    //variable setups
-    //this.lobbyid = this.state.lobbyID
-    //this.playerID.id = this.state.playerID
-    //this.timeLimit = this.state.timeLimit
-    //console.log(this.startTime)
+    //variable setup
+    this.player = { id: this.state.playerID, lobby: this.state.lobby }
     for (let i = 0; i < 16; i++) {
       this.active.push(false)
-      this.board.push('X')
-      this.board2.push({ id: 0, letter: 'X', value: 0, location: 0, tileType: TileType.Normal })
+      this.board.push({ id: 0, letter: 'X', value: 0, location: 0, tileType: TileType.Normal })
     }
   }
 
@@ -112,17 +108,15 @@ export default class Game extends React.Component<
   initalizeBoard() {
     for (let i = 0; i < 16; i++) {
       const c = this.getRandomLetter()
-      this.board[i] = c
-      this.board2[i] = { id: 0, letter: this.board[i], value: pointVal[c], location: i, tileType: TileType.Normal }
+      this.board[i] = { id: 0, letter: c, value: pointVal[c], location: i, tileType: TileType.Normal }
     }
   }
   randomizeBoard() {
     for (let i = 0; i < 16; i++) {
       const c = this.getRandomLetter()
-      this.board[i] = c
       this.active[i] = false
-      this.board2[i].letter = c
-      this.board2[i].value = pointVal[c]
+      this.board[i].letter = c
+      this.board[i].value = pointVal[c]
     }
     const scramble: Scramble = {
       player: this.player,
@@ -153,7 +147,7 @@ export default class Game extends React.Component<
         player: this.player,
         moveType: MoveType.DeselectTile,
         time: new Date().getTime() - this.startTime,
-        tiles: this.board2,
+        tiles: this.board,
       }
       console.log('send DeselectTile: ' + deselect.time)
 
@@ -176,7 +170,7 @@ export default class Game extends React.Component<
       player: this.player,
       moveType: MoveType.DeselectTile,
       time: new Date().getTime() - this.startTime,
-      tiles: this.board2,
+      tiles: this.board,
     }
     console.log('send selectTile: ' + select.time)
     this.setState({
@@ -191,12 +185,11 @@ export default class Game extends React.Component<
     let score = 0
     for (let i = 0; i < 16; i++) {
       if (this.active[i] === true) {
-        score += this.board2[i].value
+        score += this.board[i].value
         nl = this.getRandomLetter()
-        this.board[i] = nl
         this.active[i] = false
-        this.board2[i].letter = nl
-        this.board2[i].value = pointVal[nl]
+        this.board[i].letter = nl
+        this.board[i].value = pointVal[nl]
       }
     }
     const submit: Submit = {
@@ -204,7 +197,7 @@ export default class Game extends React.Component<
       player: this.player,
       time: new Date().getTime() - this.startTime,
       moveType: MoveType.Submit,
-      tiles: this.board2,
+      tiles: this.board,
       pointValue: score,
     }
     console.log('send submit: ' + submit.time)
@@ -226,7 +219,7 @@ export default class Game extends React.Component<
       for (let j = 0; j < 4; j++) {
         const index = i * 4 + j
         //const c = this.board[index]
-        const c = this.board2[index].letter
+        const c = this.board[index].letter
         const active = this.active[index]
         tiles.push(
           <div className={active ? 'redTile' : 'Tile'} onClick={() => this.tileClicked(c, index)} key={index}>
