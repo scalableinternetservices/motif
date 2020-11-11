@@ -45,7 +45,7 @@ type Mutation {
   startGame (lobbyId: Int!): Boolean!
 
   # sendMessage (userId: Int!, lobbyId: Int!, message: String!): Boolean!
-  # makeMove (input: MoveInput!): Boolean!
+  makeMove (input: MoveInput!): Boolean!
 
   # Creates a game hosted by userId (user limit maxUsers, time limit maxTime minutes)
   # Private if state = 0, public otherwise
@@ -182,22 +182,23 @@ type SpawnTiles implements Move {
   tiles: [Tile!]!
 }
 
-# input TileInput {
-#   letter: String!
-#   pointValue: Int!
-#   tileType: TileType!
-#   location: Int!
-# }
+input TileInput {
+  letter: String!
+  pointValue: Int!
+  tileType: TileType!
+  location: Int!
+}
 
-# input MoveInput {
-#   playerId: Int!
-#   time: Date!
-#   moveType: MoveType!
-#   # existence depends on move type
-#   tiles: [TileInput!]
-#   pointValue: Int
-#   tileLocation: Int
-# }
+input MoveInput {
+  playerId: Int!
+  lobbyId: Int!
+  time: Date!
+  moveType: MoveType!
+  # existence depends on move type
+  tiles: [TileInput!]
+  pointValue: Int
+  tileLocation: Int
+}
 
 # public/private = waiting, game = in progress, replay = done?
 enum LobbyState {PUBLIC, PRIVATE, IN_GAME, REPLAY}

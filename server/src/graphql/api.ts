@@ -4,10 +4,12 @@ import { PubSub } from 'graphql-yoga'
 import path from 'path'
 import { check } from '../../../common/src/util'
 import { Lobby } from '../entities/Lobby'
+import { Move } from '../entities/Move'
 import { Player } from '../entities/Player'
 import { Survey } from '../entities/Survey'
 import { SurveyAnswer } from '../entities/SurveyAnswer'
 import { SurveyQuestion } from '../entities/SurveyQuestion'
+import { Tile } from '../entities/Tile'
 import { User } from '../entities/User'
 import { LobbyState, Resolvers } from './schema.types'
 
@@ -157,22 +159,61 @@ export const graphqlRoot: Resolvers<Context> = {
       await user.save()
       return true
     },
-    // makeMove: async (_, { input }, ctx) => {
-    //   // TODO: check if move is valid, insert in db, then return true/false
-    //   switch (input.moveType) {
-    //     case 'SelectTile':
-    //       break
-    //     case 'DeselectTile':
-    //       break
-    //     case 'Submit':
-    //       break
-    //     case 'Scramble':
-    //       break
-    //     case 'SpawnTiles':
-    //       break
-    //   }
-    //   return false
-    // },
+    makeMove: async (_, { input }, ctx) => {
+      console.log('making move start')
+      const lobby = check(await Lobby.findOne({ where: { id: input.lobbyId } }), 'makeMove: lobby does not exist')
+      if (lobby.state != LobbyState.InGame) return false
+      const player = check(
+        await Player.findOne({ relations: ['lobby'], where: { id: input.playerId } }),
+        'makeMove: player does not exist'
+      )
+      if (player.lobby.id != input.lobbyId) return false
+      const move = new Move()
+      move.lobby = lobby
+      move.moveType = input.moveType
+      move.player = player
+      // TODO: check if move is valid, insert in db, then return true/false
+      await move.save()
+      console.log('basic move created')
+      switch (input.moveType) {
+        case 'SelectTile':
+        case 'DeselectTile':
+          move.tiles = [new Tile()]
+          console.log('making tile')
+          move.tiles[0].move = move
+          let inputTiles = check(input.tiles, 'SelectTile needs Tile in MoveInput.tiles')
+          move.tiles[0].letter = inputTiles[0].letter.toUpperCase()
+          move.tiles[0].value = inputTiles[0].pointValue
+          move.tiles[0].location = inputTiles[0].location
+          move.tiles[0].tileType = inputTiles[0].tileType
+          console.log('tile made')
+          await move.save()
+          console.log('looked good')
+          await move.tiles[0].save()
+          console.log('save one?')
+          break
+        case 'Submit':
+          break
+        case 'Scramble':
+          break
+        case 'SpawnTiles':
+          move.tiles = []
+          inputTiles = check(input.tiles, 'SpawnTiles needs Tiles in MoveInput.tiles')
+          inputTiles.forEach(async tile => {
+            const newTile = new Tile()
+            newTile.letter = tile.letter.toUpperCase()
+            newTile.location = tile.location
+            newTile.move = move
+            newTile.value = tile.pointValue
+            newTile.tileType = tile.tileType
+            await newTile.save()
+            move.tiles.push(newTile)
+          })
+          break
+      }
+      await move.save()
+      return true
+    },
   },
   Subscription: {
     surveyUpdates: {

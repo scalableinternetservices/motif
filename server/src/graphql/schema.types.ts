@@ -39,6 +39,7 @@ export interface Mutation {
   joinLobby: Scalars['Boolean']
   leaveLobby: Scalars['Boolean']
   startGame: Scalars['Boolean']
+  makeMove: Scalars['Boolean']
   createLobby: Scalars['Int']
 }
 
@@ -65,6 +66,10 @@ export interface MutationLeaveLobbyArgs {
 
 export interface MutationStartGameArgs {
   lobbyId: Scalars['Int']
+}
+
+export interface MutationMakeMoveArgs {
+  input: MoveInput
 }
 
 export interface MutationCreateLobbyArgs {
@@ -203,6 +208,23 @@ export interface SpawnTiles extends Move {
   tiles: Array<Tile>
 }
 
+export interface TileInput {
+  letter: Scalars['String']
+  pointValue: Scalars['Int']
+  tileType: TileType
+  location: Scalars['Int']
+}
+
+export interface MoveInput {
+  playerId: Scalars['Int']
+  lobbyId: Scalars['Int']
+  time: Scalars['Date']
+  moveType: MoveType
+  tiles?: Maybe<Array<TileInput>>
+  pointValue?: Maybe<Scalars['Int']>
+  tileLocation?: Maybe<Scalars['Int']>
+}
+
 export enum LobbyState {
   Public = 'PUBLIC',
   Private = 'PRIVATE',
@@ -326,6 +348,8 @@ export type ResolversTypes = {
   Submit: ResolverTypeWrapper<Submit>
   Scramble: ResolverTypeWrapper<Scramble>
   SpawnTiles: ResolverTypeWrapper<SpawnTiles>
+  TileInput: TileInput
+  MoveInput: MoveInput
   LobbyState: LobbyState
   Lobby: ResolverTypeWrapper<Lobby>
 }
@@ -357,6 +381,8 @@ export type ResolversParentTypes = {
   Submit: Submit
   Scramble: Scramble
   SpawnTiles: SpawnTiles
+  TileInput: TileInput
+  MoveInput: MoveInput
   Lobby: Lobby
 }
 
@@ -417,6 +443,7 @@ export type MutationResolvers<
     ContextType,
     RequireFields<MutationStartGameArgs, 'lobbyId'>
   >
+  makeMove?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationMakeMoveArgs, 'input'>>
   createLobby?: Resolver<
     ResolversTypes['Int'],
     ParentType,
