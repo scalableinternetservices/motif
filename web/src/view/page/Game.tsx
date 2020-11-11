@@ -58,6 +58,8 @@ export default class Game extends React.Component<
   active: boolean[] = []
   moveStack: number[] = []
   startTime = new Date().getTime()
+  timer: any
+  finished = false
   player: Player = { id: -1 }
   dictionary: string[] = []
 
@@ -67,21 +69,33 @@ export default class Game extends React.Component<
       playerID: props.playerID,
       timeLimit: props.timeLimit,
       lobbyinfo: props.lobbyinfo,
+      timeRemaining: props.timeLimit * 10,
       move: 0,
     }
     //bind methods needed so they can be called when clicked
     this.randomizeBoard = this.randomizeBoard.bind(this)
     this.tileClicked = this.tileClicked.bind(this)
     this.submitWord = this.submitWord.bind(this)
+    this.countdown = this.countdown.bind(this)
 
     //variable setup
     this.player = { id: this.state.playerID, lobby: this.state.lobby }
+    this.timer = setInterval(this.countdown, 100)
     for (let i = 0; i < 16; i++) {
       this.active.push(false)
       this.board.push({ id: 0, letter: 'X', value: 0, location: 0, tileType: TileType.Normal })
     }
   }
-
+  countdown() {
+    const timeLeft = this.state.timeRemaining - 1
+    if (timeLeft == 0) {
+      this.finished = true
+      clearInterval(this.timer)
+    }
+    this.setState({
+      timeRemaining: timeLeft,
+    })
+  }
   initalizeDictionary() {
     const fs = require('fs')
     fs.readFile('../../../../public/assests/words.txt', (text: string) => {
@@ -238,33 +252,39 @@ export default class Game extends React.Component<
         )
       }
     }
-    return (
-      <Content>
-        <div className="column">
-          <div className="miniBoard">{enemy1Tiles}</div>
-          <Spacer $h5 />
-          <div className="miniBoard">{enemy2Tiles}</div>
-        </div>
-        <div className="column">
-          <div className="board">{tiles}</div>
-          <div className="wordbox">{'Word: ' + this.playerWords}</div>
-          <button className="button" onClick={this.submitWord}>
-            Submit
-          </button>
+    if (!this.finished) {
+      return (
+        <Content>
+          <div className="column">
+            <div className="miniBoard">{enemy1Tiles}</div>
+            <Spacer $h5 />
+            <div className="miniBoard">{enemy2Tiles}</div>
+          </div>
+          <div className="column">
+            <div>Time Remaining: {this.state.timeRemaining / 10}</div>
+            <Spacer $h1 />
+            <div className="board">{tiles}</div>
+            <div className="wordbox">{'Word: ' + this.playerWords}</div>
+            <button className="button" onClick={this.submitWord}>
+              Submit
+            </button>
 
-          <button className="button" onClick={this.randomizeBoard}>
-            Randomize
-          </button>
-        </div>
-        <div className="chat">
-          <RContent>
-            <Section>
-              <h2> CHATROOM HERE </h2>
-            </Section>
-          </RContent>
-        </div>
-      </Content>
-    )
+            <button className="button" onClick={this.randomizeBoard}>
+              Randomize
+            </button>
+          </div>
+          <div className="chat">
+            <RContent>
+              <Section>
+                <h2> CHATROOM HERE </h2>
+              </Section>
+            </RContent>
+          </div>
+        </Content>
+      )
+    } else {
+      return <div> Game is Finished </div>
+    }
   }
 }
 /*const Hero = style('div', 'mb4 w-100 ba b--mid-gray br2 pa3 tc', {

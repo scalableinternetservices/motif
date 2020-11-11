@@ -21,7 +21,7 @@ export function BoardPage(props: PlaygroundPageProps) {
   }
   return (
     <Page>
-      <Game playerID={9} timeLimit={300} lobbyinfo={lobby} />
+      <Game playerID={9} timeLimit={30} lobbyinfo={lobby} />
     </Page>
   )
 }
