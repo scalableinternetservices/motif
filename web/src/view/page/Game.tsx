@@ -54,6 +54,7 @@ export default class Game extends React.Component<
   any
 > {
   playerWords = ''
+  playerScore = 0
   board: Tile[] = []
   active: boolean[] = []
   moveStack: number[] = []
@@ -61,6 +62,9 @@ export default class Game extends React.Component<
   timer: any
   finished = false
   player: Player = { id: -1 }
+  enemyTiles: Tile[][] = [[], []]
+  enemyScores: number[] = [0, 0]
+  enemyPlayers = 2
   dictionary: string[] = []
 
   constructor(props: any) {
@@ -84,6 +88,9 @@ export default class Game extends React.Component<
     for (let i = 0; i < 16; i++) {
       this.active.push(false)
       this.board.push({ id: 0, letter: 'X', value: 0, location: 0, tileType: TileType.Normal })
+      for (let p = 0; p < this.enemyPlayers; p++) {
+        this.enemyTiles[p].push({ id: 0, letter: 'X', value: 0, location: 0, tileType: TileType.Normal })
+      }
     }
   }
   countdown() {
@@ -216,6 +223,7 @@ export default class Game extends React.Component<
     }
     console.log('send submit: ' + submit.time)
 
+    this.playerScore += score
     this.moveStack = []
     this.playerWords = ''
     this.setState({
@@ -227,12 +235,16 @@ export default class Game extends React.Component<
 
   render() {
     const tiles = []
-    const enemy1Tiles = []
-    const enemy2Tiles = []
+    //const enemy1Tiles = []
+    //const enemy2Tiles = []
+    const enemyTiles = [[<div key={0}></div>]]
+    enemyTiles.pop()
+    for (let p = 0; p < this.enemyPlayers; p++) {
+      enemyTiles.push([])
+    }
     for (let i = 0; i < 4; i++) {
       for (let j = 0; j < 4; j++) {
         const index = i * 4 + j
-        //const c = this.board[index]
         const c = this.board[index].letter
         const active = this.active[index]
         tiles.push(
@@ -240,7 +252,14 @@ export default class Game extends React.Component<
             {c}
           </div>
         )
-        enemy1Tiles.push(
+        for (let p = 0; p < this.enemyPlayers; p++) {
+          enemyTiles[p].push(
+            <div className="miniTile" key={index}>
+              {this.enemyTiles[p][index].letter}
+            </div>
+          )
+        }
+        /*         enemy1Tiles.push(
           <div className="miniTile" key={index}>
             {c}
           </div>
@@ -249,19 +268,22 @@ export default class Game extends React.Component<
           <div className="miniTile" key={index}>
             {c}
           </div>
-        )
+        ) */
       }
     }
     if (!this.finished) {
       return (
         <Content>
           <div className="column">
-            <div className="miniBoard">{enemy1Tiles}</div>
+            <div>Player 2 score: {this.enemyScores[0]}</div>
+            <div className="miniBoard">{enemyTiles[0]}</div>
             <Spacer $h5 />
-            <div className="miniBoard">{enemy2Tiles}</div>
+            <div>Player 3 score: {this.enemyScores[1]}</div>
+            <div className="miniBoard">{enemyTiles[1]}</div>
           </div>
           <div className="column">
             <div>Time Remaining: {this.state.timeRemaining / 10}</div>
+            <div>Your Score: {this.playerScore}</div>
             <Spacer $h1 />
             <div className="board">{tiles}</div>
             <div className="wordbox">{'Word: ' + this.playerWords}</div>
@@ -283,7 +305,22 @@ export default class Game extends React.Component<
         </Content>
       )
     } else {
-      return <div> Game is Finished </div>
+      //calc scores
+      const ranks = ['1st', '2nd', '3rd']
+      let place = this.enemyPlayers
+      for (let p = 0; p < this.enemyPlayers; p++) {
+        if (this.enemyScores[p] <= this.playerScore) {
+          place--
+        }
+      }
+      return (
+        <div className="resultText">
+          <div> Game is Finished </div>
+          <Spacer $h5 />
+          <div> You Placed {ranks[place]}</div>
+          <div> Your score: {this.playerScore}</div>
+        </div>
+      )
     }
   }
 }

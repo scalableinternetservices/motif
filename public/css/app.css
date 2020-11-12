@@ -213,3 +213,8 @@ centertile {
     margin-bottom: 20px;
   }
 }
+
+.resultText {
+  text-align: center;
+  font-size: 40px;
+}
