@@ -12,20 +12,12 @@ import { link } from './Link'
 import { getLoginPath, getPath, getSignupPath, getSurveyPath, Route } from './route'
 
 const title = {
-  name: 'CS188',
+  name: 'Motif',
   path: getPath(Route.HOME),
   title: true,
 }
 
 const otherTabs = [
-  {
-    name: 'lectures',
-    path: getPath(Route.LECTURES),
-  },
-  {
-    name: 'projects',
-    path: getPath(Route.PROJECTS),
-  },
   {
     name: 'playground',
     path: getPath(Route.PLAYGROUND),
@@ -44,12 +36,13 @@ const otherTabs = [
   },
   {
     name: 'User Login',
-    path: getPath(Route.USER_LOGIN)
-  }
+    path: getPath(Route.USER_LOGIN),
+  },
 ]
 
 export function NavBar() {
   const location = useLocation()
+  const { user } = useContext(UserContext)
   const isSmall = useMediaQuery(breakpoints.small)
   const [showMenu, setShowMenu] = React.useState(false)
   const [toast, setToast] = React.useState<Toast | null>(null)
@@ -73,7 +66,6 @@ export function NavBar() {
   }, [toast])
 
   const tabs = isSmall ? [otherTabs.find(t => location.pathname.startsWith(t.path)) || otherTabs[0]] : otherTabs
-
   return (
     <>
       <div className="fixed top-0 left-0 w-100 avenir">
@@ -89,6 +81,7 @@ export function NavBar() {
           {tabs.map((tab, i) => (
             <NavItem key={i} {...tab} />
           ))}
+          {user && <NavItem name="Logout" path={getLoginPath()} />}
 
           {isSmall && <NavMenu show={showMenu} onClick={() => setShowMenu(!showMenu)} />}
         </Nav>
