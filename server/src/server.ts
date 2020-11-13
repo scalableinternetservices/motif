@@ -1,9 +1,9 @@
 require('honeycomb-beeline')({
-  writeKey: process.env.HONEYCOMB_KEY || 'd29d5f5ec24178320dae437383480737',
+  writeKey: process.env.HONEYCOMB_KEY || 'aa13618dafcfd733be9ba0b32233f393',
   dataset: process.env.APP_NAME || 'motif',
   serviceName: process.env.APPSERVER_TAG || 'local',
   enabledInstrumentations: ['express', 'mysql2', 'react-dom/server'],
-  sampleRate: 10,
+  // sampleRate: 10,
 })
 
 import assert from 'assert'
@@ -16,7 +16,6 @@ import { forAwaitEach, isAsyncIterable } from 'iterall'
 import path from 'path'
 import 'reflect-metadata'
 import { v4 as uuidv4 } from 'uuid'
-import { randomNumber } from '../../common/src/random'
 import { checkEqual, Unpromise } from '../../common/src/util'
 import { Config } from './config'
 import { migrate } from './db/migrate'
@@ -73,8 +72,6 @@ server.express.post(
     user.email = req.body.email
     user.name = req.body.name
     user.userType = UserType.User
-    user.id = randomNumber(0,1000)
-
 
     // save the User model to the database, refresh `user` to get ID
     user = await user.save()

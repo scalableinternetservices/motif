@@ -35,6 +35,7 @@ export interface Mutation {
   __typename?: 'Mutation'
   answerSurvey: Scalars['Boolean']
   nextSurveyQuestion?: Maybe<Survey>
+  createUser: Scalars['Boolean']
   joinLobby: Scalars['Boolean']
   leaveLobby: Scalars['Boolean']
   startGame: Scalars['Boolean']
@@ -47,6 +48,10 @@ export interface MutationAnswerSurveyArgs {
 
 export interface MutationNextSurveyQuestionArgs {
   surveyId: Scalars['Int']
+}
+
+export interface MutationCreateUserArgs {
+  name: Scalars['String']
 }
 
 export interface MutationJoinLobbyArgs {
@@ -297,9 +302,9 @@ export type ResolversTypes = {
   Int: ResolverTypeWrapper<Scalars['Int']>
   Mutation: ResolverTypeWrapper<{}>
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>
+  String: ResolverTypeWrapper<Scalars['String']>
   Subscription: ResolverTypeWrapper<{}>
   User: ResolverTypeWrapper<User>
-  String: ResolverTypeWrapper<Scalars['String']>
   UserType: UserType
   Survey: ResolverTypeWrapper<Survey>
   SurveyQuestion: ResolverTypeWrapper<SurveyQuestion>
@@ -331,9 +336,9 @@ export type ResolversParentTypes = {
   Int: Scalars['Int']
   Mutation: {}
   Boolean: Scalars['Boolean']
+  String: Scalars['String']
   Subscription: {}
   User: User
-  String: Scalars['String']
   Survey: Survey
   SurveyQuestion: SurveyQuestion
   SurveyAnswer: SurveyAnswer
@@ -387,6 +392,12 @@ export type MutationResolvers<
     ParentType,
     ContextType,
     RequireFields<MutationNextSurveyQuestionArgs, 'surveyId'>
+  >
+  createUser?: Resolver<
+    ResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationCreateUserArgs, 'name'>
   >
   joinLobby?: Resolver<
     ResolversTypes['Boolean'],
