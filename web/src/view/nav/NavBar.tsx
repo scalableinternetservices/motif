@@ -9,7 +9,7 @@ import { style } from '../../style/styled'
 import { UserContext } from '../auth/user'
 import { addToastListener, removeToastListener, Toast, ToastType } from '../toast/toast'
 import { link } from './Link'
-import { getLoginPath, getPath, getSurveyPath, Route } from './route'
+import { getLoginPath, getPath, getSignupPath, getSurveyPath, Route } from './route'
 
 const title = {
   name: 'CS188',
@@ -42,6 +42,10 @@ const otherTabs = [
     name: 'Juan Testing',
     path: getPath(Route.JUAN_TESTING),
   },
+  {
+    name: 'User Login',
+    path: getPath(Route.USER_LOGIN)
+  }
 ]
 
 export function NavBar() {
@@ -123,6 +127,7 @@ function SubNav() {
     <Nav $isSubNav>
       <NavItem name="surveys" path={getSurveyPath()} />
       <NavItem name={user ? 'logout' : 'login'} path={getLoginPath()} />
+      {!user && <NavItem name="signup" path={getSignupPath()} />}
     </Nav>
   )
 }

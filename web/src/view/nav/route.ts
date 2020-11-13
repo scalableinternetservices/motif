@@ -13,16 +13,34 @@ export enum Route {
   LobbySearch = 'app/LobbySearch',
   LobbyWait = 'app/LobbyWait',
   JUAN_TESTING = 'app/board',
+  USER_LOGIN = 'app/UserLogin',
+  Lobby_Inst = 'app/LobbyWait/:lobby',
+  Game_Inst = 'app/board/:game'
 }
 
 export enum PlaygroundApp {
   SURVEYS = 'surveys',
   LOGIN = 'login',
+  SIGNUP = 'signup',
 }
 
 export function getSurveyPath(surveyId?: number) {
   const path = getPath(Route.PLAYGROUND_APP, { app: PlaygroundApp.SURVEYS })
   return path + (surveyId ? `?surveyId=${surveyId}` : '')
+}
+
+export function getLobbyPath(lobbyId?: number) {
+  const path = getPath(Route.Lobby_Inst, { lobby: 'lobby'})
+  return path + (lobbyId ? `?lobbyId=${lobbyId}` : '')
+}
+
+export function getGamePath(lobbyId?: number) {
+  const path = getPath(Route.Game_Inst, { game: 'game'})
+  return path + (lobbyId ? `?lobbyId=${lobbyId}` : '')
+}
+
+export function getSignupPath() {
+  return getPath(Route.PLAYGROUND_APP, { app: PlaygroundApp.SIGNUP })
 }
 
 export function getLoginPath() {
@@ -43,6 +61,10 @@ export function getLobbyWaitPath() {
 
 export function getBoardPath() {
   return getPath(Route.JUAN_TESTING)
+}
+
+export function getUserLoginPath() {
+  return getPath(Route.USER_LOGIN)
 }
 /**
  * Example: getPath(ROUTES.TASK) returns "/leasing/tasks" while getPath(ROUTES.TASK, {taskId: 5}) returns "leasing/tasks/task/5".
@@ -77,6 +99,8 @@ export function getPath(route: Route, arg?: Partial<ReturnType<typeof routeParam
 export interface AppRouteParams {
   userId?: string
   app?: PlaygroundApp
+  lobby?: string
+  game?: string
 }
 
 /**
@@ -86,5 +110,7 @@ export function routeParams(params: AppRouteParams) {
   return {
     userId: Number(params.userId || 0),
     app: params.app,
+    lobby: String(params.lobby || ''),
+    game: String(params.game || ''),
   }
 }
