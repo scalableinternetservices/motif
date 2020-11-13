@@ -16,6 +16,7 @@ import { forAwaitEach, isAsyncIterable } from 'iterall'
 import path from 'path'
 import 'reflect-metadata'
 import { v4 as uuidv4 } from 'uuid'
+import { randomNumber } from '../../common/src/random'
 import { checkEqual, Unpromise } from '../../common/src/util'
 import { Config } from './config'
 import { migrate } from './db/migrate'
@@ -66,12 +67,14 @@ server.express.post(
   '/auth/createUser',
   asyncRoute(async (req, res) => {
     console.log('POST /auth/createUser')
+
     // create User model with data from HTTP request
     let user = new User()
     user.email = req.body.email
     user.name = req.body.name
     user.userType = UserType.User
-    user.id = 505
+    user.id = randomNumber(0,1000)
+
 
     // save the User model to the database, refresh `user` to get ID
     user = await user.save()

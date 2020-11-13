@@ -3,37 +3,46 @@ import * as React from 'react';
 import { Button } from '../../../style/button';
 import { H2 } from '../../../style/header';
 import { style } from '../../../style/styled';
+import { UserContext } from '../../auth/user';
 import { getLobbyPath } from '../../nav/route';
 import { handleError } from '../../toast/error';
 import { fetchLobbies } from './fetchLobbies';
-import { ButtonLink, FetchLobbies } from './LobbySearch';
+import { ButtonLink, FetchLobbies, UserInfo } from './LobbySearch';
 import { createLobby } from './mutateLobbies';
 
 export function CreateLobby()
 {
+  const {user} = React.useContext(UserContext);
   const [maxPlayers, setMax] = React.useState(0);
   const [timeLimit, setTime] = React.useState(0);
+
+  if(user == null)
+  {
+    return <div>
+      User not found. Sign up as a user.
+    </div>
+  }
 
   return (
     <div className="createLobby flex">
       <div className="flex flex-column items-center">
         <H2 className="mb3">Create Lobby</H2>
-        <Settings setMax={setMax} setTime={setTime} maxPlayers={maxPlayers} timeLimit={timeLimit}/>
-        <CreateLobbyButton maxPlayers={maxPlayers} timeLimit={timeLimit}/>
-        <ResetButton setMax={setMax} setTime={setTime} maxPlayers={maxPlayers} timeLimit={timeLimit}/>
+        <Settings userId={user.id} setMax={setMax} setTime={setTime} maxPlayers={maxPlayers} timeLimit={timeLimit}/>
+        <CreateLobbyButton userId={user?.id} maxPlayers={maxPlayers} timeLimit={timeLimit}/>
+        <ResetButton userId={user.id} setMax={setMax} setTime={setTime} maxPlayers={maxPlayers} timeLimit={timeLimit}/>
       </div>
     </div>
   )
 }
 
-interface SettingsProps {
+interface SettingsProps extends UserInfo{
   setMax(num: number): void,
   setTime(num: number): void,
   maxPlayers: number,
   timeLimit: number,
 }
 
-interface DisplaySettingsProps {
+interface DisplaySettingsProps extends UserInfo{
   maxPlayers: number,
   timeLimit: number,
 }
@@ -48,7 +57,7 @@ function Settings(p: SettingsProps)
   return (
     <div>
       <ChooseSettings setMax={p.setMax} setTime={p.setTime}/>
-      <DisplaySettings maxPlayers={p.maxPlayers} timeLimit={p.timeLimit}/>
+      <DisplaySettings userId={p.userId} maxPlayers={p.maxPlayers} timeLimit={p.timeLimit}/>
     </div>
   )
 }
@@ -117,7 +126,7 @@ function CreateLobbyButton(p: DisplaySettingsProps)
 
 
   function createNewLobby() {
-    createLobby(1, p.maxPlayers, p.timeLimit, true)
+    createLobby(p.userId, p.maxPlayers, p.timeLimit, true)
     .then(() => refetch())
     .catch(handleError)
   }

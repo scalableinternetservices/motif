@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Button } from '../../../style/button';
 import { Input } from '../../../style/input';
 import { style } from '../../../style/styled';
+import { UserContext } from '../../auth/user';
 import { link } from '../../nav/Link';
 import { AppRouteParams, getLobbyPath } from '../../nav/route';
 import { handleError } from '../../toast/error';
@@ -14,38 +15,51 @@ import { joinLobby } from './mutateLobbies';
 
 interface LobbySearchProps extends RouteComponentProps, AppRouteParams {}
 
+export interface UserInfo {
+  userId: number,
+}
 
 export function LobbySearchMain(props: LobbySearchProps) {
+  const {user} = React.useContext(UserContext);
+  if(user == null) {
+    return (
+      <Page>
+        User not found. Sign up as a user.
+      </Page>
+    )
+  }
+
   return (
     <Page>
       <Content>
         <LContent>
           <div className="baseCanvas">
-            <LobbyContainer/>
+            <LobbyContainer userId={user.id}/>
           </div>
         </LContent>
         <RContent>
           <CreateLobby/>
         </RContent>
+
       </Content>
     </Page>
     );
 }
 
-function LobbyContainer() {
+function LobbyContainer(p: UserInfo) {
   return (
 
         <div className="mw6">
           <div className="ba h3 mb3 bg-black-10 flex items-center">
              <h1 className="center">Lobbies</h1>
           </div>
-          <LobbyList/>
+          <LobbyList userId={p.userId}/>
         </div>
 
   )
 }
 
-interface LobbyButtonProps {
+interface LobbyButtonProps extends UserInfo{
   active: boolean,
   id: number,
 }
@@ -58,9 +72,19 @@ function LobbyButton(p : LobbyButtonProps) {
     .catch(handleError)
   }
 
+  if(p.userId == null) {
+    return (
+      <div className="o-50">
+        <ButtonLink $color="mint" onClick={() => alert("Please create a user session before continuing ")}>
+          Join
+        </ButtonLink>
+      </div>
+    )
+  }
+
   return (
           <div className={p.active ? "o-100" : "o-50"}>
-            <ButtonLink $color="mint" onClick={() => {handleJoinLobby(2, p.id);} }
+            <ButtonLink $color="mint" onClick={p.active ? () => handleJoinLobby(p.userId, p.id): () => alert("Lobby is full") }
                         to={p.active ? getLobbyPath(p.id) : undefined}>
               Join
               </ButtonLink>
@@ -68,7 +92,7 @@ function LobbyButton(p : LobbyButtonProps) {
   )
 }
 
-interface LobbyEntryProps {
+interface LobbyEntryProps extends UserInfo{
   name: string,
   maxPlayers: number,
   curPlayers: number,
@@ -86,7 +110,7 @@ function LobbyEntry(p : LobbyEntryProps) {
           {""+p.curPlayers+"/"+p.maxPlayers}
         </div>
         <div className="ba fl w-100 w-25-ns pa2">
-          <LobbyButton active={p.active} id={p.id}/>
+          <LobbyButton userId={p.userId} active={p.active} id={p.id}/>
         </div>
       </div>
   );
@@ -107,7 +131,7 @@ export interface FetchLobbies {
   lobbies: FetchLobbies_lobbies[];
 }
 
-function LobbyList() {
+function LobbyList(p: UserInfo) {
   //let [lobbies, setLobbies] =  React.useState([]);
   const [, setField] = React.useState("");
   //Query for lobbies from the database and display them in a list
@@ -131,7 +155,8 @@ function LobbyList() {
       .map((lobby, i) => (
       <div key={i}>
         <LobbyEntry key={lobby.id} name={lobby.gameTime.toString()} maxPlayers={lobby.maxUsers}
-                    curPlayers={lobby.players.length} active={(lobby.maxUsers - lobby.players.length) > 0} id={lobby.id}
+                    curPlayers={lobby.players.length} active={(lobby.maxUsers - lobby.players.length) > 0}
+                    id={lobby.id} userId={p.userId}
           />
       </div>))}
     </div>

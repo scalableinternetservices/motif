@@ -1,9 +1,11 @@
 import { RouteComponentProps, useLocation } from '@reach/router';
 import * as React from 'react';
+import { UserContext } from '../../auth/user';
 import { Link } from '../../nav/Link';
 import { AppRouteParams, getGamePath, getLobbySearchPath } from '../../nav/route';
 import { handleError } from '../../toast/error';
 import { Page } from '../Page';
+import { UserInfo } from './LobbySearch';
 import { leaveLobby, startGame } from './mutateLobbies';
 
 interface LobbyWaitProps extends RouteComponentProps, AppRouteParams {
@@ -38,6 +40,16 @@ interface LobbyMainProps {
 
 
 function LobbyContainer(p: LobbyMainProps) {
+  const {user} = React.useContext(UserContext);
+
+  if(user == null) {
+    return (
+      <div>
+         User not found. Sign up as a user.
+      </div>
+    )
+  }
+
   //Query for lobby data here
   const lobbyName = "Insert Lobby Name Here"
   const players = [{name: "Alan"},
@@ -46,13 +58,13 @@ function LobbyContainer(p: LobbyMainProps) {
                    {name: "Nihar"},]
   return (
       <div>
-         <TopBar lobbyId={p.lobbyId} lobbyName={lobbyName}/>
+         <TopBar userId={user.id} lobbyId={p.lobbyId} lobbyName={lobbyName}/>
          <PlayersContainer players={players}/>
       </div>
   )
 }
 
-interface TopBarProps extends LobbyMainProps {
+interface TopBarProps extends LobbyMainProps, UserInfo {
   lobbyName: string,
 }
 
@@ -61,7 +73,7 @@ function TopBar(p : TopBarProps){
     <div className="mw100-l flex">
       <div className="w-25 pa3 flex justify-around h3">
         <div className="w-50 pa3">
-        <ExitButton/>
+        <ExitButton userId={p.userId}/>
         </div>
         <div className="w-50 pa3">
         <StartButton lobbyId={p.lobbyId}/>
@@ -147,10 +159,10 @@ function StartButton(p: LobbyMainProps) {
   )
 }
 
-function ExitButton() {
+function ExitButton(p: UserInfo) {
 
   function handleExit(){
-    leaveLobby(2)
+    leaveLobby(p.userId)
     .catch(handleError)
   }
 

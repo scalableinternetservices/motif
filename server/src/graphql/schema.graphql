@@ -26,6 +26,8 @@ type Query {
 
   lobbies: [Lobby!] # get all lobbies
   lobby (lobbyId: Int!): Lobby
+
+  users: [User]!
 }
 
 # Special "Type" - Mutations for the API

@@ -368,6 +368,7 @@ export type QueryResolvers<
   >
   lobbies?: Resolver<Maybe<Array<ResolversTypes['Lobby']>>, ParentType, ContextType>
   lobby?: Resolver<Maybe<ResolversTypes['Lobby']>, ParentType, ContextType, RequireFields<QueryLobbyArgs, 'lobbyId'>>
+  users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>
 }
 
 export type MutationResolvers<
