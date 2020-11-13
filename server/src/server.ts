@@ -1,9 +1,9 @@
 require('honeycomb-beeline')({
-  writeKey: process.env.HONEYCOMB_KEY || 'd29d5f5ec24178320dae437383480737',
+  writeKey: process.env.HONEYCOMB_KEY || 'aa13618dafcfd733be9ba0b32233f393',
   dataset: process.env.APP_NAME || 'motif',
   serviceName: process.env.APPSERVER_TAG || 'local',
   enabledInstrumentations: ['express', 'mysql2', 'react-dom/server'],
-  sampleRate: 10,
+  // sampleRate: 10,
 })
 
 import assert from 'assert'
@@ -73,8 +73,6 @@ server.express.post(
     user.name = req.body.name
     user.userType = UserType.User
 
-
-
     // save the User model to the database, refresh `user` to get ID
     user = await user.save()
 
@@ -95,8 +93,6 @@ server.express.post(
     let user = new User()
     user.name = req.body.userName
     user.userType = UserType.User
-
-
 
     // save the User model to the database, refresh `user` to get ID
     user = await user.save()

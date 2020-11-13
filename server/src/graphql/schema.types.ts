@@ -20,6 +20,7 @@ export interface Query {
   survey?: Maybe<Survey>
   lobbies?: Maybe<Array<Lobby>>
   lobby?: Maybe<Lobby>
+  users: Array<Maybe<User>>
 }
 
 export interface QuerySurveyArgs {
@@ -34,9 +35,11 @@ export interface Mutation {
   __typename?: 'Mutation'
   answerSurvey: Scalars['Boolean']
   nextSurveyQuestion?: Maybe<Survey>
+  createUser: Scalars['Boolean']
   joinLobby: Scalars['Boolean']
   leaveLobby: Scalars['Boolean']
   startGame: Scalars['Boolean']
+  makeMove: Scalars['Boolean']
   createLobby: Scalars['Int']
 }
 
@@ -46,6 +49,10 @@ export interface MutationAnswerSurveyArgs {
 
 export interface MutationNextSurveyQuestionArgs {
   surveyId: Scalars['Int']
+}
+
+export interface MutationCreateUserArgs {
+  name: Scalars['String']
 }
 
 export interface MutationJoinLobbyArgs {
@@ -59,6 +66,10 @@ export interface MutationLeaveLobbyArgs {
 
 export interface MutationStartGameArgs {
   lobbyId: Scalars['Int']
+}
+
+export interface MutationMakeMoveArgs {
+  input: MoveInput
 }
 
 export interface MutationCreateLobbyArgs {
@@ -197,6 +208,23 @@ export interface SpawnTiles extends Move {
   tiles: Array<Tile>
 }
 
+export interface TileInput {
+  letter: Scalars['String']
+  pointValue: Scalars['Int']
+  tileType: TileType
+  location: Scalars['Int']
+}
+
+export interface MoveInput {
+  playerId: Scalars['Int']
+  lobbyId: Scalars['Int']
+  time: Scalars['Date']
+  moveType: MoveType
+  tiles?: Maybe<Array<TileInput>>
+  pointValue?: Maybe<Scalars['Int']>
+  tileLocation?: Maybe<Scalars['Int']>
+}
+
 export enum LobbyState {
   Public = 'PUBLIC',
   Private = 'PRIVATE',
@@ -296,9 +324,9 @@ export type ResolversTypes = {
   Int: ResolverTypeWrapper<Scalars['Int']>
   Mutation: ResolverTypeWrapper<{}>
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>
+  String: ResolverTypeWrapper<Scalars['String']>
   Subscription: ResolverTypeWrapper<{}>
   User: ResolverTypeWrapper<User>
-  String: ResolverTypeWrapper<Scalars['String']>
   UserType: UserType
   Survey: ResolverTypeWrapper<Survey>
   SurveyQuestion: ResolverTypeWrapper<SurveyQuestion>
@@ -320,6 +348,8 @@ export type ResolversTypes = {
   Submit: ResolverTypeWrapper<Submit>
   Scramble: ResolverTypeWrapper<Scramble>
   SpawnTiles: ResolverTypeWrapper<SpawnTiles>
+  TileInput: TileInput
+  MoveInput: MoveInput
   LobbyState: LobbyState
   Lobby: ResolverTypeWrapper<Lobby>
 }
@@ -330,9 +360,9 @@ export type ResolversParentTypes = {
   Int: Scalars['Int']
   Mutation: {}
   Boolean: Scalars['Boolean']
+  String: Scalars['String']
   Subscription: {}
   User: User
-  String: Scalars['String']
   Survey: Survey
   SurveyQuestion: SurveyQuestion
   SurveyAnswer: SurveyAnswer
@@ -351,6 +381,8 @@ export type ResolversParentTypes = {
   Submit: Submit
   Scramble: Scramble
   SpawnTiles: SpawnTiles
+  TileInput: TileInput
+  MoveInput: MoveInput
   Lobby: Lobby
 }
 
@@ -368,7 +400,7 @@ export type QueryResolvers<
   >
   lobbies?: Resolver<Maybe<Array<ResolversTypes['Lobby']>>, ParentType, ContextType>
   lobby?: Resolver<Maybe<ResolversTypes['Lobby']>, ParentType, ContextType, RequireFields<QueryLobbyArgs, 'lobbyId'>>
-  users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>
+  users?: Resolver<Array<Maybe<ResolversTypes['User']>>, ParentType, ContextType>
 }
 
 export type MutationResolvers<
@@ -386,6 +418,12 @@ export type MutationResolvers<
     ParentType,
     ContextType,
     RequireFields<MutationNextSurveyQuestionArgs, 'surveyId'>
+  >
+  createUser?: Resolver<
+    ResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationCreateUserArgs, 'name'>
   >
   joinLobby?: Resolver<
     ResolversTypes['Boolean'],
@@ -405,6 +443,7 @@ export type MutationResolvers<
     ContextType,
     RequireFields<MutationStartGameArgs, 'lobbyId'>
   >
+  makeMove?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationMakeMoveArgs, 'input'>>
   createLobby?: Resolver<
     ResolversTypes['Int'],
     ParentType,

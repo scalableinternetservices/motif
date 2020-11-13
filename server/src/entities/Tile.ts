@@ -1,9 +1,9 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { TileType } from '../graphql/schema.types'
 import { Move } from './Move'
 
 @Entity()
-export class Tile {
+export class Tile extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number
 

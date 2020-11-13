@@ -1,11 +1,11 @@
 import {
+  BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn
 } from 'typeorm'
 import { MoveType } from '../graphql/schema.types'
@@ -14,11 +14,11 @@ import { Player } from './Player'
 import { Tile } from './Tile'
 
 @Entity()
-export class Move {
+export class Move extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number
 
-  @OneToOne(() => Player, { onDelete: 'SET NULL' })
+  @ManyToOne(() => Player, { onDelete: 'SET NULL', eager: true })
   @JoinColumn()
   player: Player
 

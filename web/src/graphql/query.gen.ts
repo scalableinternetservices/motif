@@ -24,6 +24,122 @@ export interface FetchUserContext {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: FetchUserList
+// ====================================================
+
+export interface FetchUserList_users {
+  __typename: "User";
+  id: number;
+}
+
+export interface FetchUserList {
+  users: (FetchUserList_users | null)[];
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: FetchLobbies
+// ====================================================
+
+export interface FetchLobbies_lobbies_players {
+  __typename: "Player";
+  id: number;
+}
+
+export interface FetchLobbies_lobbies {
+  __typename: "Lobby";
+  id: number;
+  maxUsers: number;
+  gameTime: number;
+  players: FetchLobbies_lobbies_players[];
+}
+
+export interface FetchLobbies {
+  lobbies: FetchLobbies_lobbies[] | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: CreateLobby
+// ====================================================
+
+export interface CreateLobby {
+  createLobby: number;
+}
+
+export interface CreateLobbyVariables {
+  userId: number;
+  maxUsers: number;
+  maxTime: number;
+  state: boolean;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: StartGame
+// ====================================================
+
+export interface StartGame {
+  startGame: boolean;
+}
+
+export interface StartGameVariables {
+  lobbyId: number;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: JoinLobby
+// ====================================================
+
+export interface JoinLobby {
+  joinLobby: boolean;
+}
+
+export interface JoinLobbyVariables {
+  userId: number;
+  lobbyId: number;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: LeaveLobby
+// ====================================================
+
+export interface LeaveLobby {
+  leaveLobby: boolean;
+}
+
+export interface LeaveLobbyVariables {
+  userId: number;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: FetchSurveys
 // ====================================================
 
