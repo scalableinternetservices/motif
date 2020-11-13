@@ -1,8 +1,6 @@
 import { RouteComponentProps } from '@reach/router'
 import * as React from 'react'
-import { useContext } from 'react'
 import { Lobby, LobbyState } from '../../../../server/src/graphql/schema.types'
-import { UserContext } from '../auth/user'
 import { AppRouteParams } from '../nav/route'
 import Game from './Game'
 import { Page } from './Page'
@@ -12,7 +10,7 @@ interface PlaygroundPageProps extends RouteComponentProps, AppRouteParams { }
 
 //export function BoardPage(props: PlaygroundPageProps) {
 export function BoardPage(props: PlaygroundPageProps) {
-  const { user } = useContext(UserContext)
+  // const { user } = useContext(UserContext)
   const lobby: Lobby = {
     id: -1,
     state: LobbyState.Public,
