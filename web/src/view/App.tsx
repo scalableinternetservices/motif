@@ -14,9 +14,10 @@ import { BoardPage } from './page/BoardPage'
 import { HomePage } from './page/HomePage'
 import { LecturesPage } from './page/LecturesPage'
 import { LobbySearchMain } from './page/Lobby/LobbySearch'
-import { LobbyWaitMain } from './page/Lobby/LobbyWait'
+import { LobbyWait } from './page/Lobby/LobbyWait'
 import { PlaygroundPage } from './page/PlaygroundPage'
 import { ProjectsPage } from './page/ProjectsPage'
+import { UserLogin } from './page/UserLogin/UserLogin'
 
 const Styletron = require('styletron-engine-monolithic')
 
@@ -60,9 +61,12 @@ export function AppBody() {
         <ProjectsPage path={Route.PROJECTS} />
         <PlaygroundPage path={Route.PLAYGROUND} />
         <PlaygroundPage path={Route.PLAYGROUND_APP} />
-        <LobbySearchMain path={Route.LobbySearch}/>
-        <LobbyWaitMain path={Route.LobbyWait}/>
+        <LobbySearchMain path={Route.LobbySearch} />
+        <LobbyWait path={Route.LobbyWait}/>
         <BoardPage path={Route.JUAN_TESTING} />
+        <UserLogin path={Route.USER_LOGIN}/>
+        <LobbyWait path={Route.Lobby_Inst}/>
+        <BoardPage path={Route.Game_Inst}/>
       </Router>
       <Footer>
         <FooterText>© 2020 John Rothfels</FooterText>

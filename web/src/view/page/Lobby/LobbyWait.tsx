@@ -1,21 +1,43 @@
-import { RouteComponentProps } from '@reach/router';
+import { RouteComponentProps, useLocation } from '@reach/router';
 import * as React from 'react';
-import { Button } from '../../../style/button';
-import { AppRouteParams } from '../../nav/route';
+import { Link } from '../../nav/Link';
+import { AppRouteParams, getGamePath, getLobbySearchPath } from '../../nav/route';
+import { handleError } from '../../toast/error';
 import { Page } from '../Page';
-interface LobbyWaitProps extends RouteComponentProps, AppRouteParams {}
+import { leaveLobby, startGame } from './mutateLobbies';
 
-export function LobbyWaitMain(props: LobbyWaitProps) {
+interface LobbyWaitProps extends RouteComponentProps, AppRouteParams {
+}
+
+export function LobbyWait(p: LobbyWaitProps) {
   return (
     <Page>
-      <div className="baseCanvas">
-        <LobbyContainer/>
-      </div>
+      <LobbyWaitWrap/>
     </Page>
+  )
+}
+
+ function LobbyWaitWrap() {
+  const location = useLocation()
+  const [, lobbyId] = (location.search || '').split('?lobbyId=')
+  return lobbyId ? <LobbyWaitMain lobbyId={Number(lobbyId)} /> : <LobbyWaitMain lobbyId={0}/>
+}
+
+
+interface LobbyMainProps {
+  lobbyId: number,
+}
+
+ function LobbyWaitMain(props: LobbyMainProps) {
+  return (
+      <div className="baseCanvas">
+        <LobbyContainer lobbyId={props.lobbyId}/>
+      </div>
     );
 }
 
-function LobbyContainer() {
+
+function LobbyContainer(p: LobbyMainProps) {
   //Query for lobby data here
   const lobbyName = "Insert Lobby Name Here"
   const players = [{name: "Alan"},
@@ -24,13 +46,13 @@ function LobbyContainer() {
                    {name: "Nihar"},]
   return (
       <div>
-         <TopBar lobbyName={lobbyName}/>
+         <TopBar lobbyId={p.lobbyId} lobbyName={lobbyName}/>
          <PlayersContainer players={players}/>
       </div>
   )
 }
 
-interface TopBarProps {
+interface TopBarProps extends LobbyMainProps {
   lobbyName: string,
 }
 
@@ -42,7 +64,7 @@ function TopBar(p : TopBarProps){
         <ExitButton/>
         </div>
         <div className="w-50 pa3">
-        <StartButton/>
+        <StartButton lobbyId={p.lobbyId}/>
         </div>
       </div>
       <div className="ba h3 mb3 bg-black-10 flex items-center w-75">
@@ -68,7 +90,7 @@ function PlayersContainer(p : PlayersContainerProps)
         <SettingsBar maxPlayer={4} timeLimit={5}/>
         <div className="flex flex-column ma2">
         {p.players.map((player, i) => (
-          <Player name={player.name}/>
+          <Player key={i} name={player.name}/>
         ))}
         </div>
 
@@ -111,23 +133,30 @@ function Player(p : PlayerProps) {
   )
 }
 
-function StartGame() {
-  alert("starting GAME NOW...")
-}
 
-function StartButton() {
+function StartButton(p: LobbyMainProps) {
+
+  function handleStart()
+  {
+    startGame(p.lobbyId)
+    .catch(handleError)
+  }
+
   return (
-    <Button $color="mint" onClick={StartGame}>Start</Button>
+    <Link to={getGamePath(p.lobbyId)} onClick={handleStart}>Start</Link>
   )
 }
 
 function ExitButton() {
+
+  function handleExit(){
+    leaveLobby(2)
+    .catch(handleError)
+  }
+
   return (
-    <a href="/app/LobbySearch"
-         className="link black">
-      <Button $color="coral">
-         Exit
-      </Button>
-    </a>
+    <Link to={getLobbySearchPath()} onClick={() => handleExit()}>
+      Exit
+    </Link>
   );
 }

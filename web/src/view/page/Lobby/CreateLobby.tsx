@@ -1,12 +1,12 @@
 import { useQuery } from '@apollo/client';
 import * as React from 'react';
-import { getApolloClient } from '../../../graphql/apolloClient';
 import { Button } from '../../../style/button';
 import { H2 } from '../../../style/header';
 import { style } from '../../../style/styled';
+import { getLobbyPath } from '../../nav/route';
 import { handleError } from '../../toast/error';
 import { fetchLobbies } from './fetchLobbies';
-import { FetchLobbies } from './LobbySearch';
+import { ButtonLink, FetchLobbies } from './LobbySearch';
 import { createLobby } from './mutateLobbies';
 
 export function CreateLobby()
@@ -38,17 +38,22 @@ interface DisplaySettingsProps {
   timeLimit: number,
 }
 
+interface ChooseSettingsProps {
+  setMax(num: number): void,
+  setTime(num: number): void,
+}
+
 function Settings(p: SettingsProps)
 {
   return (
     <div>
-      <ChooseSettings setMax={p.setMax} setTime={p.setTime} maxPlayers={p.maxPlayers} timeLimit={p.timeLimit}/>
+      <ChooseSettings setMax={p.setMax} setTime={p.setTime}/>
       <DisplaySettings maxPlayers={p.maxPlayers} timeLimit={p.timeLimit}/>
     </div>
   )
 }
 
-function ChooseSettings(p: SettingsProps)
+function ChooseSettings(p: ChooseSettingsProps)
 {
   return (
     <div className="flex mb3">
@@ -110,20 +115,18 @@ function CreateLobbyButton(p: DisplaySettingsProps)
     return <div>no lobbies</div>
   }
 
+
   function createNewLobby() {
-    if(!data) {
-      return
-    }
-    createLobby(getApolloClient(), 1, p.maxPlayers, p.timeLimit, true)
+    createLobby(1, p.maxPlayers, p.timeLimit, true)
     .then(() => refetch())
     .catch(handleError)
   }
 
   return (
     <div className="mb4">
-      <Button  onClick={ () => {alert("NEW LOBBY"); createNewLobby();} }>
+      <ButtonLink  onClick={ () => {createNewLobby();} } to={getLobbyPath(data.lobbies.length + 1)} >
         Create Lobby
-      </Button>
+      </ButtonLink>
     </div>
   )
 }
@@ -138,5 +141,6 @@ function ResetButton(p: SettingsProps)
     </div>
   )
 }
+
 
 const MR = style('div', 'mr3')

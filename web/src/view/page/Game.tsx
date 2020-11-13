@@ -3,6 +3,7 @@ import * as React from 'react'
 import { ColorName, Colors } from '../../../../common/src/colors'
 import {
   DeselectTile,
+  Lobby,
   MoveType,
   Player,
   Scramble,
@@ -15,7 +16,6 @@ import {
 import { Spacer } from '../../style/spacer'
 import { style } from '../../style/styled'
 
-const time = new Date()
 const pointVal: { [letter: string]: number } = {
   A: 1,
   B: 3,
@@ -44,60 +44,112 @@ const pointVal: { [letter: string]: number } = {
   Y: 4,
   Z: 10,
 }
-export default class Game extends React.Component<any, any> {
+export default class Game extends React.Component<
+  {
+    playerID: number
+    timeLimit: number
+    lobbyinfo: Lobby
+    move?: number
+  },
+  any
+> {
   playerWords = ''
-  board: string[] = []
-  board2: Tile[] = []
+  playerScore = 0
+  board: Tile[] = []
   active: boolean[] = []
   moveStack: number[] = []
-  startTime = time.getTime()
-  //we will probably pass in player ID and lobby
-  playerID: Player = { id: 0 } //lobby is missing
+  startTime = new Date().getTime()
+  timer: any
+  finished = false
+  player: Player = { id: -1 }
+  enemyTiles: Tile[][] = [[], []]
+  enemyScores: number[] = [0, 0]
+  enemyPlayers = 2
+  dictionary: string[] = []
 
   constructor(props: any) {
     super(props)
     this.state = {
-      player: 1,
+      playerID: props.playerID,
+      timeLimit: props.timeLimit,
+      lobbyinfo: props.lobbyinfo,
+      timeRemaining: props.timeLimit * 10,
       move: 0,
     }
     //bind methods needed so they can be called when clicked
     this.randomizeBoard = this.randomizeBoard.bind(this)
     this.tileClicked = this.tileClicked.bind(this)
     this.submitWord = this.submitWord.bind(this)
+    this.countdown = this.countdown.bind(this)
 
-    //variable setups
-    console.log(this.startTime)
+    //variable setup
+    this.player = { id: this.state.playerID, lobby: this.state.lobby }
+    this.timer = setInterval(this.countdown, 100)
     for (let i = 0; i < 16; i++) {
       this.active.push(false)
-      this.board.push('X')
-      this.board2.push({ id: 0, letter: 'X', value: 0, location: 0, tileType: TileType.Normal })
+      this.board.push({ id: 0, letter: 'X', value: 0, location: 0, tileType: TileType.Normal })
+      for (let p = 0; p < this.enemyPlayers; p++) {
+        this.enemyTiles[p].push({ id: 0, letter: 'X', value: 0, location: 0, tileType: TileType.Normal })
+      }
     }
+  }
+  countdown() {
+    const timeLeft = this.state.timeRemaining - 1
+    if (timeLeft == 0) {
+      this.finished = true
+      clearInterval(this.timer)
+    }
+    this.setState({
+      timeRemaining: timeLeft,
+    })
+  }
+  initalizeDictionary() {
+    const fs = require('fs')
+    fs.readFile('../../../../public/assests/words.txt', (text: string) => {
+      this.dictionary = (text + '').split('\n')
+    })
+  }
+  isInDictionary(word: string) {
+    const n = this.dictionary.length
+    let left = 0
+    let right = n - 1
+    let middle = 0
+    while (left <= right) {
+      middle = (left + right) / 2
+      if (word === this.dictionary[middle]) return true
+
+      if (this.dictionary[middle] > word) {
+        right = middle - 1
+      } else {
+        left = middle + 1
+      }
+    }
+    return false
   }
   initalizeBoard() {
     for (let i = 0; i < 16; i++) {
       const c = this.getRandomLetter()
-      this.board[i] = c
-      this.board2[i] = { id: 0, letter: this.board[i], value: pointVal[c], location: i, tileType: TileType.Normal }
+      this.board[i] = { id: 0, letter: c, value: pointVal[c], location: i, tileType: TileType.Normal }
     }
-    //this.setState({ move: 1 })
   }
   randomizeBoard() {
     for (let i = 0; i < 16; i++) {
       const c = this.getRandomLetter()
-      this.board[i] = c
       this.active[i] = false
-      this.board2[i].letter = c
-      this.board2[i].value = pointVal[c]
+      this.board[i].letter = c
+      this.board[i].value = pointVal[c]
     }
     const scramble: Scramble = {
-      player: this.playerID,
-      time: time.getTime() - this.startTime,
+      player: this.player,
+      time: new Date().getTime() - this.startTime,
       moveType: MoveType.Scramble,
     }
     console.log('send scramble: ' + scramble.time)
 
     this.playerWords = ''
-    this.setState({ move: 1 })
+    this.setState({
+      move: this.state.move + 1,
+    })
     this.moveStack = []
   }
   getRandomLetter() {
@@ -113,17 +165,19 @@ export default class Game extends React.Component<any, any> {
     const len = this.moveStack.length
     if (len > 0 && key == this.moveStack[len - 1]) {
       const deselect: DeselectTile = {
-        player: this.playerID,
+        player: this.player,
         moveType: MoveType.DeselectTile,
-        time: time.getTime() - this.startTime,
-        tiles: this.board2,
+        time: new Date().getTime() - this.startTime,
+        tiles: this.board,
       }
       console.log('send DeselectTile: ' + deselect.time)
 
       this.moveStack.pop()
       this.playerWords = this.playerWords.slice(0, -1)
       this.active[key] = false
-      this.setState({ move: 1 })
+      this.setState({
+        move: this.state.move + 1,
+      })
       return
     }
     if (this.active[key] == true) return
@@ -134,13 +188,15 @@ export default class Game extends React.Component<any, any> {
     console.log('current word:' + this.playerWords)
 
     const select: SelectTile = {
-      player: this.playerID,
+      player: this.player,
       moveType: MoveType.DeselectTile,
-      time: time.getTime() - this.startTime,
-      tiles: this.board2,
+      time: new Date().getTime() - this.startTime,
+      tiles: this.board,
     }
     console.log('send selectTile: ' + select.time)
-    this.setState({ move: 1 })
+    this.setState({
+      move: this.state.move + 1,
+    })
   }
 
   submitWord() {
@@ -150,48 +206,60 @@ export default class Game extends React.Component<any, any> {
     let score = 0
     for (let i = 0; i < 16; i++) {
       if (this.active[i] === true) {
-        score += this.board2[i].value
+        score += this.board[i].value
         nl = this.getRandomLetter()
-        this.board[i] = nl
         this.active[i] = false
-        this.board2[i].letter = nl
-        this.board2[i].value = pointVal[nl]
+        this.board[i].letter = nl
+        this.board[i].value = pointVal[nl]
       }
     }
     const submit: Submit = {
       id: 0,
-      player: this.playerID,
-      time: time.getTime() + this.startTime,
+      player: this.player,
+      time: new Date().getTime() - this.startTime,
       moveType: MoveType.Submit,
-      tiles: this.board2,
+      tiles: this.board,
       pointValue: score,
     }
     console.log('send submit: ' + submit.time)
-    console.log(time.getTime())
 
+    this.playerScore += score
     this.moveStack = []
     this.playerWords = ''
-    this.setState({ move: 1 })
+    this.setState({
+      move: this.state.move + 1,
+    })
 
     //Send word to server
   }
 
   render() {
     const tiles = []
-    const enemy1Tiles = []
-    const enemy2Tiles = []
+    //const enemy1Tiles = []
+    //const enemy2Tiles = []
+    const enemyTiles = [[<div key={0}></div>]]
+    enemyTiles.pop()
+    for (let p = 0; p < this.enemyPlayers; p++) {
+      enemyTiles.push([])
+    }
     for (let i = 0; i < 4; i++) {
       for (let j = 0; j < 4; j++) {
         const index = i * 4 + j
-        //const c = this.board[index]
-        const c = this.board2[index].letter
+        const c = this.board[index].letter
         const active = this.active[index]
         tiles.push(
           <div className={active ? 'redTile' : 'Tile'} onClick={() => this.tileClicked(c, index)} key={index}>
             {c}
           </div>
         )
-        enemy1Tiles.push(
+        for (let p = 0; p < this.enemyPlayers; p++) {
+          enemyTiles[p].push(
+            <div className="miniTile" key={index}>
+              {this.enemyTiles[p][index].letter}
+            </div>
+          )
+        }
+        /*         enemy1Tiles.push(
           <div className="miniTile" key={index}>
             {c}
           </div>
@@ -200,36 +268,60 @@ export default class Game extends React.Component<any, any> {
           <div className="miniTile" key={index}>
             {c}
           </div>
-        )
+        ) */
       }
     }
-    return (
-      <Content>
-        <div className="column">
-          <div className="miniBoard">{enemy1Tiles}</div>
-          <Spacer $h5 />
-          <div className="miniBoard">{enemy2Tiles}</div>
-        </div>
-        <div className="column">
-          <div className="board">{tiles}</div>
-          <div className="wordbox">{'Word: ' + this.playerWords}</div>
-          <button className="button" onClick={this.submitWord}>
-            Submit
-          </button>
+    if (!this.finished) {
+      return (
+        <Content>
+          <div className="column">
+            <div>Player 2 score: {this.enemyScores[0]}</div>
+            <div className="miniBoard">{enemyTiles[0]}</div>
+            <Spacer $h5 />
+            <div>Player 3 score: {this.enemyScores[1]}</div>
+            <div className="miniBoard">{enemyTiles[1]}</div>
+          </div>
+          <div className="column">
+            <div>Time Remaining: {this.state.timeRemaining / 10}</div>
+            <div>Your Score: {this.playerScore}</div>
+            <Spacer $h1 />
+            <div className="board">{tiles}</div>
+            <div className="wordbox">{'Word: ' + this.playerWords}</div>
+            <button className="button" onClick={this.submitWord}>
+              Submit
+            </button>
 
-          <button className="button" onClick={this.randomizeBoard}>
-            Randomize
-          </button>
+            <button className="button" onClick={this.randomizeBoard}>
+              Randomize
+            </button>
+          </div>
+          <div className="chat">
+            <RContent>
+              <Section>
+                <h2> CHATROOM HERE </h2>
+              </Section>
+            </RContent>
+          </div>
+        </Content>
+      )
+    } else {
+      //calc scores
+      const ranks = ['1st', '2nd', '3rd']
+      let place = this.enemyPlayers
+      for (let p = 0; p < this.enemyPlayers; p++) {
+        if (this.enemyScores[p] <= this.playerScore) {
+          place--
+        }
+      }
+      return (
+        <div className="resultText">
+          <div> Game is Finished </div>
+          <Spacer $h5 />
+          <div> You Placed {ranks[place]}</div>
+          <div> Your score: {this.playerScore}</div>
         </div>
-        <div className="chat">
-          <RContent>
-            <Section>
-              <h2> CHATROOM HERE </h2>
-            </Section>
-          </RContent>
-        </div>
-      </Content>
-    )
+      )
+    }
   }
 }
 /*const Hero = style('div', 'mb4 w-100 ba b--mid-gray br2 pa3 tc', {
