@@ -21,6 +21,7 @@ export interface Query {
   lobbies?: Maybe<Array<Lobby>>
   lobby?: Maybe<Lobby>
   users: Array<Maybe<User>>
+  username?: Maybe<Scalars['String']>
 }
 
 export interface QuerySurveyArgs {
@@ -29,6 +30,10 @@ export interface QuerySurveyArgs {
 
 export interface QueryLobbyArgs {
   lobbyId: Scalars['Int']
+}
+
+export interface QueryUsernameArgs {
+  playerId: Scalars['Int']
 }
 
 export interface Mutation {
@@ -322,9 +327,9 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = {
   Query: ResolverTypeWrapper<{}>
   Int: ResolverTypeWrapper<Scalars['Int']>
+  String: ResolverTypeWrapper<Scalars['String']>
   Mutation: ResolverTypeWrapper<{}>
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>
-  String: ResolverTypeWrapper<Scalars['String']>
   Subscription: ResolverTypeWrapper<{}>
   User: ResolverTypeWrapper<User>
   UserType: UserType
@@ -358,9 +363,9 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   Query: {}
   Int: Scalars['Int']
+  String: Scalars['String']
   Mutation: {}
   Boolean: Scalars['Boolean']
-  String: Scalars['String']
   Subscription: {}
   User: User
   Survey: Survey
@@ -401,6 +406,12 @@ export type QueryResolvers<
   lobbies?: Resolver<Maybe<Array<ResolversTypes['Lobby']>>, ParentType, ContextType>
   lobby?: Resolver<Maybe<ResolversTypes['Lobby']>, ParentType, ContextType, RequireFields<QueryLobbyArgs, 'lobbyId'>>
   users?: Resolver<Array<Maybe<ResolversTypes['User']>>, ParentType, ContextType>
+  username?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryUsernameArgs, 'playerId'>
+  >
 }
 
 export type MutationResolvers<
