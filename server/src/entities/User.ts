@@ -24,6 +24,7 @@ export class User extends BaseEntity implements GraphqlUser {
 
   @Column({
     length: 100,
+    default: '123@ucla.edu'
   })
   email: string
 

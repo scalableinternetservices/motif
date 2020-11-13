@@ -9,7 +9,6 @@ import { Page } from './Page'
 // eslint-disable-next-line prettier/prettier
 interface PlaygroundPageProps extends RouteComponentProps, AppRouteParams { }
 
-//export function BoardPage(props: PlaygroundPageProps) {
 export function BoardPage(props: PlaygroundPageProps) {
   const { user } = React.useContext(UserContext)
   const lobby: Lobby = {

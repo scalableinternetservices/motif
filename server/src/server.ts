@@ -85,6 +85,27 @@ server.express.post(
 )
 
 server.express.post(
+  '/auth/createUser_',
+  asyncRoute(async (req, res) => {
+    console.log('POST /auth/createUser_')
+
+    // create User model with data from HTTP request
+    let user = new User()
+    user.name = req.body.userName
+    user.userType = UserType.User
+
+    // save the User model to the database, refresh `user` to get ID
+    user = await user.save()
+
+    const authToken = await createSession(user)
+    res
+      .status(200)
+      .cookie('authToken', authToken, { maxAge: SESSION_DURATION, path: '/', httpOnly: true, secure: Config.isProd })
+      .send('Success!')
+  })
+)
+
+server.express.post(
   '/auth/login',
   asyncRoute(async (req, res) => {
     console.log('POST /auth/login')
