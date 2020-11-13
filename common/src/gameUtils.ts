@@ -13,7 +13,7 @@ const readline = require('readline')
 const dictionary: string[] = []
 readline
   .createInterface({
-    input: fs.createReadStream('../public/assets/words.txt'),
+    input: fs.createReadStream('./common/src/words.txt'),
     terminal: false,
   })
   .on('line', (line: string) => dictionary.push(line))

@@ -36,4 +36,7 @@ export class Move extends BaseEntity {
 
   @OneToMany(() => Tile, tile => tile.move, { eager: true })
   tiles: Tile[]
+
+  @Column({ nullable: true })
+  pointValue: number
 }
