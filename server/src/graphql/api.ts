@@ -51,6 +51,8 @@ export const graphqlRoot: Resolvers<Context> = {
     lobbies: () => Lobby.find(),
     lobby: async (_, { lobbyId }) => (await Lobby.findOne({ where: { id: lobbyId } })) || null,
     users: () => User.find(),
+    username: async (_, { playerId }) =>
+      (await Player.findOne({ where: { id: playerId }, relations: ['user'] }))?.user?.name || null,
   },
   Mutation: {
     answerSurvey: async (_, { input }, ctx) => {
