@@ -28,6 +28,7 @@ type Query {
   lobby (lobbyId: Int!): Lobby
 
   users: [User]!
+  username(playerId: Int!): String
 }
 
 # Special "Type" - Mutations for the API

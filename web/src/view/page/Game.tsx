@@ -46,7 +46,7 @@ const pointVal: { [letter: string]: number } = {
 }
 export default class Game extends React.Component<
   {
-    playerID: number
+    playerID?: number
     timeLimit: number
     lobbyinfo: Lobby
     move?: number
@@ -254,6 +254,7 @@ export default class Game extends React.Component<
         )
         for (let p = 0; p < this.enemyPlayers; p++) {
           enemyTiles[p].push(
+            //<div className={this.enemyTiles[p][index]'miniTile'} key={index}>
             <div className="miniTile" key={index}>
               {this.enemyTiles[p][index].letter}
             </div>

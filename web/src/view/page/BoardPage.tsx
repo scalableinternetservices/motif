@@ -1,6 +1,5 @@
-import { RouteComponentProps } from '@reach/router'
+import { RouteComponentProps, useLocation } from '@reach/router'
 import * as React from 'react'
-import { useContext } from 'react'
 import { Lobby, LobbyState } from '../../../../server/src/graphql/schema.types'
 import { UserContext } from '../auth/user'
 import { AppRouteParams } from '../nav/route'
@@ -10,11 +9,10 @@ import { Page } from './Page'
 // eslint-disable-next-line prettier/prettier
 interface PlaygroundPageProps extends RouteComponentProps, AppRouteParams { }
 
-//export function BoardPage(props: PlaygroundPageProps) {
 export function BoardPage(props: PlaygroundPageProps) {
-  const { user } = useContext(UserContext)
+  const { user } = React.useContext(UserContext)
   const lobby: Lobby = {
-    id: -1,
+    id: LobbyWaitWrap(),
     state: LobbyState.Public,
     players: [],
     spectators: [],
@@ -22,31 +20,17 @@ export function BoardPage(props: PlaygroundPageProps) {
     gameTime: 300,
     maxUsers: 3,
   }
+  console.log('user id: ' + user?.id)
+  console.log('Lobby: ' + LobbyWaitWrap())
   return (
     <Page>
-      <Game playerID={9} timeLimit={30} lobbyinfo={lobby} />
+      <Game playerID={user?.id} timeLimit={30} lobbyinfo={lobby} />
     </Page>
   )
 }
 
-function tryy() {
-  console.log('work pls')
-}
-//export function getBoardApp(app?: PlaygroundApp) {
-export function getBoardApp() {
-  const blocks = []
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 4; j++) {
-      blocks.push(
-        <div className="button" key={i * 4 + j}>
-          {i * 4 + j}
-        </div>
-      )
-    }
-  }
-  return (
-    <div>
-      <h2 onClick={tryy}>JUANS PAGE </h2>
-    </div>
-  )
+function LobbyWaitWrap() {
+  const location = useLocation()
+  const [, lobbyId] = (location.search || '').split('?lobbyId=')
+  return lobbyId ? Number(lobbyId) : 0
 }
