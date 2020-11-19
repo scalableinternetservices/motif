@@ -88,29 +88,6 @@ export default class Game extends React.Component<
       timeRemaining: timeLeft,
     })
   }
-  initalizeDictionary() {
-    const fs = require('fs')
-    fs.readFile('../../../../public/assests/words.txt', (text: string) => {
-      this.dictionary = (text + '').split('\n')
-    })
-  }
-  isInDictionary(word: string) {
-    const n = this.dictionary.length
-    let left = 0
-    let right = n - 1
-    let middle = 0
-    while (left <= right) {
-      middle = (left + right) / 2
-      if (word === this.dictionary[middle]) return true
-
-      if (this.dictionary[middle] > word) {
-        right = middle - 1
-      } else {
-        left = middle + 1
-      }
-    }
-    return false
-  }
   initalizeBoard() {
     for (let i = 0; i < 16; i++) {
       const c = this.getRandomLetter()
@@ -133,7 +110,6 @@ export default class Game extends React.Component<
     randomizeMove(scramble)
       .then(() => console.log('Randomize move worked'))
       .catch(() => console.log('broke'))
-    console.log('send scramble: ' + scramble.time)
 
     this.playerWords = ''
     this.setState({
@@ -162,7 +138,6 @@ export default class Game extends React.Component<
       deselectMove(deselect)
         .then(() => console.log('Deselect move worked'))
         .catch(() => console.log('broke'))
-      console.log('send DeselectTile: ' + deselect.time)
 
       this.moveStack.pop()
       this.submitTiles.pop()
@@ -185,7 +160,6 @@ export default class Game extends React.Component<
       location: this.board[key].location,
       tileType: this.board[key].tileType,
     })
-    console.log('current word:' + this.playerWords)
 
     const select: SelectTile = {
       player: this.player,
@@ -196,7 +170,6 @@ export default class Game extends React.Component<
     selectMove(select)
       .then(() => console.log('Select worked'))
       .catch(() => console.log('broke'))
-    console.log('send selectTile: ' + select.time)
     this.setState({
       move: this.state.move + 1,
     })
@@ -224,7 +197,6 @@ export default class Game extends React.Component<
       tiles: this.submitTiles,
       pointValue: score,
     }
-    console.log('send submit: ' + submit.time)
 
     this.playerScore += score
     this.moveStack = []
@@ -233,10 +205,15 @@ export default class Game extends React.Component<
     this.setState({
       move: this.state.move + 1,
     })
-    submitMove(submit)
+    const res = submitMove(submit)
       .then(() => console.log('Submit worked'))
       .catch(() => console.log('broke'))
     //Send word to server
+    if (res) {
+      console.log('returned true')
+    } else {
+      console.log('returned false')
+    }
   }
 
   render() {

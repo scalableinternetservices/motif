@@ -12,9 +12,11 @@ import { SurveyAnswer } from '../entities/SurveyAnswer'
 import { SurveyQuestion } from '../entities/SurveyQuestion'
 import { Tile } from '../entities/Tile'
 import { User } from '../entities/User'
+import Dictionary from './dictionary'
 import { LobbyState, MoveType, Resolvers, TileType } from './schema.types'
 
 export const pubsub = new PubSub()
+export const dictionary = new Dictionary()
 
 export function getSchema() {
   const schema = readFileSync(path.join(__dirname, 'schema.graphql'))
@@ -163,20 +165,28 @@ export const graphqlRoot: Resolvers<Context> = {
       return true
     },
     makeMove: async (_, { input }, ctx) => {
-      console.log('making move start' + input.lobbyId)
+      console.log('making move start ')
       const lobby = check(await Lobby.findOne({ where: { id: input.lobbyId } }), 'makeMove: lobby does not exist')
-      if (lobby.state != LobbyState.InGame) return false
+      if (lobby.state != LobbyState.InGame) {
+        console.log('Lobby State mismatch')
+        //return false
+      }
       const player = check(
         await Player.findOne({ relations: ['lobby'], where: { id: input.playerId } }),
         'makeMove: player does not exist'
       )
       //const lobby = player.lobby
-      if (player.lobby.id != input.lobbyId) return false
+      if (player.lobby.id != input.lobbyId) {
+        console.log('PlayerID mismatch')
+        //return false
+      }
       const move = new Move()
       move.lobby = lobby
       move.moveType = input.moveType
       move.player = player
+
       // TODO: check if move is valid
+      console.log(input.moveType)
       await move.save()
       switch (input.moveType) {
         case 'SelectTile':
@@ -197,20 +207,21 @@ export const graphqlRoot: Resolvers<Context> = {
           // TODO: check that word is in dictionary
           const inputTiles1 = check(input.tiles, 'Submit move needs Tiles in MoveInput.tiles')
           // after Submit, server spawns tiles in those locations
-          let serverMove = new Move()
+          const serverMove = new Move()
           serverMove.player = player
           serverMove.lobby = lobby
           serverMove.moveType = MoveType.SpawnTiles
-
+          let word = ''
           inputTiles1.forEach(async tile => {
             // save a copy of the tile for Submit move
+            word = word + tile.letter
             const newTile = new Tile()
             newTile.letter = tile.letter.toUpperCase()
             newTile.location = tile.location
             newTile.move = move
             newTile.value = tile.pointValue
             newTile.tileType = tile.tileType
-            await newTile.save()
+            await newTile.save().catch(() => console.log('broke here'))
             move.tiles.push(newTile)
             // spawn a new tile in the location by server
             const spawnedTile = new Tile()
@@ -219,25 +230,26 @@ export const graphqlRoot: Resolvers<Context> = {
             spawnedTile.move = serverMove
             spawnedTile.value = 1
             spawnedTile.tileType = TileType.Normal
-            await spawnedTile.save()
+            await spawnedTile.save().catch(() => console.log('broke here 2'))
           })
+          console.log('in dictionary: ' + dictionary.isInDictionary(word.toLowerCase()))
           await serverMove.save()
           break
         case 'Scramble':
-          serverMove = new Move()
-          serverMove.player = player
-          serverMove.lobby = lobby
-          serverMove.moveType = MoveType.SpawnTiles
+          const serverMove2 = new Move()
+          serverMove2.player = player
+          serverMove2.lobby = lobby
+          serverMove2.moveType = MoveType.SpawnTiles
           for (let i = 0; i < 16; i++) {
             const spawnedTile = new Tile()
             spawnedTile.letter = getRandomLetter()
             spawnedTile.location = i
-            spawnedTile.move = serverMove
+            spawnedTile.move = serverMove2
             spawnedTile.value = 1
             spawnedTile.tileType = TileType.Normal
-            await spawnedTile.save()
+            //await spawnedTile.save()
           }
-          await serverMove.save()
+          await serverMove2.save()
           break
         case 'SpawnTiles':
           // TODO: this is for testing, otherwise should be automated by server
