@@ -163,13 +163,14 @@ export const graphqlRoot: Resolvers<Context> = {
       return true
     },
     makeMove: async (_, { input }, ctx) => {
-      console.log('making move start')
+      console.log('making move start' + input.lobbyId)
       const lobby = check(await Lobby.findOne({ where: { id: input.lobbyId } }), 'makeMove: lobby does not exist')
       if (lobby.state != LobbyState.InGame) return false
       const player = check(
         await Player.findOne({ relations: ['lobby'], where: { id: input.playerId } }),
         'makeMove: player does not exist'
       )
+      //const lobby = player.lobby
       if (player.lobby.id != input.lobbyId) return false
       const move = new Move()
       move.lobby = lobby

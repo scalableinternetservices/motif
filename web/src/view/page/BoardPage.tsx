@@ -13,7 +13,7 @@ export function BoardPage(props: PlaygroundPageProps) {
   const { user } = React.useContext(UserContext)
   const lobby: Lobby = {
     id: LobbyWaitWrap(),
-    state: LobbyState.Public,
+    state: LobbyState.InGame,
     players: [],
     spectators: [],
     moves: [],

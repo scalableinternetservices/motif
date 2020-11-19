@@ -140,7 +140,7 @@ export interface SurveyInput {
 export interface Player {
   __typename?: 'Player'
   id: Scalars['Int']
-  lobby?: Maybe<Lobby>
+  lobby: Lobby
 }
 
 export enum TileType {
@@ -152,7 +152,7 @@ export enum TileType {
 export interface Tile {
   __typename?: 'Tile'
   id: Scalars['Int']
-  value: Scalars['Int']
+  pointValue: Scalars['Int']
   location: Scalars['Int']
   letter: Scalars['String']
   tileType: TileType

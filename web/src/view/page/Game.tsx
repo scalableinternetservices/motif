@@ -1,10 +1,14 @@
 //import React, { Component } from 'react';
+import { gql } from '@apollo/client'
 import * as React from 'react'
 import { ColorName, Colors } from '../../../../common/src/colors'
 import {
   DeselectTile,
   Lobby,
+  LobbyState,
+  MoveInput,
   MoveType,
+  MutationMakeMoveArgs,
   Player,
   Scramble,
   SelectTile,
@@ -13,6 +17,7 @@ import {
   // eslint-disable-next-line prettier/prettier
   TileType
 } from '../../../../server/src/graphql/schema.types'
+import { getApolloClient } from '../../graphql/apolloClient'
 import { Spacer } from '../../style/spacer'
 import { style } from '../../style/styled'
 
@@ -58,10 +63,22 @@ export default class Game extends React.Component<
   board: Tile[] = []
   active: boolean[] = []
   moveStack: number[] = []
+  submitTiles: Tile[] = []
   startTime = new Date().getTime()
   timer: any
   finished = false
-  player: Player = { id: -1 }
+  player: Player = {
+    id: -1,
+    lobby: {
+      id: -1,
+      state: LobbyState.InGame,
+      players: [],
+      spectators: [],
+      moves: [],
+      gameTime: 300,
+      maxUsers: 3,
+    },
+  }
   enemyTiles: Tile[][] = [[], []]
   enemyScores: number[] = [0, 0]
   enemyPlayers = 2
@@ -83,13 +100,14 @@ export default class Game extends React.Component<
     this.countdown = this.countdown.bind(this)
 
     //variable setup
-    this.player = { id: this.state.playerID, lobby: this.state.lobby }
+    if (this.state.lobbyinfo === undefined) console.log('baddddd')
+    this.player = { id: this.state.playerID, lobby: this.state.lobbyinfo }
     this.timer = setInterval(this.countdown, 100)
     for (let i = 0; i < 16; i++) {
       this.active.push(false)
-      this.board.push({ id: 0, letter: 'X', value: 0, location: 0, tileType: TileType.Normal })
+      this.board.push({ id: 0, letter: 'X', pointValue: 0, location: 0, tileType: TileType.Normal })
       for (let p = 0; p < this.enemyPlayers; p++) {
-        this.enemyTiles[p].push({ id: 0, letter: 'X', value: 0, location: 0, tileType: TileType.Normal })
+        this.enemyTiles[p].push({ id: 0, letter: 'X', pointValue: 0, location: 0, tileType: TileType.Normal })
       }
     }
   }
@@ -129,7 +147,7 @@ export default class Game extends React.Component<
   initalizeBoard() {
     for (let i = 0; i < 16; i++) {
       const c = this.getRandomLetter()
-      this.board[i] = { id: 0, letter: c, value: pointVal[c], location: i, tileType: TileType.Normal }
+      this.board[i] = { id: 0, letter: c, pointValue: pointVal[c], location: i, tileType: TileType.Normal }
     }
   }
   randomizeBoard() {
@@ -137,7 +155,7 @@ export default class Game extends React.Component<
       const c = this.getRandomLetter()
       this.active[i] = false
       this.board[i].letter = c
-      this.board[i].value = pointVal[c]
+      this.board[i].pointValue = pointVal[c]
     }
     const scramble: Scramble = {
       player: this.player,
@@ -168,11 +186,12 @@ export default class Game extends React.Component<
         player: this.player,
         moveType: MoveType.DeselectTile,
         time: new Date().getTime() - this.startTime,
-        tiles: this.board,
+        tiles: [this.board[key]],
       }
       console.log('send DeselectTile: ' + deselect.time)
 
       this.moveStack.pop()
+      this.submitTiles.pop()
       this.playerWords = this.playerWords.slice(0, -1)
       this.active[key] = false
       this.setState({
@@ -185,13 +204,20 @@ export default class Game extends React.Component<
     this.playerWords += letter
     this.active[key] = true
     this.moveStack.push(key)
+    this.submitTiles.push({
+      id: this.board[key].id,
+      letter: this.board[key].letter,
+      pointValue: this.board[key].pointValue,
+      location: this.board[key].location,
+      tileType: this.board[key].tileType,
+    })
     console.log('current word:' + this.playerWords)
 
     const select: SelectTile = {
       player: this.player,
       moveType: MoveType.DeselectTile,
       time: new Date().getTime() - this.startTime,
-      tiles: this.board,
+      tiles: [this.board[key]],
     }
     console.log('send selectTile: ' + select.time)
     this.setState({
@@ -206,11 +232,11 @@ export default class Game extends React.Component<
     let score = 0
     for (let i = 0; i < 16; i++) {
       if (this.active[i] === true) {
-        score += this.board[i].value
+        score += this.board[i].pointValue
         nl = this.getRandomLetter()
         this.active[i] = false
         this.board[i].letter = nl
-        this.board[i].value = pointVal[nl]
+        this.board[i].pointValue = pointVal[nl]
       }
     }
     const submit: Submit = {
@@ -218,18 +244,21 @@ export default class Game extends React.Component<
       player: this.player,
       time: new Date().getTime() - this.startTime,
       moveType: MoveType.Submit,
-      tiles: this.board,
+      tiles: this.submitTiles,
       pointValue: score,
     }
     console.log('send submit: ' + submit.time)
 
     this.playerScore += score
     this.moveStack = []
+    this.submitTiles = []
     this.playerWords = ''
     this.setState({
       move: this.state.move + 1,
     })
-
+    submitMove(submit)
+      .then(() => console.log('worked'))
+      .catch(() => console.log('broke'))
     //Send word to server
   }
 
@@ -344,3 +373,34 @@ const Section = style('div', 'mb4 mid-gray ba b--mid-gray br2 pa3', (p: { $color
 
 
 */
+const makeMoveMutation = gql`
+  mutation MakeMove($input: MoveInput!) {
+    makeMove(input: $input)
+  }
+`
+interface MakeMove {
+  success: boolean
+}
+export function submitMove(input: Submit) {
+  const temp = []
+  for (let i = 0; i < input.tiles.length; i++) {
+    temp.push({
+      letter: input.tiles[i].letter,
+      pointValue: input.tiles[i].pointValue,
+      tileType: input.tiles[i].tileType,
+      location: input.tiles[i].location,
+    })
+  }
+  const t: MoveInput = {
+    playerId: input.player.id,
+    lobbyId: input.player.lobby.id,
+    time: input.time,
+    moveType: input.moveType,
+    tiles: temp,
+    pointValue: input.pointValue,
+  }
+  return getApolloClient().mutate<MakeMove, MutationMakeMoveArgs>({
+    mutation: makeMoveMutation,
+    variables: { input: t },
+  })
+}
