@@ -1,14 +1,10 @@
-//import React, { Component } from 'react';
-import { gql } from '@apollo/client'
 import * as React from 'react'
 import { ColorName, Colors } from '../../../../common/src/colors'
 import {
   DeselectTile,
   Lobby,
   LobbyState,
-  MoveInput,
   MoveType,
-  MutationMakeMoveArgs,
   Player,
   Scramble,
   SelectTile,
@@ -17,38 +13,10 @@ import {
   // eslint-disable-next-line prettier/prettier
   TileType
 } from '../../../../server/src/graphql/schema.types'
-import { getApolloClient } from '../../graphql/apolloClient'
 import { Spacer } from '../../style/spacer'
 import { style } from '../../style/styled'
+import { deselectMove, randomizeMove, selectMove, submitMove } from './GameMutations'
 
-const pointVal: { [letter: string]: number } = {
-  A: 1,
-  B: 3,
-  C: 3,
-  D: 2,
-  E: 1,
-  F: 4,
-  G: 2,
-  H: 4,
-  I: 1,
-  J: 8,
-  K: 5,
-  L: 1,
-  M: 3,
-  N: 1,
-  O: 1,
-  P: 3,
-  Q: 10,
-  R: 1,
-  S: 1,
-  T: 1,
-  U: 1,
-  V: 4,
-  W: 4,
-  X: 8,
-  Y: 4,
-  Z: 10,
-}
 export default class Game extends React.Component<
   {
     playerID?: number
@@ -100,7 +68,6 @@ export default class Game extends React.Component<
     this.countdown = this.countdown.bind(this)
 
     //variable setup
-    if (this.state.lobbyinfo === undefined) console.log('baddddd')
     this.player = { id: this.state.playerID, lobby: this.state.lobbyinfo }
     this.timer = setInterval(this.countdown, 100)
     for (let i = 0; i < 16; i++) {
@@ -162,6 +129,10 @@ export default class Game extends React.Component<
       time: new Date().getTime() - this.startTime,
       moveType: MoveType.Scramble,
     }
+    //randomize move sent to server
+    randomizeMove(scramble)
+      .then(() => console.log('Randomize move worked'))
+      .catch(() => console.log('broke'))
     console.log('send scramble: ' + scramble.time)
 
     this.playerWords = ''
@@ -179,7 +150,6 @@ export default class Game extends React.Component<
   }
 
   tileClicked(letter: string, key: number) {
-    //add a check if it is the last tile clicked
     const len = this.moveStack.length
     if (len > 0 && key == this.moveStack[len - 1]) {
       const deselect: DeselectTile = {
@@ -188,6 +158,10 @@ export default class Game extends React.Component<
         time: new Date().getTime() - this.startTime,
         tiles: [this.board[key]],
       }
+      //sent deselect move
+      deselectMove(deselect)
+        .then(() => console.log('Deselect move worked'))
+        .catch(() => console.log('broke'))
       console.log('send DeselectTile: ' + deselect.time)
 
       this.moveStack.pop()
@@ -219,6 +193,9 @@ export default class Game extends React.Component<
       time: new Date().getTime() - this.startTime,
       tiles: [this.board[key]],
     }
+    selectMove(select)
+      .then(() => console.log('Select worked'))
+      .catch(() => console.log('broke'))
     console.log('send selectTile: ' + select.time)
     this.setState({
       move: this.state.move + 1,
@@ -257,7 +234,7 @@ export default class Game extends React.Component<
       move: this.state.move + 1,
     })
     submitMove(submit)
-      .then(() => console.log('worked'))
+      .then(() => console.log('Submit worked'))
       .catch(() => console.log('broke'))
     //Send word to server
   }
@@ -369,38 +346,32 @@ const Section = style('div', 'mb4 mid-gray ba b--mid-gray br2 pa3', (p: { $color
   borderLeftColor: Colors[p.$color || 'lemon'] + '!important',
   borderLeftWidth: '3px',
 }))
-/*const LContent = style('div', 'flex-grow-0 w-70-l mr4-l')
 
-
-*/
-const makeMoveMutation = gql`
-  mutation MakeMove($input: MoveInput!) {
-    makeMove(input: $input)
-  }
-`
-interface MakeMove {
-  success: boolean
-}
-export function submitMove(input: Submit) {
-  const temp = []
-  for (let i = 0; i < input.tiles.length; i++) {
-    temp.push({
-      letter: input.tiles[i].letter,
-      pointValue: input.tiles[i].pointValue,
-      tileType: input.tiles[i].tileType,
-      location: input.tiles[i].location,
-    })
-  }
-  const t: MoveInput = {
-    playerId: input.player.id,
-    lobbyId: input.player.lobby.id,
-    time: input.time,
-    moveType: input.moveType,
-    tiles: temp,
-    pointValue: input.pointValue,
-  }
-  return getApolloClient().mutate<MakeMove, MutationMakeMoveArgs>({
-    mutation: makeMoveMutation,
-    variables: { input: t },
-  })
+const pointVal: { [letter: string]: number } = {
+  A: 1,
+  B: 3,
+  C: 3,
+  D: 2,
+  E: 1,
+  F: 4,
+  G: 2,
+  H: 4,
+  I: 1,
+  J: 8,
+  K: 5,
+  L: 1,
+  M: 3,
+  N: 1,
+  O: 1,
+  P: 3,
+  Q: 10,
+  R: 1,
+  S: 1,
+  T: 1,
+  U: 1,
+  V: 4,
+  W: 4,
+  X: 8,
+  Y: 4,
+  Z: 10,
 }

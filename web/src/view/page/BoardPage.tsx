@@ -9,6 +9,7 @@ import { Page } from './Page'
 // eslint-disable-next-line prettier/prettier
 interface PlaygroundPageProps extends RouteComponentProps, AppRouteParams { }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function BoardPage(props: PlaygroundPageProps) {
   const { user } = React.useContext(UserContext)
   const lobby: Lobby = {
@@ -24,7 +25,7 @@ export function BoardPage(props: PlaygroundPageProps) {
   console.log('Lobby: ' + LobbyWaitWrap())
   return (
     <Page>
-      <Game playerID={user?.id} timeLimit={30} lobbyinfo={lobby} />
+      <Game playerID={user?.id} timeLimit={60} lobbyinfo={lobby} />
     </Page>
   )
 }

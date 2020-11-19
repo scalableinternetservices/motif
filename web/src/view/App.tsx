@@ -62,11 +62,11 @@ export function AppBody() {
         <PlaygroundPage path={Route.PLAYGROUND} />
         <PlaygroundPage path={Route.PLAYGROUND_APP} />
         <LobbySearchMain path={Route.LobbySearch} />
-        <LobbyWait path={Route.LobbyWait}/>
+        <LobbyWait path={Route.LobbyWait} />
         <BoardPage path={Route.JUAN_TESTING} />
-        <UserLogin path={Route.USER_LOGIN}/>
-        <LobbyWait path={Route.Lobby_Inst}/>
-        <BoardPage path={Route.Game_Inst}/>
+        <UserLogin path={Route.USER_LOGIN} />
+        <LobbyWait path={Route.Lobby_Inst} />
+        <BoardPage path={Route.Game_Inst} />
       </Router>
       <Footer>
         <FooterText>© 2020 John Rothfels</FooterText>
