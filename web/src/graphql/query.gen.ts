@@ -68,6 +68,52 @@ export interface FetchLobbies {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: FetchLobby
+// ====================================================
+
+export interface FetchLobby_lobby_players {
+  __typename: "Player";
+  id: number;
+}
+
+export interface FetchLobby_lobby {
+  __typename: "Lobby";
+  gameTime: number;
+  maxUsers: number;
+  players: FetchLobby_lobby_players[];
+}
+
+export interface FetchLobby {
+  lobby: FetchLobby_lobby | null;
+}
+
+export interface FetchLobbyVariables {
+  lobbyId: number;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: FetchUserName
+// ====================================================
+
+export interface FetchUserName {
+  username: string | null;
+}
+
+export interface FetchUserNameVariables {
+  playerId: number;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL mutation operation: CreateLobby
 // ====================================================
 

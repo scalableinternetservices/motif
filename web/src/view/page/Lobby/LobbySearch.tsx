@@ -66,9 +66,11 @@ interface LobbyButtonProps extends UserInfo{
 
 
 function LobbyButton(p : LobbyButtonProps) {
+  const {refetch} = useQuery<FetchLobbies>(fetchLobbies);
 
   function handleJoinLobby(userId: number, lobbyId: number) {
     joinLobby(userId, lobbyId)
+    .then(() => refetch())
     .catch(handleError)
   }
 

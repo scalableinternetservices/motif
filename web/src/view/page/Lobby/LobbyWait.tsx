@@ -1,10 +1,13 @@
+import { useQuery } from '@apollo/client';
 import { RouteComponentProps, useLocation } from '@reach/router';
 import * as React from 'react';
+import { FetchLobbies, FetchLobby, FetchLobbyVariables, FetchUserName, FetchUserNameVariables } from '../../../graphql/query.gen';
 import { UserContext } from '../../auth/user';
 import { Link } from '../../nav/Link';
 import { AppRouteParams, getGamePath, getLobbySearchPath } from '../../nav/route';
 import { handleError } from '../../toast/error';
 import { Page } from '../Page';
+import { fetchLobbies, fetchLobby, fetchUserName } from './fetchLobbies';
 import { UserInfo } from './LobbySearch';
 import { leaveLobby, startGame } from './mutateLobbies';
 
@@ -39,6 +42,7 @@ interface LobbyMainProps {
 }
 
 
+
 function LobbyContainer(p: LobbyMainProps) {
   const {user} = React.useContext(UserContext);
 
@@ -52,14 +56,15 @@ function LobbyContainer(p: LobbyMainProps) {
 
   //Query for lobby data here
   const lobbyName = "Insert Lobby Name Here"
-  const players = [{name: "Alan"},
-                   {name: "Juan"},
-                   {name: "Elyse"},
-                   {name: "Nihar"},]
+  // const players = [{name: "Alan"},
+  //                  {name: "Juan"},
+  //                  {name: "Elyse"},
+  //                  {name: "Nihar"},]
+
   return (
       <div>
          <TopBar userId={user.id} lobbyId={p.lobbyId} lobbyName={lobbyName}/>
-         <PlayersContainer players={players}/>
+         <PlayersContainer lobbyId={p.lobbyId}/>
       </div>
   )
 }
@@ -73,7 +78,7 @@ function TopBar(p : TopBarProps){
     <div className="mw100-l flex">
       <div className="w-25 pa3 flex justify-around h3">
         <div className="w-50 pa3">
-        <ExitButton userId={p.userId}/>
+        <ExitButton userId={p.userId} lobbyId={p.lobbyId}/>
         </div>
         <div className="w-50 pa3">
         <StartButton lobbyId={p.lobbyId}/>
@@ -87,11 +92,25 @@ function TopBar(p : TopBarProps){
 }
 
 interface PlayersContainerProps {
-  players : {name : string}[],
+  lobbyId: number,
 }
 
 function PlayersContainer(p : PlayersContainerProps)
 {
+  let lobbyId = p.lobbyId;
+  // const [playerListLength, setPlayerListLength] = React.useState(0);
+  const { loading, data, refetch} = useQuery<FetchLobby, FetchLobbyVariables>(fetchLobby, {variables: {lobbyId}});
+  refetch();
+  if(loading) {
+    return <div>Fetching Lobby</div>
+  } else if(data == null) {
+    return <div>Lobby not found</div>
+  }
+
+
+
+
+
   return (
     <div className="mw8 flex ">
       <div className="w-25 ph2 flex justify-center h5 items-center bg-green">
@@ -99,10 +118,10 @@ function PlayersContainer(p : PlayersContainerProps)
       </div>
 
       <div className="playerContainer outline">
-        <SettingsBar maxPlayer={4} timeLimit={5}/>
+        <SettingsBar maxPlayer={data?.lobby?.maxUsers} timeLimit={data?.lobby?.gameTime}/>
         <div className="flex flex-column ma2">
-        {p.players.map((player, i) => (
-          <Player key={i} name={player.name}/>
+        {data.lobby?.players.map((player, i) => (
+          <Player key={i} playerId={player.id}/>
         ))}
         </div>
 
@@ -112,8 +131,8 @@ function PlayersContainer(p : PlayersContainerProps)
 }
 
 interface SettingsBarProps {
-  timeLimit : number,
-  maxPlayer : number,
+  timeLimit : number | undefined,
+  maxPlayer : number | undefined,
 
 }
 
@@ -134,23 +153,37 @@ function SettingsBar(p : SettingsBarProps) {
 }
 
 interface PlayerProps {
-  name: string,
+  playerId: number,
 }
 
 function Player(p : PlayerProps) {
+  let playerId = p.playerId;
+  const {loading, data} = useQuery<FetchUserName, FetchUserNameVariables>(fetchUserName, {variables : {playerId}});
+  let playerName;
+  if(loading){
+    playerName = "Loading Player Name"
+  } else if (data == null) {
+    playerName = "Player Name Not Found"
+  } else {
+    playerName = data.username
+  }
+
+
   return(
     <div className="player mb2 ">
-      {p.name}
+      {playerName}
     </div>
   )
 }
 
 
 function StartButton(p: LobbyMainProps) {
+  const {refetch } = useQuery<FetchLobbies>(fetchLobbies);
 
   function handleStart()
   {
     startGame(p.lobbyId)
+    .then( () => refetch())
     .catch(handleError)
   }
 
@@ -159,10 +192,18 @@ function StartButton(p: LobbyMainProps) {
   )
 }
 
-function ExitButton(p: UserInfo) {
+interface ExitButtonProps extends UserInfo, LobbyMainProps{
+}
+
+function ExitButton(p: ExitButtonProps) {
+  let lobbyId = p.lobbyId;
+  const { refetch } = useQuery<FetchLobbies>(fetchLobbies);
+  let lobbyList = useQuery<FetchLobby, FetchLobbyVariables>(fetchLobby, {variables: {lobbyId}})
 
   function handleExit(){
     leaveLobby(p.userId)
+    .then( () => refetch())
+    .then( () => lobbyList.refetch())
     .catch(handleError)
   }
 
