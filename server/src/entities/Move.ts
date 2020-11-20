@@ -22,6 +22,9 @@ export class Move extends BaseEntity {
   @JoinColumn()
   player: Player
 
+  @Column({ nullable: true })
+  lobbyId: number
+
   @ManyToOne(() => Lobby, lobby => lobby.moves)
   lobby: Lobby
 

@@ -287,4 +287,12 @@ export const graphqlRoot: Resolvers<Context> = {
       return move.moveType
     },
   },
+  Lobby: {
+    moves: (self, arg, ctx) => {
+      return Move.find({ where: { lobbyId: self.id } }) as any
+    },
+    players: (self, arg, ctx) => {
+      return Player.find({ where: { lobbyId: self.id } }) as any
+    },
+  },
 }
