@@ -117,13 +117,13 @@ function DisplaySettings(p: DisplaySettingsProps)
 
 function CreateLobbyButton(p: DisplaySettingsProps)
 {
-  const { refetch } = useQuery<FetchLobbies>(fetchLobbies);
-  // if (loading) {
-  //   return <div>loading...</div>
-  // }
-  // if (!data || data.lobbies.length == 0) {
-  //   return <div>no lobbies</div>
-  // }
+  const {loading, data, refetch } = useQuery<FetchLobbies>(fetchLobbies);
+  if (loading) {
+    return <div>loading...</div>
+  }
+  if (!data) {
+    return <div>Error querying for lobbies</div>
+  }
 
 
   function createNewLobby() {
@@ -132,9 +132,10 @@ function CreateLobbyButton(p: DisplaySettingsProps)
     .catch(handleError)
   }
 
+  //TODO: Change getLobbyPath(data.lobbies.length+1) to getLobbyWaitPath() (AFTER new gql mutation to query for lobbyId from userId)
   return (
     <div className="mb4">
-      <Link_Self Component={Button} onClick={ () => {createNewLobby();} } to={getLobbyPath()} >
+      <Link_Self Component={Button} onClick={ () => {createNewLobby();} } to={getLobbyPath(data.lobbies.length + 1)} >
         Create Lobby
       </Link_Self>
     </div>

@@ -1,5 +1,5 @@
 import { useQuery } from '@apollo/client';
-import { RouteComponentProps } from '@reach/router';
+import { RouteComponentProps, useLocation } from '@reach/router';
 import * as React from 'react';
 import { FetchLobbies, FetchLobby, FetchLobbyVariables, FetchUserName, FetchUserNameVariables } from '../../../graphql/query.gen';
 import { UserContext } from '../../auth/user';
@@ -23,12 +23,16 @@ export function LobbyWait(p: LobbyWaitProps) {
 }
 
  function LobbyWaitWrap() {
-  const {user} = React.useContext(UserContext);
+  // const {user} = React.useContext(UserContext);
 
- if(user?.player == null )
-   return <div>Error: Missing Player {user?.player}</div>
+  // if(user?.player == null )
+  //    return <div>Error: Missing Player {user?.player}</div>
 
-  return <LobbyWaitMain lobbyId={user?.player.id}/>
+  // return <LobbyWaitMain lobbyId={user?.player.id}/>
+
+  const location = useLocation()
+  const [, lobbyId] = (location.search || '').split('?lobbyId=')
+  return lobbyId ? <LobbyWaitMain lobbyId={Number(lobbyId)} /> : <LobbyWaitMain lobbyId={0}/>
 }
 
 
@@ -57,12 +61,8 @@ function LobbyContainer(p: LobbyMainProps) {
     )
   }
 
-  //Query for lobby data here
   const lobbyName = "Insert Lobby Name Here"
-  // const players = [{name: "Alan"},
-  //                  {name: "Juan"},
-  //                  {name: "Elyse"},
-  //                  {name: "Nihar"},]
+
 
   return (
       <div>
