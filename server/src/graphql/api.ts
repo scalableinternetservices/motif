@@ -87,16 +87,19 @@ export const graphqlRoot: Resolvers<Context> = {
       if (!user.player) {
         player = new Player()
         player.user = user
+        user.player = player
+        await user.save()
         await player.save()
       } else {
-        player = user.player
+        player = check(await Player.findOne({ where: { id: user.player.id }, relations: ['lobby'] }))
       }
       const oldLobby = player.lobby
       const newLobby = new Lobby()
-      // Remove player from old lobby
-      if (oldLobby && oldLobby.players.indexOf(player) > -1) {
-        oldLobby.players.splice(oldLobby.players.indexOf(player), 1)
-        await oldLobby.save()
+      // TODO I'm pretty sure this is actually unnecessary, remove later
+      if (oldLobby) {
+        // oldLobby.players.splice(oldLobby.players.indexOf(player), 1)
+        // await oldLobby.save()
+        console.log('LOG: Removing player from old lobby ' + oldLobby.id)
       }
       // Add player to new lobby
       newLobby.state = state ? LobbyState.Public : LobbyState.Private
@@ -114,20 +117,24 @@ export const graphqlRoot: Resolvers<Context> = {
       if (!user.player) {
         player = new Player()
         player.user = user
+        user.player = player
+        await user.save()
         await player.save()
       } else {
-        player = user.player
+        player = check(await Player.findOne({ where: { id: user.player.id }, relations: ['lobby'] }))
       }
       const oldLobby = player.lobby
       const newLobby = check(await Lobby.findOne(lobbyId))
 
-      if (oldLobby && oldLobby.players.indexOf(player) > -1) {
-        oldLobby.players.splice(oldLobby.players.indexOf(player), 1)
-        await oldLobby.save()
+      // TODO I'm pretty sure this is actually unnecessary, remove later
+      if (oldLobby) {
+        // oldLobby.players.splice(oldLobby.players.indexOf(player), 1)
+        // await oldLobby.save()
+        console.log('LOG: Removing player from old lobby ' + oldLobby.id)
       }
       if (newLobby.maxUsers > newLobby.players.length) {
-        newLobby.players.push(player)
-        await newLobby.save()
+        // newLobby.players.push(player)
+        // await newLobby.save()
       } else {
         return false
       }
@@ -139,10 +146,14 @@ export const graphqlRoot: Resolvers<Context> = {
       const player = check(await Player.findOne({ where: { user: userId }, relations: ['user', 'lobby'] }))
       const lobby = player.lobby
       if (!lobby) return false
-      if (lobby.players.length == 1) {
-        // TODO delete lobbies that have not started
-        lobby.state = LobbyState.Replay
-        await lobby.save()
+      if (lobby.players.length <= 1) {
+        // delete lobbies that have not started
+        if (lobby.state != LobbyState.InGame) {
+          await Lobby.remove(lobby)
+        } else {
+          lobby.state = LobbyState.Replay
+          await lobby.save()
+        }
       }
       // delete as Player, since user no longer in any lobbies
       await Player.remove(player)

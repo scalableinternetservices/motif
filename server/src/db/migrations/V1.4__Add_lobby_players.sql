@@ -11,7 +11,7 @@ insert into `player` (`userId`, `lobbyId`) values (2, 1);
 insert into `player` (`userId`, `lobbyId`) values (3, 1);
 insert into `player` (`userId`, `lobbyId`) values (4, 1);
 
--- update users with FK
+-- -- update users with FK
 UPDATE user INNER JOIN player ON user.id = player.userId SET user.playerId = player.id;
 
 -- make a tile and move

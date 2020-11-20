@@ -24,7 +24,7 @@ export class User extends BaseEntity implements GraphqlUser {
 
   @Column({
     length: 100,
-    default: '123@ucla.edu'
+    default: '123@ucla.edu',
   })
   email: string
 
@@ -41,7 +41,7 @@ export class User extends BaseEntity implements GraphqlUser {
   })
   name: string
 
-  @OneToOne(() => Player, { onDelete: 'SET NULL' })
+  @OneToOne(() => Player, { onDelete: 'SET NULL', cascade: true })
   @JoinColumn()
   player: Player
 }

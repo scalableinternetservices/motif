@@ -7,10 +7,10 @@ export class Player extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number
 
-  @OneToOne(() => User)
+  @OneToOne(() => User, { cascade: true })
   @JoinColumn()
   user: User
 
-  @ManyToOne(() => Lobby, lobby => lobby.players)
+  @ManyToOne(() => Lobby, lobby => lobby.players, { onDelete: 'CASCADE' })
   lobby: Lobby
 }
