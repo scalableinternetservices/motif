@@ -205,15 +205,10 @@ export default class Game extends React.Component<
     this.setState({
       move: this.state.move + 1,
     })
-    const res = submitMove(submit)
+    submitMove(submit)
       .then(() => console.log('Submit worked'))
       .catch(() => console.log('broke'))
     //Send word to server
-    if (res) {
-      console.log('returned true')
-    } else {
-      console.log('returned false')
-    }
   }
 
   render() {
