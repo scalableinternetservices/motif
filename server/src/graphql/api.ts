@@ -92,18 +92,22 @@ export const graphqlRoot: Resolvers<Context> = {
         player = check(await Player.findOne({ where: { id: user.player.id }, relations: ['lobby'] }))
       }
       const oldLobby = player.lobby
-      const newLobby = new Lobby()
-      // TODO I'm pretty sure this is actually unnecessary, remove later
-      if (oldLobby) {
-        // oldLobby.players.splice(oldLobby.players.indexOf(player), 1)
-        // await oldLobby.save()
-        console.log('LOG: Removing player from old lobby ' + oldLobby.id)
+      // Change old lobby state if exists and last remaining player
+      if (oldLobby && oldLobby.players.length <= 1) {
+        if (oldLobby.state != LobbyState.InGame) {
+          await Lobby.remove(oldLobby)
+        } else {
+          oldLobby.state = LobbyState.Replay
+          await oldLobby.save()
+        }
       }
       // Add player to new lobby
+      const newLobby = new Lobby()
       newLobby.state = state ? LobbyState.Public : LobbyState.Private
       newLobby.maxUsers = maxUsers
       newLobby.gameTime = maxTime
       await newLobby.save()
+      // Set player lobby
       player.lobby = newLobby
       await player.save()
       return newLobby.id
@@ -123,19 +127,21 @@ export const graphqlRoot: Resolvers<Context> = {
       }
       const oldLobby = player.lobby
       const newLobby = check(await Lobby.findOne(lobbyId))
-
-      // TODO I'm pretty sure this is actually unnecessary, remove later
-      if (oldLobby) {
-        // oldLobby.players.splice(oldLobby.players.indexOf(player), 1)
-        // await oldLobby.save()
-        console.log('LOG: Removing player from old lobby ' + oldLobby.id)
-      }
-      if (newLobby.maxUsers > newLobby.players.length) {
-        // newLobby.players.push(player)
-        // await newLobby.save()
-      } else {
+      // Check if new lobby is full
+      if (newLobby.maxUsers <= newLobby.players.length) {
         return false
       }
+      // Change old lobby state if exists and last remaining player
+      if (oldLobby && oldLobby.players.length <= 1) {
+        if (oldLobby.state != LobbyState.InGame) {
+          await Lobby.remove(oldLobby)
+          console.log(player.lobby)
+        } else {
+          oldLobby.state = LobbyState.Replay
+          await oldLobby.save()
+        }
+      }
+      // Set player lobby
       player.lobby = newLobby
       await player.save()
       return true
