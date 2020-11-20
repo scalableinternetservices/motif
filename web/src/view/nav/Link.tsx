@@ -56,6 +56,45 @@ export class Link extends React.PureComponent<LinkProps> {
   }
 }
 
+export class Link_Self extends React.PureComponent<LinkProps> {
+  onClick = (e: React.MouseEvent) => {
+    const { to } = this.props
+
+    if (!e.ctrlKey && !e.metaKey) {
+      e.preventDefault()
+      if (to) {
+        if (to.startsWith('http')) {
+          window.open(to)
+        } else {
+          navigate(to).catch(handleError)
+        }
+      }
+    }
+  }
+
+  render() {
+    const { to, href, title, onClick, noTab, children, block, Component, ...rest } = this.props
+    const hrefUrl = href || to
+    const clickHandler = onClick || (to == null ? null : this.onClick)
+
+    const A = Component || DefaultAnchor
+    return (
+      <A
+        target="_self"
+        rel="noopener"
+        title={title || undefined}
+        href={hrefUrl}
+        onClick={clickHandler || undefined}
+        tabIndex={noTab ? -1 : undefined}
+        style={{ display: block ? 'block' : 'inline-block' }}
+        {...rest}
+      >
+        {children}
+      </A>
+    )
+  }
+}
+
 interface LinkWrapProps {
   to?: string
   href?: string

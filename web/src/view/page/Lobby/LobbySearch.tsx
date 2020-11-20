@@ -5,7 +5,7 @@ import { Button } from '../../../style/button';
 import { Input } from '../../../style/input';
 import { style } from '../../../style/styled';
 import { UserContext } from '../../auth/user';
-import { link } from '../../nav/Link';
+import { link, Link_Self } from '../../nav/Link';
 import { AppRouteParams, getLobbyPath } from '../../nav/route';
 import { handleError } from '../../toast/error';
 import { Page } from '../Page';
@@ -77,19 +77,19 @@ function LobbyButton(p : LobbyButtonProps) {
   if(p.userId == null) {
     return (
       <div className="o-50">
-        <ButtonLink $color="mint" onClick={() => alert("Please create a user session before continuing ")}>
+        <Link_Self  onClick={() => alert("Please create a user session before continuing ")}>
           Join
-        </ButtonLink>
+        </Link_Self>
       </div>
     )
   }
 
   return (
           <div className={p.active ? "o-100" : "o-50"}>
-            <ButtonLink $color="mint" onClick={p.active ? () => handleJoinLobby(p.userId, p.id): () => alert("Lobby is full") }
-                        to={p.active ? getLobbyPath(p.id) : undefined}>
+            <Link_Self  onClick={p.active ? () => handleJoinLobby(p.userId, p.id): () => alert("Lobby is full") }
+                        to={p.active ? getLobbyPath(p.id) : undefined} >
               Join
-              </ButtonLink>
+              </Link_Self>
           </div>
   )
 }

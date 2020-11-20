@@ -1,9 +1,9 @@
 import { useQuery } from '@apollo/client';
-import { RouteComponentProps, useLocation } from '@reach/router';
+import { RouteComponentProps } from '@reach/router';
 import * as React from 'react';
 import { FetchLobbies, FetchLobby, FetchLobbyVariables, FetchUserName, FetchUserNameVariables } from '../../../graphql/query.gen';
 import { UserContext } from '../../auth/user';
-import { Link } from '../../nav/Link';
+import { Link_Self } from '../../nav/Link';
 import { AppRouteParams, getGamePath, getLobbySearchPath } from '../../nav/route';
 import { handleError } from '../../toast/error';
 import { Page } from '../Page';
@@ -23,9 +23,12 @@ export function LobbyWait(p: LobbyWaitProps) {
 }
 
  function LobbyWaitWrap() {
-  const location = useLocation()
-  const [, lobbyId] = (location.search || '').split('?lobbyId=')
-  return lobbyId ? <LobbyWaitMain lobbyId={Number(lobbyId)} /> : <LobbyWaitMain lobbyId={0}/>
+  const {user} = React.useContext(UserContext);
+
+ if(user?.player == null )
+   return <div>Error: Missing Player {user?.player}</div>
+
+  return <LobbyWaitMain lobbyId={user?.player.id}/>
 }
 
 
@@ -188,7 +191,7 @@ function StartButton(p: LobbyMainProps) {
   }
 
   return (
-    <Link to={getGamePath(p.lobbyId)} onClick={handleStart}>Start</Link>
+    <Link_Self to={getGamePath(p.lobbyId)} onClick={handleStart}>Start</Link_Self>
   )
 }
 
@@ -208,8 +211,8 @@ function ExitButton(p: ExitButtonProps) {
   }
 
   return (
-    <Link to={getLobbySearchPath()} onClick={() => handleExit()}>
+    <Link_Self to={getLobbySearchPath()} onClick={() => handleExit()}>
       Exit
-    </Link>
+    </Link_Self>
   );
 }

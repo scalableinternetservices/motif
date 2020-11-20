@@ -3,6 +3,8 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
+import { Player } from '../../../server/src/graphql/schema.types';
+
 // ====================================================
 // GraphQL query operation: FetchUserContext
 // ====================================================
@@ -12,6 +14,7 @@ export interface FetchUserContext_self {
   id: number;
   name: string;
   userType: UserType;
+  player: Player | null;
 }
 
 export interface FetchUserContext {
@@ -34,6 +37,23 @@ export interface FetchUserList_users {
 
 export interface FetchUserList {
   users: (FetchUserList_users | null)[];
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: MakeMove
+// ====================================================
+
+export interface MakeMove {
+  makeMove: boolean;
+}
+
+export interface MakeMoveVariables {
+  input: MoveInput;
 }
 
 /* tslint:disable */
@@ -106,6 +126,34 @@ export interface FetchUserName {
 
 export interface FetchUserNameVariables {
   playerId: number;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: FetchPlayer
+// ====================================================
+
+export interface FetchUser_player_lobby {
+  __typename: "Lobby";
+  id: number;
+}
+
+export interface FetchUser_player {
+  __typename: "Player";
+  id: number;
+  lobby: FetchUser_player_lobby;
+}
+
+export interface FetchUser {
+  player: FetchUser_player | null;
+}
+
+export interface FetchUserVariables {
+  userId: number;
 }
 
 /* tslint:disable */
@@ -411,14 +459,45 @@ export interface SurveyQuestion {
 // START Enums and Input Objects
 //==============================================================
 
+export enum MoveType {
+  DeselectTile = "DeselectTile",
+  Scramble = "Scramble",
+  SelectTile = "SelectTile",
+  SpawnTiles = "SpawnTiles",
+  Submit = "Submit",
+}
+
+export enum TileType {
+  Double = "Double",
+  Dud = "Dud",
+  Normal = "Normal",
+}
+
 export enum UserType {
   ADMIN = "ADMIN",
   USER = "USER",
 }
 
+export interface MoveInput {
+  playerId: number;
+  lobbyId: number;
+  time: any;
+  moveType: MoveType;
+  tiles?: TileInput[] | null;
+  pointValue?: number | null;
+  tileLocation?: number | null;
+}
+
 export interface SurveyInput {
   questionId: number;
   answer: string;
+}
+
+export interface TileInput {
+  letter: string;
+  pointValue: number;
+  tileType: TileType;
+  location: number;
 }
 
 //==============================================================

@@ -4,10 +4,11 @@ import { Button } from '../../../style/button';
 import { H2 } from '../../../style/header';
 import { style } from '../../../style/styled';
 import { UserContext } from '../../auth/user';
+import { Link_Self } from '../../nav/Link';
 import { getLobbyPath } from '../../nav/route';
 import { handleError } from '../../toast/error';
 import { fetchLobbies } from './fetchLobbies';
-import { ButtonLink, FetchLobbies, UserInfo } from './LobbySearch';
+import { FetchLobbies, UserInfo } from './LobbySearch';
 import { createLobby } from './mutateLobbies';
 
 export function CreateLobby()
@@ -116,13 +117,13 @@ function DisplaySettings(p: DisplaySettingsProps)
 
 function CreateLobbyButton(p: DisplaySettingsProps)
 {
-  const { loading, data, refetch } = useQuery<FetchLobbies>(fetchLobbies);
-  if (loading) {
-    return <div>loading...</div>
-  }
-  if (!data || data.lobbies.length == 0) {
-    return <div>no lobbies</div>
-  }
+  const { refetch } = useQuery<FetchLobbies>(fetchLobbies);
+  // if (loading) {
+  //   return <div>loading...</div>
+  // }
+  // if (!data || data.lobbies.length == 0) {
+  //   return <div>no lobbies</div>
+  // }
 
 
   function createNewLobby() {
@@ -133,9 +134,9 @@ function CreateLobbyButton(p: DisplaySettingsProps)
 
   return (
     <div className="mb4">
-      <ButtonLink  onClick={ () => {createNewLobby();} } to={getLobbyPath(data.lobbies.length + 1)} >
+      <Link_Self Component={Button} onClick={ () => {createNewLobby();} } to={getLobbyPath()} >
         Create Lobby
-      </ButtonLink>
+      </Link_Self>
     </div>
   )
 }

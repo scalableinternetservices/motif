@@ -63,6 +63,7 @@ type User {
   userType: UserType!
   email: String!
   name: String!
+  player: Player
 }
 
 enum UserType { ADMIN, USER }
@@ -118,6 +119,7 @@ input SurveyInput {
 type Player {
   id: Int!
   lobby: Lobby
+  user: User #For gql debugging remove later
 }
 
 enum TileType {Normal, Double, Dud}

@@ -30,3 +30,17 @@ export const fetchUserName = gql`
     username(playerId: $playerId)
   }
 `
+
+export const fetchUser = gql`
+  query FetchUser ($userId: Int!) {
+    user(userId: $userId) {
+      player {
+        id
+        lobby {
+          id
+         }
+      }
+    }
+  }
+`
+
