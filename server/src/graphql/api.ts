@@ -196,7 +196,7 @@ export const graphqlRoot: Resolvers<Context> = {
       move.moveType = input.moveType
       move.player = player
 
-      // TODO: check if move is valid
+      let returnVal = true
       await move.save()
       switch (input.moveType) {
         case 'SelectTile':
@@ -242,7 +242,10 @@ export const graphqlRoot: Resolvers<Context> = {
             spawnedTile.tileType = TileType.Normal
             await spawnedTile.save().catch(() => console.log('broke here 2'))
           })
-          console.log(word.toLowerCase() + ' in dictionary: ' + dictionary.isInDictionary(word.toLowerCase()))
+          if (!dictionary.isInDictionary(word.toLowerCase())) {
+            console.log(word.toLowerCase() + ' not dictionary')
+            returnVal = false
+          } else console.log(word.toLowerCase() + ' is in dictionary: ')
           await serverMove.save()
           break
         case 'Scramble':
@@ -278,7 +281,7 @@ export const graphqlRoot: Resolvers<Context> = {
           break
       }
       await move.save()
-      return true
+      return returnVal
     },
   },
   Subscription: {

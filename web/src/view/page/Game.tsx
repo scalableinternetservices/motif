@@ -136,7 +136,7 @@ export default class Game extends React.Component<
       }
       //sent deselect move
       deselectMove(deselect)
-        .then(() => console.log('Deselect move worked'))
+        .then(res => console.log('Deselect move worked ' + res.data?.success))
         .catch(() => console.log('broke'))
 
       this.moveStack.pop()
@@ -168,14 +168,14 @@ export default class Game extends React.Component<
       tiles: [this.board[key]],
     }
     selectMove(select)
-      .then(() => console.log('Select worked'))
+      .then(res => console.log('Select worked ' + res.data?.success))
       .catch(() => console.log('broke'))
     this.setState({
       move: this.state.move + 1,
     })
   }
 
-  submitWord() {
+  async submitWord() {
     //submit word
     console.log('The submitted word is:' + this.playerWords)
     let nl = ''
@@ -205,10 +205,11 @@ export default class Game extends React.Component<
     this.setState({
       move: this.state.move + 1,
     })
-    submitMove(submit)
-      .then(() => console.log('Submit worked'))
-      .catch(() => console.log('broke'))
+    const ret = await submitMove(submit)
+    //.then(res => console.log('Submit worked ' + res.data?.success))
+    //.catch(() => console.log('broke'))
     //Send word to server
+    console.log('data returned= ' + ret.data?.success)
   }
 
   render() {
