@@ -3,8 +3,6 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
-import { Player } from '../../../server/src/graphql/schema.types';
-
 // ====================================================
 // GraphQL query operation: FetchUserContext
 // ====================================================
@@ -14,7 +12,6 @@ export interface FetchUserContext_self {
   id: number;
   name: string;
   userType: UserType;
-  player: Player | null;
 }
 
 export interface FetchUserContext {
@@ -134,22 +131,24 @@ export interface FetchUserNameVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: FetchPlayer
+// GraphQL query operation: FetchUser
 // ====================================================
 
-export interface FetchUser_player_lobby {
-  __typename: "Lobby";
-  id: number;
-}
-
-export interface FetchUser_player {
+export interface FetchUser_user_player {
   __typename: "Player";
   id: number;
-  lobby: FetchUser_player_lobby;
+  lobbyId: number | null;
+}
+
+export interface FetchUser_user {
+  __typename: "User";
+  id: number;
+  name: string;
+  player: FetchUser_user_player | null;
 }
 
 export interface FetchUser {
-  player: FetchUser_player | null;
+  user: FetchUser_user | null;
 }
 
 export interface FetchUserVariables {

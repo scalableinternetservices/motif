@@ -13,12 +13,6 @@ export const fetchUser = gql`
       id
       name
       userType
-      player {
-        id
-        lobby {
-          id
-        }
-      }
     }
   }
 `

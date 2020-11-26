@@ -34,11 +34,11 @@ export const fetchUserName = gql`
 export const fetchUser = gql`
   query FetchUser ($userId: Int!) {
     user(userId: $userId) {
+      id
+      name
       player {
         id
-        lobby {
-          id
-         }
+        lobbyId
       }
     }
   }

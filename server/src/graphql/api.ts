@@ -53,6 +53,7 @@ export const graphqlRoot: Resolvers<Context> = {
     surveys: () => Survey.find(),
     lobbies: () => Lobby.find(),
     lobby: async (_, { lobbyId }) => (await Lobby.findOne({ where: { id: lobbyId } })) || null,
+    user: async (_, { userId }) => (await User.findOne({ where: { id: userId } })) || null,
     users: () => User.find(),
     username: async (_, { playerId }) =>
       (await Player.findOne({ where: { id: playerId }, relations: ['user'] }))?.user?.name || null,
@@ -143,7 +144,7 @@ export const graphqlRoot: Resolvers<Context> = {
       return true
     },
     leaveLobby: async (_, { userId }, ctx) => {
-      const player = check(await Player.findOne({ where: { user: userId }, relations: ['user', 'lobby'] }))
+      const player = check(await Player.findOne({ where: { userId: userId }, relations: ['user', 'lobby'] }))
       const lobby = player.lobby
       if (!lobby) return false
       if (lobby.players.length <= 1) {
@@ -292,5 +293,15 @@ export const graphqlRoot: Resolvers<Context> = {
     __resolveType(move, context, info) {
       return move.moveType
     },
+  },
+  User: {
+    player: (self, args, ctx) => {
+      return Player.findOne({ where: { userId: self.id}}) as any
+    }
+  },
+  Player: {
+    lobby: (self, args, ctx) => {
+      return Lobby.findOne({ where: { id: self.lobbyId}}) as any
+    }
   },
 }

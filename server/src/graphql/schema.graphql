@@ -27,6 +27,7 @@ type Query {
   lobbies: [Lobby!] # get all lobbies
   lobby (lobbyId: Int!): Lobby
 
+  user(userId: Int!): User
   users: [User]!
   username(playerId: Int!): String
 }
@@ -119,6 +120,7 @@ input SurveyInput {
 type Player {
   id: Int!
   lobby: Lobby
+  lobbyId: Int
   user: User #For gql debugging remove later
 }
 

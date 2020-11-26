@@ -1,13 +1,13 @@
 import { useQuery } from '@apollo/client';
-import { RouteComponentProps, useLocation } from '@reach/router';
+import { RouteComponentProps } from '@reach/router';
 import * as React from 'react';
-import { FetchLobbies, FetchLobby, FetchLobbyVariables, FetchUserName, FetchUserNameVariables } from '../../../graphql/query.gen';
+import { FetchLobbies, FetchLobby, FetchLobbyVariables, FetchUser, FetchUserName, FetchUserNameVariables, FetchUserVariables } from '../../../graphql/query.gen';
 import { UserContext } from '../../auth/user';
 import { Link_Self } from '../../nav/Link';
 import { AppRouteParams, getGamePath, getLobbySearchPath } from '../../nav/route';
 import { handleError } from '../../toast/error';
 import { Page } from '../Page';
-import { fetchLobbies, fetchLobby, fetchUserName } from './fetchLobbies';
+import { fetchLobbies, fetchLobby, fetchUser, fetchUserName } from './fetchLobbies';
 import { UserInfo } from './LobbySearch';
 import { leaveLobby, startGame } from './mutateLobbies';
 
@@ -22,7 +22,34 @@ export function LobbyWait(p: LobbyWaitProps) {
   )
 }
 
+
  function LobbyWaitWrap() {
+  const {user} = React.useContext(UserContext);
+
+  if(!user)
+    return <div>Error: User was not found (USER CONTEXT)</div>
+
+  const userId = user?.id;
+  console.log("User ID: " + userId)
+
+  const {loading, data} = useQuery<FetchUser, FetchUserVariables>(fetchUser, {variables: {userId}});
+
+  console.log("DATA: " + JSON.stringify(data))
+  console.log("PLAYER INFO: " + JSON.stringify(data?.user?.player))
+  console.log("USER ID: " + data?.user?.id)
+  console.log("USER NAME " + data?.user?.name)
+  console.log("Player ID: " + data?.user?.player?.id)
+  console.log("Lobby ID: " + data?.user?.player?.lobbyId)
+
+  if(loading)
+    return <div>Loading User ...</div>
+  else if(!data)
+    return <div>Error: User was not found</div>
+  else if(!data.user?.player)
+    return <div>Error: Player was not found</div>
+
+  return <LobbyWaitMain lobbyId={(data.user.player.lobbyId ? data.user.player.lobbyId : 1)}></LobbyWaitMain>
+
   // const {user} = React.useContext(UserContext);
 
   // if(user?.player == null )
@@ -30,9 +57,9 @@ export function LobbyWait(p: LobbyWaitProps) {
 
   // return <LobbyWaitMain lobbyId={user?.player.id}/>
 
-  const location = useLocation()
-  const [, lobbyId] = (location.search || '').split('?lobbyId=')
-  return lobbyId ? <LobbyWaitMain lobbyId={Number(lobbyId)} /> : <LobbyWaitMain lobbyId={0}/>
+  // const location = useLocation()
+  // const [, lobbyId] = (location.search || '').split('?lobbyId=')
+  // return lobbyId ? <LobbyWaitMain lobbyId={Number(lobbyId)} /> : <LobbyWaitMain lobbyId={0}/>
 }
 
 

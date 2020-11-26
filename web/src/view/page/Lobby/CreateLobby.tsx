@@ -5,7 +5,7 @@ import { H2 } from '../../../style/header';
 import { style } from '../../../style/styled';
 import { UserContext } from '../../auth/user';
 import { Link_Self } from '../../nav/Link';
-import { getLobbyPath } from '../../nav/route';
+import { getLobbyWaitPath } from '../../nav/route';
 import { handleError } from '../../toast/error';
 import { fetchLobbies } from './fetchLobbies';
 import { FetchLobbies, UserInfo } from './LobbySearch';
@@ -135,7 +135,7 @@ function CreateLobbyButton(p: DisplaySettingsProps)
   //TODO: Change getLobbyPath(data.lobbies.length+1) to getLobbyWaitPath() (AFTER new gql mutation to query for lobbyId from userId)
   return (
     <div className="mb4">
-      <Link_Self Component={Button} onClick={ () => {createNewLobby();} } to={getLobbyPath(data.lobbies.length + 1)} >
+      <Link_Self Component={Button} onClick={ () => {createNewLobby();} } to={getLobbyWaitPath()} >
         Create Lobby
       </Link_Self>
     </div>

@@ -41,7 +41,7 @@ export class User extends BaseEntity implements GraphqlUser {
   })
   name: string
 
-  @OneToOne(() => Player, { onDelete: 'SET NULL', eager: true, cascade: true })
+  @OneToOne(() => Player, { onDelete: 'SET NULL', cascade: true })
   @JoinColumn()
   player: Player
 }

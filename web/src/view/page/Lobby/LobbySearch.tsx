@@ -6,7 +6,7 @@ import { Input } from '../../../style/input';
 import { style } from '../../../style/styled';
 import { UserContext } from '../../auth/user';
 import { link, Link_Self } from '../../nav/Link';
-import { AppRouteParams, getLobbyPath } from '../../nav/route';
+import { AppRouteParams, getLobbyWaitPath } from '../../nav/route';
 import { handleError } from '../../toast/error';
 import { Page } from '../Page';
 import { CreateLobby } from './CreateLobby';
@@ -16,17 +16,13 @@ import { joinLobby } from './mutateLobbies';
 interface LobbySearchProps extends RouteComponentProps, AppRouteParams {}
 
 export interface UserInfo {
-  userId: number,
+  userId: number
 }
 
 export function LobbySearchMain(props: LobbySearchProps) {
-  const {user} = React.useContext(UserContext);
-  if(user == null) {
-    return (
-      <Page>
-        User not found. Sign up as a user.
-      </Page>
-    )
+  const { user } = React.useContext(UserContext)
+  if (user == null) {
+    return <Page>User not found. Sign up as a user.</Page>
   }
 
   return (
@@ -34,34 +30,31 @@ export function LobbySearchMain(props: LobbySearchProps) {
       <Content>
         <LContent>
           <div className="baseCanvas">
-            <LobbyContainer userId={user.id}/>
+            <LobbyContainer userId={user.id} />
           </div>
         </LContent>
         <RContent>
-          <CreateLobby/>
+          <CreateLobby />
         </RContent>
-
       </Content>
     </Page>
-    );
+  )
 }
 
 function LobbyContainer(p: UserInfo) {
   return (
-
-        <div className="mw6">
-          <div className="ba h3 mb3 bg-black-10 flex items-center">
-             <h1 className="center">Lobbies</h1>
-          </div>
-          <LobbyList userId={p.userId}/>
-        </div>
-
+    <div className="mw6">
+      <div className="ba h3 mb3 bg-black-10 flex items-center">
+        <h1 className="center">Lobbies</h1>
+      </div>
+      <LobbyList userId={p.userId} />
+    </div>
   )
 }
 
-interface LobbyButtonProps extends UserInfo{
-  active: boolean,
-  id: number,
+interface LobbyButtonProps extends UserInfo {
+  active: boolean
+  id: number
 }
 
 
@@ -74,7 +67,7 @@ function LobbyButton(p : LobbyButtonProps) {
     .catch(handleError)
   }
 
-  if(p.userId == null) {
+  if (p.userId == null) {
     return (
       <div className="o-50">
         <Link_Self  onClick={() => alert("Please create a user session before continuing ")}>
@@ -87,57 +80,53 @@ function LobbyButton(p : LobbyButtonProps) {
   return (
           <div className={p.active ? "o-100" : "o-50"}>
             <Link_Self  onClick={p.active ? () => handleJoinLobby(p.userId, p.id): () => alert("Lobby is full") }
-                        to={p.active ? getLobbyPath(p.id) : undefined} >
+                        to={p.active ? getLobbyWaitPath() : undefined} >
               Join
               </Link_Self>
           </div>
   )
 }
 
-interface LobbyEntryProps extends UserInfo{
-  name: string,
-  maxPlayers: number,
-  curPlayers: number,
-  active : boolean,
-  id: number,
+interface LobbyEntryProps extends UserInfo {
+  name: string
+  maxPlayers: number
+  curPlayers: number
+  active: boolean
+  id: number
 }
 
-function LobbyEntry(p : LobbyEntryProps) {
+function LobbyEntry(p: LobbyEntryProps) {
   return (
-      <div className="cf pa2-ns">
-        <div className="ba fl w-100 w-50-ns pa2">
-          {p.name}
-        </div>
-        <div className="ba fl w-100 w-25-ns pa2">
-          {""+p.curPlayers+"/"+p.maxPlayers}
-        </div>
-        <div className="ba fl w-100 w-25-ns pa2">
-          <LobbyButton userId={p.userId} active={p.active} id={p.id}/>
-        </div>
+    <div className="cf pa2-ns">
+      <div className="ba fl w-100 w-50-ns pa2">{p.name}</div>
+      <div className="ba fl w-100 w-25-ns pa2">{'' + p.curPlayers + '/' + p.maxPlayers}</div>
+      <div className="ba fl w-100 w-25-ns pa2">
+        <LobbyButton userId={p.userId} active={p.active} id={p.id} />
       </div>
-  );
+    </div>
+  )
 }
 
 export interface Player {
-  id: number;
+  id: number
 }
 
 export interface FetchLobbies_lobbies {
-  __typename: "Lobby";
-  id: number;
-  maxUsers: number;
-  gameTime: number;
-  players: Player[];
+  __typename: 'Lobby'
+  id: number
+  maxUsers: number
+  gameTime: number
+  players: Player[]
 }
 export interface FetchLobbies {
-  lobbies: FetchLobbies_lobbies[];
+  lobbies: FetchLobbies_lobbies[]
 }
 
 function LobbyList(p: UserInfo) {
   //let [lobbies, setLobbies] =  React.useState([]);
-  const [, setField] = React.useState("");
+  const [, setField] = React.useState('')
   //Query for lobbies from the database and display them in a list
-  const { loading, data } = useQuery<FetchLobbies>(fetchLobbies);
+  const { loading, data } = useQuery<FetchLobbies>(fetchLobbies)
   if (loading) {
     return <div>loading...</div>
   }
@@ -145,26 +134,29 @@ function LobbyList(p: UserInfo) {
     return <div>no lobbies</div>
   }
 
-
   return (
     <div>
       <div className="flex justify-center">
-        <Input  placeholder="Search..." $onChange={setField}>
-                </Input>
-        </div>
+        <Input placeholder="Search..." $onChange={setField}></Input>
+      </div>
       {data.lobbies
-      .filter(lobby => lobby.id > 0)
-      .map((lobby, i) => (
-      <div key={i}>
-        <LobbyEntry key={lobby.id} name={lobby.gameTime.toString()} maxPlayers={lobby.maxUsers}
-                    curPlayers={lobby.players.length} active={(lobby.maxUsers - lobby.players.length) > 0}
-                    id={lobby.id} userId={p.userId}
-          />
-      </div>))}
+        .filter(lobby => lobby.id > 0)
+        .map((lobby, i) => (
+          <div key={i}>
+            <LobbyEntry
+              key={lobby.id}
+              name={lobby.gameTime.toString()}
+              maxPlayers={lobby.maxUsers}
+              curPlayers={lobby.players.length}
+              active={lobby.maxUsers - lobby.players.length > 0}
+              id={lobby.id}
+              userId={p.userId}
+            />
+          </div>
+        ))}
     </div>
-  );
+  )
 }
-
 
 export const ButtonLink = link(Button)
 const LContent = style('div', 'flex-grow-0 w-70-l ')

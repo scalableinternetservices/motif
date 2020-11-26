@@ -12,10 +12,10 @@ export enum Route {
   PLAYGROUND_APP = 'app/playground/:app',
   LobbySearch = 'app/LobbySearch',
   LobbyWait = 'app/LobbyWait',
-  JUAN_TESTING = 'app/board',
+  BOARD = 'app/board',
   USER_LOGIN = 'app/UserLogin',
   Lobby_Inst = 'app/LobbyWait/:lobby',
-  Game_Inst = 'app/board/:game'
+  Game_Inst = 'app/board/:game',
 }
 
 export enum PlaygroundApp {
@@ -30,12 +30,12 @@ export function getSurveyPath(surveyId?: number) {
 }
 
 export function getLobbyPath(lobbyId?: number) {
-  const path = getPath(Route.Lobby_Inst, { lobby: 'lobby'})
+  const path = getPath(Route.Lobby_Inst, { lobby: 'lobby' })
   return path + (lobbyId ? `?lobbyId=${lobbyId}` : '')
 }
 
 export function getGamePath(lobbyId?: number) {
-  const path = getPath(Route.Game_Inst, { game: 'game'})
+  const path = getPath(Route.Game_Inst, { game: 'game' })
   return path + (lobbyId ? `?lobbyId=${lobbyId}` : '')
 }
 
@@ -60,7 +60,7 @@ export function getLobbyWaitPath() {
 }
 
 export function getBoardPath() {
-  return getPath(Route.JUAN_TESTING)
+  return getPath(Route.BOARD)
 }
 
 export function getUserLoginPath() {
