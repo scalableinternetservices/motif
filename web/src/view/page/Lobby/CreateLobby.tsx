@@ -98,13 +98,7 @@ function DisplaySettings(p: DisplaySettingsProps) {
 }
 
 function CreateLobbyButton(p: DisplaySettingsProps) {
-  const { loading, data, refetch } = useQuery<FetchLobbies>(fetchLobbies)
-  if (loading) {
-    return <div>loading...</div>
-  }
-  if (!data) {
-    return <div>Error querying for lobbies</div>
-  }
+  const { refetch } = useQuery<FetchLobbies>(fetchLobbies)
 
   function createNewLobby() {
     createLobby(p.userId, p.maxPlayers, p.timeLimit, true)

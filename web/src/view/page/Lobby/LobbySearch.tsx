@@ -67,12 +67,8 @@ function LobbyContainer(p: UserInfo) {
 }
 
 function LobbyButton(p: LobbyButtonProps) {
-  const { refetch } = useQuery<FetchLobbies>(fetchLobbies)
-
   function handleJoinLobby(userId: number, lobbyId: number) {
-    joinLobby(userId, lobbyId)
-      .then(() => refetch())
-      .catch(handleError)
+    joinLobby(userId, lobbyId).catch(handleError)
   }
 
   if (p.userId == null) {
@@ -111,7 +107,7 @@ function LobbyList(p: UserInfo) {
   //let [lobbies, setLobbies] =  React.useState([]);
   const [, setField] = React.useState('')
   //Query for lobbies from the database and display them in a list
-  const { loading, data } = useQuery<FetchLobbies>(fetchLobbies)
+  const { loading, data } = useQuery<FetchLobbies>(fetchLobbies, { fetchPolicy: 'cache-and-network' })
   if (loading) {
     return <div>loading...</div>
   }

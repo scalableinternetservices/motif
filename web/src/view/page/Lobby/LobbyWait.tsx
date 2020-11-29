@@ -2,7 +2,6 @@ import { useQuery } from '@apollo/client'
 import { RouteComponentProps } from '@reach/router'
 import * as React from 'react'
 import {
-  FetchLobbies,
   FetchLobby,
   FetchLobbyVariables,
   FetchUser,
@@ -16,7 +15,7 @@ import { Link_Self } from '../../nav/Link'
 import { AppRouteParams, getGamePath, getLobbySearchPath } from '../../nav/route'
 import { handleError } from '../../toast/error'
 import { Page } from '../Page'
-import { fetchLobbies, fetchLobby, fetchUser, fetchUserName } from './fetchLobbies'
+import { fetchLobby, fetchUser, fetchUserName } from './fetchLobbies'
 import { UserInfo } from './LobbySearch'
 import { leaveLobby, startGame } from './mutateLobbies'
 
@@ -61,7 +60,10 @@ function LobbyWaitWrap() {
   const userId = user?.id
   console.log('User ID: ' + userId)
 
-  const { loading, data } = useQuery<FetchUser, FetchUserVariables>(fetchUser, { variables: { userId } })
+  const { loading, data } = useQuery<FetchUser, FetchUserVariables>(fetchUser, {
+    variables: { userId },
+    fetchPolicy: 'cache-and-network',
+  })
 
   console.log('DATA: ' + JSON.stringify(data))
   console.log('PLAYER INFO: ' + JSON.stringify(data?.user?.player))
@@ -134,8 +136,11 @@ function TopBar(p: TopBarProps) {
 function PlayersContainer(p: PlayersContainerProps) {
   const lobbyId = p.lobbyId
   // const [playerListLength, setPlayerListLength] = React.useState(0);
-  const { loading, data, refetch } = useQuery<FetchLobby, FetchLobbyVariables>(fetchLobby, { variables: { lobbyId } })
-  refetch().catch(handleError)
+  const { loading, data } = useQuery<FetchLobby, FetchLobbyVariables>(fetchLobby, {
+    variables: { lobbyId },
+    fetchPolicy: 'cache-and-network',
+  })
+
   if (loading) {
     return <div>Fetching Lobby</div>
   } else if (data == null) {
@@ -172,7 +177,10 @@ function SettingsBar(p: SettingsBarProps) {
 
 function Player(p: PlayerProps) {
   const playerId = p.playerId
-  const { loading, data } = useQuery<FetchUserName, FetchUserNameVariables>(fetchUserName, { variables: { playerId } })
+  const { loading, data } = useQuery<FetchUserName, FetchUserNameVariables>(fetchUserName, {
+    variables: { playerId },
+    fetchPolicy: 'cache-and-network',
+  })
   let playerName
   if (loading) {
     playerName = 'Loading Player Name'
@@ -186,12 +194,8 @@ function Player(p: PlayerProps) {
 }
 
 function StartButton(p: LobbyMainProps) {
-  const { refetch } = useQuery<FetchLobbies>(fetchLobbies)
-
   function handleStart() {
-    startGame(p.lobbyId)
-      .then(() => refetch())
-      .catch(handleError)
+    startGame(p.lobbyId).catch(handleError)
   }
 
   return (
@@ -202,15 +206,8 @@ function StartButton(p: LobbyMainProps) {
 }
 
 function ExitButton(p: ExitButtonProps) {
-  const lobbyId = p.lobbyId
-  const { refetch } = useQuery<FetchLobbies>(fetchLobbies)
-  const lobbyList = useQuery<FetchLobby, FetchLobbyVariables>(fetchLobby, { variables: { lobbyId } })
-
   function handleExit() {
-    leaveLobby(p.userId)
-      .then(() => refetch())
-      .then(() => lobbyList.refetch())
-      .catch(handleError)
+    leaveLobby(p.userId).catch(handleError)
   }
 
   return (
