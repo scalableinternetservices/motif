@@ -177,6 +177,8 @@ export default class Game extends React.Component<
 
   async submitWord() {
     //submit word
+    if (this.playerWords.length < 2) return
+
     console.log('The submitted word is:' + this.playerWords)
     let nl = ''
     let score = 0
