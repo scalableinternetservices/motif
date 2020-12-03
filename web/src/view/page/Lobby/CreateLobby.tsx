@@ -1,6 +1,4 @@
-import { useQuery } from '@apollo/client'
 import * as React from 'react'
-import { FetchLobbies } from '../../../graphql/query.gen'
 import { Button } from '../../../style/button'
 import { H2 } from '../../../style/header'
 import { style } from '../../../style/styled'
@@ -8,7 +6,6 @@ import { UserContext } from '../../auth/user'
 import { Link_Self } from '../../nav/Link'
 import { getLobbyWaitPath } from '../../nav/route'
 import { handleError } from '../../toast/error'
-import { fetchLobbies } from './fetchLobbies'
 import { UserInfo } from './LobbySearch'
 import { createLobby } from './mutateLobbies'
 
@@ -98,22 +95,18 @@ function DisplaySettings(p: DisplaySettingsProps) {
 }
 
 function CreateLobbyButton(p: DisplaySettingsProps) {
-  const { refetch } = useQuery<FetchLobbies>(fetchLobbies)
-
   function createNewLobby() {
-    createLobby(p.userId, p.maxPlayers, p.timeLimit, true)
-      .then(() => refetch())
-      .catch(handleError)
+    createLobby(p.userId, p.maxPlayers, p.timeLimit, true).catch(handleError)
   }
-
+  const active = p.maxPlayers != 0 && p.timeLimit != 0
   return (
     <div className="mb4">
       <Link_Self
         Component={Button}
         onClick={() => {
-          createNewLobby()
+          active ? createNewLobby() : alert('Must choose non-zero Player/Time Limit')
         }}
-        to={getLobbyWaitPath()}
+        to={active ? getLobbyWaitPath() : undefined}
       >
         Create Lobby
       </Link_Self>

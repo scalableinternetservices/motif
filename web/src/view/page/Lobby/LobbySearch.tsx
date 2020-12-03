@@ -105,9 +105,12 @@ function LobbyEntry(p: LobbyEntryProps) {
 
 function LobbyList(p: UserInfo) {
   //let [lobbies, setLobbies] =  React.useState([]);
-  const [, setField] = React.useState('')
+  const [, setField] = React.useState('') //TODO: Remove if we don't go forward with the feature of a lobby name
   //Query for lobbies from the database and display them in a list
-  const { loading, data } = useQuery<FetchLobbies>(fetchLobbies, { fetchPolicy: 'cache-and-network' })
+  const { loading, data } = useQuery<FetchLobbies>(fetchLobbies, {
+    fetchPolicy: 'cache-and-network',
+    pollInterval: 5000, //Comment out when using subscription
+  })
   if (loading) {
     return <div>loading...</div>
   }
