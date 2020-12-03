@@ -27,6 +27,7 @@ type Query {
   lobbies: [Lobby!] # get all lobbies
   lobby (lobbyId: Int!): Lobby
 
+  user(userId: Int!): User
   users: [User]!
   username(playerId: Int!): String
 }
@@ -63,6 +64,7 @@ type User {
   userType: UserType!
   email: String!
   name: String!
+  player: Player
 }
 
 enum UserType { ADMIN, USER }
@@ -118,6 +120,8 @@ input SurveyInput {
 type Player {
   id: Int!
   lobby: Lobby
+  lobbyId: Int
+  user: User #For gql debugging remove later
 }
 
 enum TileType {Normal, Double, Dud}

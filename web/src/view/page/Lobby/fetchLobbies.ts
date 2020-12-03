@@ -14,7 +14,7 @@ export const fetchLobbies = gql`
 `
 
 export const fetchLobby = gql`
-  query FetchLobby($lobbyId: Int!){
+  query FetchLobby($lobbyId: Int!) {
     lobby(lobbyId: $lobbyId) {
       gameTime
       maxUsers
@@ -26,7 +26,20 @@ export const fetchLobby = gql`
 `
 
 export const fetchUserName = gql`
-  query FetchUserName ($playerId: Int!) {
+  query FetchUserName($playerId: Int!) {
     username(playerId: $playerId)
+  }
+`
+
+export const fetchUser = gql`
+  query FetchUser($userId: Int!) {
+    user(userId: $userId) {
+      id
+      name
+      player {
+        id
+        lobbyId
+      }
+    }
   }
 `

@@ -42,6 +42,23 @@ export interface FetchUserList {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL mutation operation: MakeMove
+// ====================================================
+
+export interface MakeMove {
+  makeMove: boolean;
+}
+
+export interface MakeMoveVariables {
+  input: MoveInput;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: FetchLobbies
 // ====================================================
 
@@ -106,6 +123,36 @@ export interface FetchUserName {
 
 export interface FetchUserNameVariables {
   playerId: number;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: FetchUser
+// ====================================================
+
+export interface FetchUser_user_player {
+  __typename: "Player";
+  id: number;
+  lobbyId: number | null;
+}
+
+export interface FetchUser_user {
+  __typename: "User";
+  id: number;
+  name: string;
+  player: FetchUser_user_player | null;
+}
+
+export interface FetchUser {
+  user: FetchUser_user | null;
+}
+
+export interface FetchUserVariables {
+  userId: number;
 }
 
 /* tslint:disable */
@@ -411,14 +458,45 @@ export interface SurveyQuestion {
 // START Enums and Input Objects
 //==============================================================
 
+export enum MoveType {
+  DeselectTile = "DeselectTile",
+  Scramble = "Scramble",
+  SelectTile = "SelectTile",
+  SpawnTiles = "SpawnTiles",
+  Submit = "Submit",
+}
+
+export enum TileType {
+  Double = "Double",
+  Dud = "Dud",
+  Normal = "Normal",
+}
+
 export enum UserType {
   ADMIN = "ADMIN",
   USER = "USER",
 }
 
+export interface MoveInput {
+  playerId: number;
+  lobbyId: number;
+  time: any;
+  moveType: MoveType;
+  tiles?: TileInput[] | null;
+  pointValue?: number | null;
+  tileLocation?: number | null;
+}
+
 export interface SurveyInput {
   questionId: number;
   answer: string;
+}
+
+export interface TileInput {
+  letter: string;
+  pointValue: number;
+  tileType: TileType;
+  location: number;
 }
 
 //==============================================================

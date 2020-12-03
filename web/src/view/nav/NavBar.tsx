@@ -31,8 +31,8 @@ const otherTabs = [
     path: getPath(Route.LobbyWait),
   },
   {
-    name: 'Juan Testing',
-    path: getPath(Route.JUAN_TESTING),
+    name: 'Board',
+    path: getPath(Route.BOARD),
   },
   {
     name: 'User Login',

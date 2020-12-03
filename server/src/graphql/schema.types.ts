@@ -20,6 +20,7 @@ export interface Query {
   survey?: Maybe<Survey>
   lobbies?: Maybe<Array<Lobby>>
   lobby?: Maybe<Lobby>
+  user?: Maybe<User>
   users: Array<Maybe<User>>
   username?: Maybe<Scalars['String']>
 }
@@ -30,6 +31,10 @@ export interface QuerySurveyArgs {
 
 export interface QueryLobbyArgs {
   lobbyId: Scalars['Int']
+}
+
+export interface QueryUserArgs {
+  userId: Scalars['Int']
 }
 
 export interface QueryUsernameArgs {
@@ -99,6 +104,7 @@ export interface User {
   userType: UserType
   email: Scalars['String']
   name: Scalars['String']
+  player?: Maybe<Player>
 }
 
 export enum UserType {
@@ -140,7 +146,9 @@ export interface SurveyInput {
 export interface Player {
   __typename?: 'Player'
   id: Scalars['Int']
-  lobby: Lobby
+  lobby?: Maybe<Lobby>
+  lobbyId?: Maybe<Scalars['Int']>
+  user?: Maybe<User>
 }
 
 export enum TileType {
@@ -405,6 +413,7 @@ export type QueryResolvers<
   >
   lobbies?: Resolver<Maybe<Array<ResolversTypes['Lobby']>>, ParentType, ContextType>
   lobby?: Resolver<Maybe<ResolversTypes['Lobby']>, ParentType, ContextType, RequireFields<QueryLobbyArgs, 'lobbyId'>>
+  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'userId'>>
   users?: Resolver<Array<Maybe<ResolversTypes['User']>>, ParentType, ContextType>
   username?: Resolver<
     Maybe<ResolversTypes['String']>,
@@ -484,6 +493,7 @@ export type UserResolvers<
   userType?: Resolver<ResolversTypes['UserType'], ParentType, ContextType>
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  player?: Resolver<Maybe<ResolversTypes['Player']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType>
 }
 
@@ -528,6 +538,8 @@ export type PlayerResolvers<
 > = {
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   lobby?: Resolver<Maybe<ResolversTypes['Lobby']>, ParentType, ContextType>
+  lobbyId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType>
 }
 

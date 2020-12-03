@@ -37,6 +37,7 @@ export default class Game extends React.Component<
   finished = false
   player: Player = {
     id: -1,
+    lobbyId: -1,
     lobby: {
       id: -1,
       state: LobbyState.InGame,
@@ -68,7 +69,7 @@ export default class Game extends React.Component<
     this.countdown = this.countdown.bind(this)
 
     //variable setup
-    this.player = { id: this.state.playerID, lobby: this.state.lobbyinfo }
+    this.player = { id: this.state.playerID, lobby: this.state.lobbyinfo, lobbyId: this.state.lobbyinfo.id}
     this.timer = setInterval(this.countdown, 100)
     for (let i = 0; i < 16; i++) {
       this.active.push(false)
