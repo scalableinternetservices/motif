@@ -4,10 +4,8 @@ import * as React from 'react'
 import {
   FetchLobby,
   FetchLobbyVariables,
-  FetchUser,
   FetchUserName,
   FetchUserNameVariables,
-  FetchUserVariables,
   LobbySubscription,
   // eslint-disable-next-line prettier/prettier
   LobbySubscriptionVariables
@@ -17,22 +15,18 @@ import { Link_Self } from '../../nav/Link'
 import { AppRouteParams, getLobbySearchPath } from '../../nav/route'
 import { handleError } from '../../toast/error'
 import { Page } from '../Page'
-import { fetchLobby, fetchUser, fetchUserName, subscribeLobby } from './fetchLobbies'
+import { fetchLobby, fetchUserName, subscribeLobby } from './fetchLobbies'
 import { UserInfo } from './LobbySearch'
 import { leaveLobby, startGame } from './mutateLobbies'
 
-interface LobbyWaitProps extends RouteComponentProps, AppRouteParams {}
+interface LobbyWaitProps extends RouteComponentProps, AppRouteParams, LobbyData {}
 
-interface LobbyMainProps {
+interface LobbyMainProps extends LobbyData {
   lobbyId: number
 }
 
 interface TopBarProps extends LobbyMainProps, UserInfo {
   lobbyName: string
-}
-
-interface PlayersContainerProps {
-  lobbyId: number
 }
 
 interface SettingsBarProps {
@@ -44,51 +38,36 @@ interface PlayerProps {
   playerId: number
 }
 
+interface LobbyData {
+  lobbyId?: number
+  maxTime?: number
+  maxPlayers?: number
+}
+
 interface ExitButtonProps extends UserInfo, LobbyMainProps {}
 
-export function LobbyWait(p: LobbyWaitProps) {
+export function LobbyWait(props: LobbyWaitProps) {
   return (
     <Page>
-      <LobbyWaitWrap />
+      <LobbyWaitWrap lobbyId={props.lobbyId} maxTime={props.maxTime} maxPlayers={props.maxPlayers} />
     </Page>
   )
 }
 
-function LobbyWaitWrap() {
-  const { user } = React.useContext(UserContext)
-
-  if (!user) return <div>Error: User was not found (USER CONTEXT)</div>
-
-  const userId = user?.id
-  //console.log('User ID: ' + userId)
-
-  const { loading, data } = useQuery<FetchUser, FetchUserVariables>(fetchUser, {
-    variables: { userId },
-    fetchPolicy: 'cache-and-network',
-    //pollInterval: 5000, //Comment out when using subscription
-  })
-
-  const [userData, setUserData] = React.useState(data?.user)
-
-  React.useEffect(() => {
-    if (data?.user) {
-      setUserData(data.user)
-    }
-  }, [data])
-
-  //console.log('DATA: ' + JSON.stringify(data))
-
-  if (loading) return <div>Loading User ...</div>
-  else if (!data) return <div>Error: User was not found</div>
-  else if (!data.user?.player) return <div>Error: Player was not found</div>
-
-  return <LobbyWaitMain lobbyId={userData?.player?.lobbyId ? userData?.player?.lobbyId : -1}></LobbyWaitMain>
+function LobbyWaitWrap(props: LobbyData) {
+  return (
+    <LobbyWaitMain
+      lobbyId={props.lobbyId ? props.lobbyId : -1}
+      maxTime={props.maxTime}
+      maxPlayers={props.maxPlayers}
+    ></LobbyWaitMain>
+  )
 }
 
 function LobbyWaitMain(props: LobbyMainProps) {
   return (
     <div className="baseCanvas">
-      <LobbyContainer lobbyId={props.lobbyId} />
+      <LobbyContainer lobbyId={props.lobbyId} maxTime={props.maxTime} maxPlayers={props.maxPlayers} />
     </div>
   )
 }
@@ -124,7 +103,7 @@ function TopBar(p: TopBarProps) {
   )
 }
 
-function PlayersContainer(p: PlayersContainerProps) {
+function PlayersContainer(p: LobbyMainProps) {
   const lobbyId = p.lobbyId
 
   const { loading, data } = useQuery<FetchLobby, FetchLobbyVariables>(fetchLobby, {
@@ -135,16 +114,12 @@ function PlayersContainer(p: PlayersContainerProps) {
 
   //Give each component of the Lobby its own state (so they can be updated individually)
   const [playerList, setPlayerList] = React.useState(data?.lobby?.players)
-  const [maxTime, setMaxTime] = React.useState(data?.lobby?.gameTime)
-  const [maxPlayers, setMaxPlayers] = React.useState(data?.lobby?.maxUsers)
 
   //Ensure that all lobby data displayed to the user updates when data updates
   // eg. when the query returns newer data from the db
   React.useEffect(() => {
     if (data?.lobby) {
       setPlayerList(data.lobby.players)
-      setMaxTime(data.lobby.gameTime)
-      setMaxPlayers(data.lobby.maxUsers)
     }
   }, [data])
 
@@ -173,7 +148,7 @@ function PlayersContainer(p: PlayersContainerProps) {
       <div className="w-25 ph2 flex justify-center h5 items-center bg-green">ChatBox</div>
 
       <div className="playerContainer outline">
-        <SettingsBar maxPlayer={maxPlayers} timeLimit={maxTime} />
+        <SettingsBar maxPlayer={p.maxPlayers} timeLimit={p.maxTime} />
         {lobbyId != -1 && (
           <div className="flex flex-column ma2">
             {playerList?.map((player, i) => (

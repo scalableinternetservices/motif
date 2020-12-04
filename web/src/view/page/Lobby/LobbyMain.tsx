@@ -36,7 +36,7 @@ function LobbyController() {
   const { loading, data } = useQuery<FetchUser, FetchUserVariables>(fetchUser, {
     variables: { userId },
     fetchPolicy: 'cache-and-network',
-    pollInterval: 5000, //Comment out when using subscription
+    //pollInterval: 5000, //Comment out when using subscription
   })
 
   const [userData, setUserData] = React.useState(data?.user)
@@ -85,14 +85,14 @@ function LobbyController() {
   if (!state) {
     return <div>Error: lobby state is undefined</div>
   }
-  console.log('IN LOBBY MAIN, lobbyId: ' + lobbyId)
+
   switch (state) {
     case LobbyState.IN_GAME:
       return <BoardPage lobbyId={lobbyId} playerId={userData?.player?.id} timeLimit={maxTime} maxUsers={maxPlayers} />
     case LobbyState.PRIVATE:
-      return <LobbyWait />
+      return <LobbyWait lobbyId={lobbyId} maxPlayers={maxPlayers} maxTime={maxTime} />
     case LobbyState.PUBLIC:
-      return <LobbyWait />
+      return <LobbyWait lobbyId={lobbyId} maxPlayers={maxPlayers} maxTime={maxTime} />
     default:
       return <div>Error: Unknown Lobby State</div>
   }
