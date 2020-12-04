@@ -13,6 +13,7 @@ import { Route } from './nav/route'
 import { BoardPage } from './page/BoardPage'
 import { HomePage } from './page/HomePage'
 import { LecturesPage } from './page/LecturesPage'
+import { LobbyMain } from './page/Lobby/LobbyMain'
 import { LobbySearchMain } from './page/Lobby/LobbySearch'
 import { LobbyWait } from './page/Lobby/LobbyWait'
 import { PlaygroundPage } from './page/PlaygroundPage'
@@ -67,6 +68,7 @@ export function AppBody() {
         <UserLogin path={Route.USER_LOGIN} />
         <LobbyWait path={Route.Lobby_Inst} />
         <BoardPage path={Route.Game_Inst} />
+        <LobbyMain path={Route.LobbyMain} />
       </Router>
       <Footer>
         <FooterText>© 2020 John Rothfels</FooterText>

@@ -72,6 +72,7 @@ export interface FetchLobbies_lobbies {
   id: number;
   maxUsers: number;
   gameTime: number;
+  state: LobbyState;
   players: FetchLobbies_lobbies_players[];
 }
 
@@ -97,6 +98,7 @@ export interface FetchLobby_lobby {
   __typename: "Lobby";
   gameTime: number;
   maxUsers: number;
+  state: LobbyState;
   players: FetchLobby_lobby_players[];
 }
 
@@ -153,6 +155,63 @@ export interface FetchUser {
 
 export interface FetchUserVariables {
   userId: number;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL subscription operation: LobbiesSubscription
+// ====================================================
+
+export interface LobbiesSubscription_lobbiesUpdates_players {
+  __typename: "Player";
+  id: number;
+}
+
+export interface LobbiesSubscription_lobbiesUpdates {
+  __typename: "Lobby";
+  id: number;
+  maxUsers: number;
+  gameTime: number;
+  state: LobbyState;
+  players: LobbiesSubscription_lobbiesUpdates_players[];
+}
+
+export interface LobbiesSubscription {
+  lobbiesUpdates: LobbiesSubscription_lobbiesUpdates[] | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL subscription operation: LobbySubscription
+// ====================================================
+
+export interface LobbySubscription_lobbyUpdates_players {
+  __typename: "Player";
+  id: number;
+}
+
+export interface LobbySubscription_lobbyUpdates {
+  __typename: "Lobby";
+  maxUsers: number;
+  gameTime: number;
+  state: LobbyState;
+  players: LobbySubscription_lobbyUpdates_players[];
+}
+
+export interface LobbySubscription {
+  lobbyUpdates: LobbySubscription_lobbyUpdates | null;
+}
+
+export interface LobbySubscriptionVariables {
+  lobbyId: number;
 }
 
 /* tslint:disable */
@@ -457,6 +516,13 @@ export interface SurveyQuestion {
 //==============================================================
 // START Enums and Input Objects
 //==============================================================
+
+export enum LobbyState {
+  IN_GAME = "IN_GAME",
+  PRIVATE = "PRIVATE",
+  PUBLIC = "PUBLIC",
+  REPLAY = "REPLAY",
+}
 
 export enum MoveType {
   DeselectTile = "DeselectTile",

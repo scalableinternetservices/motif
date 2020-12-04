@@ -1,17 +1,17 @@
-import { useQuery } from '@apollo/client'
+import { useQuery, useSubscription } from '@apollo/client'
 import { RouteComponentProps } from '@reach/router'
 import * as React from 'react'
-import { FetchLobbies } from '../../../graphql/query.gen'
+import { FetchLobbies, LobbiesSubscription } from '../../../graphql/query.gen'
 import { Button } from '../../../style/button'
 import { Input } from '../../../style/input'
 import { style } from '../../../style/styled'
 import { UserContext } from '../../auth/user'
 import { link, Link_Self } from '../../nav/Link'
-import { AppRouteParams, getLobbyWaitPath } from '../../nav/route'
+import { AppRouteParams, getLobbyMainPath } from '../../nav/route'
 import { handleError } from '../../toast/error'
 import { Page } from '../Page'
 import { CreateLobby } from './CreateLobby'
-import { fetchLobbies } from './fetchLobbies'
+import { fetchLobbies, subscribeLobbies } from './fetchLobbies'
 import { joinLobby } from './mutateLobbies'
 
 interface LobbySearchProps extends RouteComponentProps, AppRouteParams {}
@@ -82,8 +82,9 @@ function LobbyButton(p: LobbyButtonProps) {
   return (
     <div className={p.active ? 'o-100' : 'o-50'}>
       <Link_Self
-        onClick={p.active ? () => handleJoinLobby(p.userId, p.id) : () => alert('Lobby is full')}
-        to={p.active ? getLobbyWaitPath() : undefined}
+        onClick={p.active ? () => handleJoinLobby(p.userId, p.id) : () => alert('Cannot join Lobby')}
+        //to={p.active ? getLobbyWaitPath() : undefined}
+        to={p.active ? getLobbyMainPath() : undefined}
       >
         Join
       </Link_Self>
@@ -104,10 +105,36 @@ function LobbyEntry(p: LobbyEntryProps) {
 }
 
 function LobbyList(p: UserInfo) {
-  //let [lobbies, setLobbies] =  React.useState([]);
-  const [, setField] = React.useState('')
+  const [, setField] = React.useState('') //TODO: Remove if we don't go forward with the feature of a lobby name
+  //const initList: LobbiesSubscription_lobbiesUpdates[] = []
+
   //Query for lobbies from the database and display them in a list
-  const { loading, data } = useQuery<FetchLobbies>(fetchLobbies, { fetchPolicy: 'cache-and-network' })
+  const { loading, data } = useQuery<FetchLobbies>(fetchLobbies, {
+    fetchPolicy: 'cache-and-network',
+    //pollInterval: 5000, //Comment out when using subscription
+  })
+
+  //Make the list of lobbies stateful
+  const [lobbyList, setLobbyList] = React.useState(data?.lobbies)
+
+  //Make sure to update the list of lobbies when data changes
+  // eg. when query gets null from cache and something else from db
+  React.useEffect(() => {
+    if (data?.lobbies) {
+      setLobbyList(data.lobbies)
+    }
+  }, [data])
+
+  //Subscribe the user to receiving the list of lobbies as it is updated
+  const lobbiesSub = useSubscription<LobbiesSubscription>(subscribeLobbies)
+
+  //Make sure to update the list of lobbies whenever the subscription is updated with new data
+  React.useEffect(() => {
+    if (lobbiesSub.data?.lobbiesUpdates) {
+      setLobbyList(lobbiesSub.data.lobbiesUpdates)
+    }
+  }, [lobbiesSub.data])
+
   if (loading) {
     return <div>loading...</div>
   }
@@ -120,7 +147,7 @@ function LobbyList(p: UserInfo) {
       <div className="flex justify-center">
         <Input placeholder="Search..." $onChange={setField}></Input>
       </div>
-      {data.lobbies
+      {lobbyList
         ?.filter(lobby => lobby.id > 0)
         .map((lobby, i) => (
           <div key={i}>
@@ -129,7 +156,7 @@ function LobbyList(p: UserInfo) {
               name={lobby.gameTime.toString()}
               maxPlayers={lobby.maxUsers}
               curPlayers={lobby.players.length}
-              active={lobby.maxUsers - lobby.players.length > 0}
+              active={lobby.maxUsers - lobby.players.length > 0 && lobby.state != 'IN_GAME' && lobby.state != 'PRIVATE'}
               id={lobby.id}
               userId={p.userId}
             />

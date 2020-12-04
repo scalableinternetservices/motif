@@ -57,6 +57,10 @@ type Mutation {
 
 type Subscription {
   surveyUpdates (surveyId: Int!): Survey
+
+  lobbiesUpdates: [Lobby!]
+
+  lobbyUpdates (lobbyId: Int!): Lobby
 }
 
 type User {

@@ -1,4 +1,4 @@
-import { useQuery } from '@apollo/client'
+import { useQuery, useSubscription } from '@apollo/client'
 import { RouteComponentProps } from '@reach/router'
 import * as React from 'react'
 import {
@@ -7,15 +7,17 @@ import {
   FetchUser,
   FetchUserName,
   FetchUserNameVariables,
+  FetchUserVariables,
+  LobbySubscription,
   // eslint-disable-next-line prettier/prettier
-  FetchUserVariables
+  LobbySubscriptionVariables
 } from '../../../graphql/query.gen'
 import { UserContext } from '../../auth/user'
 import { Link_Self } from '../../nav/Link'
-import { AppRouteParams, getGamePath, getLobbySearchPath } from '../../nav/route'
+import { AppRouteParams, getLobbySearchPath } from '../../nav/route'
 import { handleError } from '../../toast/error'
 import { Page } from '../Page'
-import { fetchLobby, fetchUser, fetchUserName } from './fetchLobbies'
+import { fetchLobby, fetchUser, fetchUserName, subscribeLobby } from './fetchLobbies'
 import { UserInfo } from './LobbySearch'
 import { leaveLobby, startGame } from './mutateLobbies'
 
@@ -58,36 +60,29 @@ function LobbyWaitWrap() {
   if (!user) return <div>Error: User was not found (USER CONTEXT)</div>
 
   const userId = user?.id
-  console.log('User ID: ' + userId)
+  //console.log('User ID: ' + userId)
 
   const { loading, data } = useQuery<FetchUser, FetchUserVariables>(fetchUser, {
     variables: { userId },
     fetchPolicy: 'cache-and-network',
+    //pollInterval: 5000, //Comment out when using subscription
   })
 
-  console.log('DATA: ' + JSON.stringify(data))
-  console.log('PLAYER INFO: ' + JSON.stringify(data?.user?.player))
-  console.log('USER ID: ' + data?.user?.id)
-  console.log('USER NAME ' + data?.user?.name)
-  console.log('Player ID: ' + data?.user?.player?.id)
-  console.log('Lobby ID: ' + data?.user?.player?.lobbyId)
+  const [userData, setUserData] = React.useState(data?.user)
+
+  React.useEffect(() => {
+    if (data?.user) {
+      setUserData(data.user)
+    }
+  }, [data])
+
+  //console.log('DATA: ' + JSON.stringify(data))
 
   if (loading) return <div>Loading User ...</div>
   else if (!data) return <div>Error: User was not found</div>
   else if (!data.user?.player) return <div>Error: Player was not found</div>
 
-  return <LobbyWaitMain lobbyId={data.user.player.lobbyId ? data.user.player.lobbyId : 1}></LobbyWaitMain>
-
-  // const {user} = React.useContext(UserContext);
-
-  // if(user?.player == null )
-  //    return <div>Error: Missing Player {user?.player}</div>
-
-  // return <LobbyWaitMain lobbyId={user?.player.id}/>
-
-  // const location = useLocation()
-  // const [, lobbyId] = (location.search || '').split('?lobbyId=')
-  // return lobbyId ? <LobbyWaitMain lobbyId={Number(lobbyId)} /> : <LobbyWaitMain lobbyId={0}/>
+  return <LobbyWaitMain lobbyId={userData?.player?.lobbyId ? userData?.player?.lobbyId : -1}></LobbyWaitMain>
 }
 
 function LobbyWaitMain(props: LobbyMainProps) {
@@ -119,12 +114,8 @@ function TopBar(p: TopBarProps) {
   return (
     <div className="mw100-l flex">
       <div className="w-25 pa3 flex justify-around h3">
-        <div className="w-50 pa3">
-          <ExitButton userId={p.userId} lobbyId={p.lobbyId} />
-        </div>
-        <div className="w-50 pa3">
-          <StartButton lobbyId={p.lobbyId} />
-        </div>
+        <div className="w-50 pa3">{p.lobbyId != -1 && <ExitButton userId={p.userId} lobbyId={p.lobbyId} />}</div>
+        <div className="w-50 pa3">{p.lobbyId != -1 && <StartButton lobbyId={p.lobbyId} />}</div>
       </div>
       <div className="ba h3 mb3 bg-black-10 flex items-center w-75">
         <h1 className="center">{p.lobbyName}</h1>
@@ -135,16 +126,46 @@ function TopBar(p: TopBarProps) {
 
 function PlayersContainer(p: PlayersContainerProps) {
   const lobbyId = p.lobbyId
-  // const [playerListLength, setPlayerListLength] = React.useState(0);
+
   const { loading, data } = useQuery<FetchLobby, FetchLobbyVariables>(fetchLobby, {
     variables: { lobbyId },
     fetchPolicy: 'cache-and-network',
+    //pollInterval: 5000, //Comment out when using subscription
   })
 
-  if (loading) {
-    return <div>Fetching Lobby</div>
-  } else if (data == null) {
-    return <div>Lobby not found</div>
+  //Give each component of the Lobby its own state (so they can be updated individually)
+  const [playerList, setPlayerList] = React.useState(data?.lobby?.players)
+  const [maxTime, setMaxTime] = React.useState(data?.lobby?.gameTime)
+  const [maxPlayers, setMaxPlayers] = React.useState(data?.lobby?.maxUsers)
+
+  //Ensure that all lobby data displayed to the user updates when data updates
+  // eg. when the query returns newer data from the db
+  React.useEffect(() => {
+    if (data?.lobby) {
+      setPlayerList(data.lobby.players)
+      setMaxTime(data.lobby.gameTime)
+      setMaxPlayers(data.lobby.maxUsers)
+    }
+  }, [data])
+
+  //Subscribe to this lobby and receive updates when a player joins or leaves
+  const lobbySub = useSubscription<LobbySubscription, LobbySubscriptionVariables>(subscribeLobby, {
+    variables: { lobbyId },
+  })
+
+  //Ensure that the new data sent from the server to the client updates the state and gets re-rendered
+  React.useEffect(() => {
+    if (lobbySub.data?.lobbyUpdates) {
+      setPlayerList(lobbySub.data.lobbyUpdates.players)
+    }
+  }, [lobbySub.data])
+
+  if (lobbyId != -1) {
+    if (loading) {
+      return <div>Fetching Lobby</div>
+    } else if (data == null) {
+      return <div>Lobby not found</div>
+    }
   }
 
   return (
@@ -152,12 +173,14 @@ function PlayersContainer(p: PlayersContainerProps) {
       <div className="w-25 ph2 flex justify-center h5 items-center bg-green">ChatBox</div>
 
       <div className="playerContainer outline">
-        <SettingsBar maxPlayer={data?.lobby?.maxUsers} timeLimit={data?.lobby?.gameTime} />
-        <div className="flex flex-column ma2">
-          {data.lobby?.players.map((player, i) => (
-            <Player key={i} playerId={player.id} />
-          ))}
-        </div>
+        <SettingsBar maxPlayer={maxPlayers} timeLimit={maxTime} />
+        {lobbyId != -1 && (
+          <div className="flex flex-column ma2">
+            {playerList?.map((player, i) => (
+              <Player key={i} playerId={player.id} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -198,11 +221,7 @@ function StartButton(p: LobbyMainProps) {
     startGame(p.lobbyId).catch(handleError)
   }
 
-  return (
-    <Link_Self to={getGamePath(p.lobbyId)} onClick={handleStart}>
-      Start
-    </Link_Self>
-  )
+  return <Link_Self onClick={handleStart}>Start</Link_Self>
 }
 
 function ExitButton(p: ExitButtonProps) {

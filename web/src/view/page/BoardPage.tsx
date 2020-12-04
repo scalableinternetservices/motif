@@ -16,6 +16,9 @@ import { Page } from './Page'
 // eslint-disable-next-line prettier/prettier
 interface PlaygroundPageProps extends RouteComponentProps, AppRouteParams {
   lobbyId?: number
+  playerId?: number
+  timeLimit?: number
+  maxUsers?: number
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -30,8 +33,8 @@ export function BoardPage(props: PlaygroundPageProps) {
     players: [],
     spectators: [],
     moves: [],
-    gameTime: 300,
-    maxUsers: 3,
+    gameTime: props.timeLimit ? props.timeLimit : 300,
+    maxUsers: props.maxUsers ? props.maxUsers : 3,
   }
   for (let p = 0; p < 16; p++) {
     enemy1board.push({ id: 0, letter: 'X', value: 0, location: p, tileType: TileType.Normal })
@@ -55,7 +58,11 @@ export function BoardPage(props: PlaygroundPageProps) {
           <UpdateEnemyBoards lobbyId={lobby.id} />
         </div>
         <div className="column">
-          <Game playerID={data?.user?.player?.id} timeLimit={60} lobbyinfo={lobby} />
+          <Game
+            playerID={data?.user?.player?.id}
+            timeLimit={props.timeLimit ? props.timeLimit : 60}
+            lobbyinfo={lobby}
+          />
         </div>
         <div className="chat">
           <RContent>
