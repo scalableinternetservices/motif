@@ -33,6 +33,7 @@ function LobbyController() {
 
   const userId = user?.id
 
+  //$POLL: (Un)Comment the pollInterval field to enable polling for this query
   const { loading, data } = useQuery<FetchUser, FetchUserVariables>(fetchUser, {
     variables: { userId },
     fetchPolicy: 'cache-and-network',
@@ -47,6 +48,7 @@ function LobbyController() {
     }
   }, [data])
 
+  //$POLL: (Un)Comment the pollInterval field to enable polling for this query
   const lobbyId = userData?.player?.lobbyId ? userData?.player?.lobbyId : 0
   const lobby = useQuery<FetchLobby, FetchLobbyVariables>(fetchLobby, {
     variables: { lobbyId },
@@ -65,6 +67,7 @@ function LobbyController() {
     }
   }, [lobby.data])
 
+  //$SUB: (Un)Comment lobbySub and the associated useEffect below
   //Subscribe to this lobby and receive updates when a player joins or leaves
   const lobbySub = useSubscription<LobbySubscription, LobbySubscriptionVariables>(subscribeLobby, {
     variables: { lobbyId },

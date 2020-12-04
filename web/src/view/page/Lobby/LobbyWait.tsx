@@ -106,6 +106,7 @@ function TopBar(p: TopBarProps) {
 function PlayersContainer(p: LobbyMainProps) {
   const lobbyId = p.lobbyId
 
+  //$POLL: (Un)Comment the pollInterval field to enable polling for this query
   const { loading, data } = useQuery<FetchLobby, FetchLobbyVariables>(fetchLobby, {
     variables: { lobbyId },
     fetchPolicy: 'cache-and-network',
@@ -123,6 +124,7 @@ function PlayersContainer(p: LobbyMainProps) {
     }
   }, [data])
 
+  //$SUB: (Un)Comment lobbySub and the associated useEffect below
   //Subscribe to this lobby and receive updates when a player joins or leaves
   const lobbySub = useSubscription<LobbySubscription, LobbySubscriptionVariables>(subscribeLobby, {
     variables: { lobbyId },
