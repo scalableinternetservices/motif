@@ -14,7 +14,7 @@ import {
 } from '../../../graphql/query.gen'
 import { UserContext } from '../../auth/user'
 import { Link_Self } from '../../nav/Link'
-import { AppRouteParams, getGamePath, getLobbySearchPath } from '../../nav/route'
+import { AppRouteParams, getLobbySearchPath } from '../../nav/route'
 import { handleError } from '../../toast/error'
 import { Page } from '../Page'
 import { fetchLobby, fetchUser, fetchUserName, subscribeLobby } from './fetchLobbies'
@@ -221,11 +221,7 @@ function StartButton(p: LobbyMainProps) {
     startGame(p.lobbyId).catch(handleError)
   }
 
-  return (
-    <Link_Self to={getGamePath(p.lobbyId)} onClick={handleStart}>
-      Start
-    </Link_Self>
-  )
+  return <Link_Self onClick={handleStart}>Start</Link_Self>
 }
 
 function ExitButton(p: ExitButtonProps) {

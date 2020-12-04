@@ -7,7 +7,7 @@ import { Input } from '../../../style/input'
 import { style } from '../../../style/styled'
 import { UserContext } from '../../auth/user'
 import { link, Link_Self } from '../../nav/Link'
-import { AppRouteParams, getLobbyWaitPath } from '../../nav/route'
+import { AppRouteParams, getLobbyMainPath } from '../../nav/route'
 import { handleError } from '../../toast/error'
 import { Page } from '../Page'
 import { CreateLobby } from './CreateLobby'
@@ -83,7 +83,8 @@ function LobbyButton(p: LobbyButtonProps) {
     <div className={p.active ? 'o-100' : 'o-50'}>
       <Link_Self
         onClick={p.active ? () => handleJoinLobby(p.userId, p.id) : () => alert('Cannot join Lobby')}
-        to={p.active ? getLobbyWaitPath() : undefined}
+        //to={p.active ? getLobbyWaitPath() : undefined}
+        to={p.active ? getLobbyMainPath() : undefined}
       >
         Join
       </Link_Self>

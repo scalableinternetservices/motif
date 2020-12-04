@@ -12,6 +12,7 @@ export enum Route {
   PLAYGROUND_APP = 'app/playground/:app',
   LobbySearch = 'app/LobbySearch',
   LobbyWait = 'app/LobbyWait',
+  LobbyMain = 'app/Lobby',
   BOARD = 'app/board',
   USER_LOGIN = 'app/UserLogin',
   Lobby_Inst = 'app/LobbyWait/:lobby',
@@ -49,6 +50,10 @@ export function getLoginPath() {
 
 export function getPlaygroundPath() {
   return getPath(Route.PLAYGROUND)
+}
+
+export function getLobbyMainPath() {
+  return getPath(Route.LobbyMain)
 }
 
 export function getLobbySearchPath() {

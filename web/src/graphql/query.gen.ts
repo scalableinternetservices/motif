@@ -98,6 +98,7 @@ export interface FetchLobby_lobby {
   __typename: "Lobby";
   gameTime: number;
   maxUsers: number;
+  state: LobbyState;
   players: FetchLobby_lobby_players[];
 }
 
@@ -201,6 +202,7 @@ export interface LobbySubscription_lobbyUpdates {
   __typename: "Lobby";
   maxUsers: number;
   gameTime: number;
+  state: LobbyState;
   players: LobbySubscription_lobbyUpdates_players[];
 }
 

@@ -19,6 +19,7 @@ export const fetchLobby = gql`
     lobby(lobbyId: $lobbyId) {
       gameTime
       maxUsers
+      state
       players {
         id
       }
@@ -63,6 +64,7 @@ export const subscribeLobby = gql`
     lobbyUpdates(lobbyId: $lobbyId) {
       maxUsers
       gameTime
+      state
       players {
         id
       }

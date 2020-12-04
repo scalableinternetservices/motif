@@ -205,6 +205,10 @@ export const graphqlRoot: Resolvers<Context> = {
       const lobbies = check(await Lobby.find())
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
+      //pass the current updated lobby as payload for lobbyUpdates subscription
+      const updatedLobby = check(await Lobby.findOne({ where: { id: lobby.id } }))
+      ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
+
       return true
     },
     createUser: async (_, { name }, ctx) => {

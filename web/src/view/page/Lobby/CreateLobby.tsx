@@ -4,7 +4,7 @@ import { H2 } from '../../../style/header'
 import { style } from '../../../style/styled'
 import { UserContext } from '../../auth/user'
 import { Link_Self } from '../../nav/Link'
-import { getLobbyWaitPath } from '../../nav/route'
+import { getLobbyMainPath } from '../../nav/route'
 import { handleError } from '../../toast/error'
 import { UserInfo } from './LobbySearch'
 import { createLobby } from './mutateLobbies'
@@ -106,7 +106,8 @@ function CreateLobbyButton(p: DisplaySettingsProps) {
         onClick={() => {
           active ? createNewLobby() : alert('Must choose non-zero Player/Time Limit')
         }}
-        to={active ? getLobbyWaitPath() : undefined}
+        //to={active ? getLobbyWaitPath() : undefined}
+        to={active ? getLobbyMainPath() : undefined}
       >
         Create Lobby
       </Link_Self>
