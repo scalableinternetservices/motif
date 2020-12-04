@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { ColorName, Colors } from '../../../../common/src/colors'
 import {
   DeselectTile,
   Lobby,
@@ -69,13 +68,13 @@ export default class Game extends React.Component<
     this.countdown = this.countdown.bind(this)
 
     //variable setup
-    this.player = { id: this.state.playerID, lobby: this.state.lobbyinfo, lobbyId: this.state.lobbyinfo.id}
+    this.player = { id: this.state.playerID, lobby: this.state.lobbyinfo, lobbyId: this.state.lobbyinfo.id }
     this.timer = setInterval(this.countdown, 100)
     for (let i = 0; i < 16; i++) {
       this.active.push(false)
-      this.board.push({ id: 0, letter: 'X', pointValue: 0, location: 0, tileType: TileType.Normal })
+      this.board.push({ id: 0, letter: 'X', pointValue: 0, location: i, tileType: TileType.Normal })
       for (let p = 0; p < this.enemyPlayers; p++) {
-        this.enemyTiles[p].push({ id: 0, letter: 'X', pointValue: 0, location: 0, tileType: TileType.Normal })
+        this.enemyTiles[p].push({ id: 0, letter: 'X', pointValue: 0, location: i, tileType: TileType.Normal })
       }
     }
   }
@@ -217,8 +216,6 @@ export default class Game extends React.Component<
 
   render() {
     const tiles = []
-    //const enemy1Tiles = []
-    //const enemy2Tiles = []
     const enemyTiles = [[<div key={0}></div>]]
     enemyTiles.pop()
     for (let p = 0; p < this.enemyPlayers; p++) {
@@ -236,55 +233,28 @@ export default class Game extends React.Component<
         )
         for (let p = 0; p < this.enemyPlayers; p++) {
           enemyTiles[p].push(
-            //<div className={this.enemyTiles[p][index]'miniTile'} key={index}>
             <div className="miniTile" key={index}>
               {this.enemyTiles[p][index].letter}
             </div>
           )
         }
-        /*         enemy1Tiles.push(
-          <div className="miniTile" key={index}>
-            {c}
-          </div>
-        )
-        enemy2Tiles.push(
-          <div className="miniTile" key={index}>
-            {c}
-          </div>
-        ) */
       }
     }
     if (!this.finished) {
       return (
         <Content>
-          <div className="column">
-            <div>Player 2 score: {this.enemyScores[0]}</div>
-            <div className="miniBoard">{enemyTiles[0]}</div>
-            <Spacer $h5 />
-            <div>Player 3 score: {this.enemyScores[1]}</div>
-            <div className="miniBoard">{enemyTiles[1]}</div>
-          </div>
-          <div className="column">
-            <div>Time Remaining: {this.state.timeRemaining / 10}</div>
-            <div>Your Score: {this.playerScore}</div>
-            <Spacer $h1 />
-            <div className="board">{tiles}</div>
-            <div className="wordbox">{'Word: ' + this.playerWords}</div>
-            <button className="button" onClick={this.submitWord}>
-              Submit
-            </button>
+          <div>Time Remaining: {this.state.timeRemaining / 10}</div>
+          <div>Your Score: {this.playerScore}</div>
+          <Spacer $h1 />
+          <div className="board">{tiles}</div>
+          <div className="wordbox">{'Word: ' + this.playerWords}</div>
+          <button className="button" onClick={this.submitWord}>
+            Submit
+          </button>
 
-            <button className="button" onClick={this.randomizeBoard}>
-              Randomize
-            </button>
-          </div>
-          <div className="chat">
-            <RContent>
-              <Section>
-                <h2> CHATROOM HERE </h2>
-              </Section>
-            </RContent>
-          </div>
+          <button className="button" onClick={this.randomizeBoard}>
+            Randomize
+          </button>
         </Content>
       )
     } else {
@@ -307,21 +277,8 @@ export default class Game extends React.Component<
     }
   }
 }
-/*const Hero = style('div', 'mb4 w-100 ba b--mid-gray br2 pa3 tc', {
-  borderLeftColor: Colors.lemon + '!important',
-  borderRightColor: Colors.lemon + '!important',
-  borderLeftWidth: '4px',
-  borderRightWidth: '4px',
-})*/
 
 const Content = style('div', 'flex-l')
-
-const RContent = style('div', 'flex-grow-0  w-30-r')
-
-const Section = style('div', 'mb4 mid-gray ba b--mid-gray br2 pa3', (p: { $color?: ColorName }) => ({
-  borderLeftColor: Colors[p.$color || 'lemon'] + '!important',
-  borderLeftWidth: '3px',
-}))
 
 const pointVal: { [letter: string]: number } = {
   A: 1,
@@ -351,3 +308,18 @@ const pointVal: { [letter: string]: number } = {
   Y: 4,
   Z: 10,
 }
+// interface uProps {
+//   lobbyId: number
+// }
+// // eslint-disable-next-line @typescript-eslint/no-unused-vars
+// function UpdateEnemyBoards(p: uProps) {
+//   const lobbyid = p.lobbyId
+//   const { loading, data } = useQuery<any, FetchLobbyVariables>(fetchLobbyMoves, {
+//     variables: { lobbyId: lobbyid },
+//   })
+
+//   if (data == null) console.log('lobby query returned null' + loading)
+
+//   console.log(data)
+//   return <div> Test </div>
+// }

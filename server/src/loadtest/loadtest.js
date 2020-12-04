@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
 import http from 'k6/http'
 import { check, group, sleep, fail } from 'k6'
@@ -94,6 +95,19 @@ export default function () {
   http.get(`${BASE_URL}/app/board/game?lobbyId=${lobby_id}`)
   sleep(1)
 
+  // click move
+  let makeMoveRes = http.post(
+    `${BASE_URL}/graphql`,
+    `{"operationName":"MakeMove","variables":{"input":{"playerId":${id},"lobbyId":${lobby_id},"time":6828,"moveType":"DeselectTile","tiles":[{"letter":"E","pointValue":1,"tileType":"Normal","location":0}],"pointValue":0}},"query":"mutation MakeMove($input: MoveInput!) {makeMove(input: $input)}"}`,
+    {
+      headers: {
+      'Content-Type': 'application/json',
+     },
+    }
+  );
+  check(makeMoveRes, { 'move made': (r) => r.status == 200 });
+
+  sleep(1)
   // logout
   let logoutRes = http.post(
     `${BASE_URL}/auth/logout`,
