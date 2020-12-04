@@ -171,15 +171,11 @@ function UpdateEnemyBoards(p: uProps) {
       } else if (enemy2Id == -1 && moves[i].player.id != userId && moves[i].player.id != enemy1Id) {
         enemy2Id = moves[i].player.id
       }
-      // else if (moves[i].player.id != userId) {
-      //   continue
-      // }
       if (moves[i].tiles != null) {
         //check if null, incase server creates invalid move
         for (let t = 0; t < moves[i].tiles.length; t++) {
-          //console.log(moves[i])
           if (moves[i].player.id == enemy1Id) {
-            console.log('location ' + moves[i].tiles[t].location + ' is updated with ' + moves[i].tiles[t].letter)
+            //console.log('location ' + moves[i].tiles[t].location + ' is updated with ' + moves[i].tiles[t].letter)
             enemy1board[moves[i].tiles[t].location] = moves[i].tiles[t]
           } else if (moves[i].player.id == enemy2Id) {
             enemy2board[moves[i].tiles[t].location] = moves[i].tiles[t]
