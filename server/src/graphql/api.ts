@@ -152,6 +152,8 @@ export const graphqlRoot: Resolvers<Context> = {
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
       //pass the current updated lobby as payload for lobbyUpdates subscription
+      //Joining from an old Lobby really shouldn't be a case as long as the nav bar is updated
+      // to prevent jumping from a lobby waiting room to the search page
       if (oldLobby) {
         const updatedOldLobby = check(await Lobby.findOne({ where: { id: oldLobby.id } }))
         ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
@@ -181,8 +183,8 @@ export const graphqlRoot: Resolvers<Context> = {
       const lobbies = check(await Lobby.find())
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
-      //TODO: Stop the below block from calling findOne when lobby is removed from db
-      if (lobby) {
+      //No need to update the subscribers of the lobby if the lobby is removed
+      if (lobby.players.length > 1) {
         const updatedLobby = check(await Lobby.findOne({ where: { id: lobby.id } }))
 
         //pass the current updated lobby as payload for lobbyUpdates subscription
