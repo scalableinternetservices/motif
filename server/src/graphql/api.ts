@@ -260,7 +260,7 @@ export const graphqlRoot: Resolvers<Context> = {
             spawnedTile.move = serverMove2
             spawnedTile.value = 1
             spawnedTile.tileType = TileType.Normal
-            await spawnedTile.save().catch(() => console.log('Broke saving new spawned Tile in Scrable'))
+            //await spawnedTile.save().catch(() => console.log('Broke saving new spawned Tile in Scrable'))
           }
           await serverMove2.save()
           break

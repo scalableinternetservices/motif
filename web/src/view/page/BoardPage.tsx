@@ -47,6 +47,7 @@ export function BoardPage(props: PlaygroundPageProps) {
     fetchPolicy: 'cache-and-network',
   })
   console.log('player id: ' + data?.user?.player?.id)
+  userId = data?.user?.player?.id ? data?.user?.player?.id : -2
   if (!loading) {
     return (
       <Page>
@@ -120,7 +121,8 @@ function UpdateEnemyBoards(p: uProps) {
     len = data?.lobby ? data?.lobby.moves.length : 0
     moves = data?.lobby.moves ? data?.lobby.moves : []
   }
-
+  console.log('Player1: ' + userId)
+  console.log('Player2 id: ' + enemy1Id + ', Player 3 id: ' + enemy2Id)
   enemyScores[0] = 0
   enemyScores[1] = 0
   for (let i = 0; i < len; i++) {
@@ -159,7 +161,7 @@ function UpdateEnemyBoards(p: uProps) {
     if (moves[i].moveType == 'SpawnTiles') {
       if (enemy1Id == -1 && moves[i].player.id != userId) {
         enemy1Id = moves[i].player.id
-      } else if (enemy2Id == -1 && moves[i].player.id != userId) {
+      } else if (enemy2Id == -1 && moves[i].player.id != userId && moves[i].player.id != enemy1Id) {
         enemy2Id = moves[i].player.id
       } else if (moves[i].player.id != userId) {
         continue
@@ -167,6 +169,7 @@ function UpdateEnemyBoards(p: uProps) {
       if (moves[i].tiles != null) {
         //check if null, incase server creates invalid move
         for (let t = 0; t < moves[i].tiles.length; t++) {
+          //console.log(moves[i])
           if (moves[i].player.id == enemy1Id) {
             enemy1board[moves[i].tiles[t].location] = moves[i].tiles[t]
           } else if (moves[i].player.id == enemy2Id) {
