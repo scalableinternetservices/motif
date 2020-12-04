@@ -3,23 +3,29 @@ import { RouteComponentProps, useLocation } from '@reach/router'
 import * as React from 'react'
 import { ColorName, Colors } from '../../../../common/src/colors'
 import { Lobby, LobbyState, Tile } from '../../../../server/src/graphql/schema.types'
-import { FetchLobbyVariables, TileType } from '../../graphql/query.gen'
+import { FetchLobbyVariables, FetchUser, FetchUserVariables, TileType } from '../../graphql/query.gen'
 import { Spacer } from '../../style/spacer'
 import { style } from '../../style/styled'
 import { UserContext } from '../auth/user'
 import { AppRouteParams } from '../nav/route'
 import Game from './Game'
 import { fetchLobbyMoves } from './GameMutations'
+import { fetchUser } from './Lobby/fetchLobbies'
 import { Page } from './Page'
 
 // eslint-disable-next-line prettier/prettier
-interface PlaygroundPageProps extends RouteComponentProps, AppRouteParams { }
+interface PlaygroundPageProps extends RouteComponentProps, AppRouteParams {
+  lobbyId?: number
+}
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function BoardPage(props: PlaygroundPageProps) {
   const { user } = React.useContext(UserContext)
+  let lobby_id = 0
+  if (props.lobbyId != null) lobby_id = props.lobbyId
+  else lobby_id = LobbyWaitWrap()
   const lobby: Lobby = {
-    id: LobbyWaitWrap(),
+    id: lobby_id,
     state: LobbyState.InGame,
     players: [],
     spectators: [],
@@ -33,26 +39,35 @@ export function BoardPage(props: PlaygroundPageProps) {
     enemy2board.push({ id: 0, letter: 'X', value: 0, location: p, tileType: TileType.Normal })
     active[1].push(false)
   }
-  //console.log('user id: ' + user?.id)
+  console.log('user id: ' + user?.id)
   userId = user ? user?.id : -2
-  //console.log('Lobby: ' + LobbyWaitWrap())
-  return (
-    <Page>
-      <div className="column">
-        <UpdateEnemyBoards lobbyId={lobby.id} />
-      </div>
-      <div className="column">
-        <Game playerID={user?.id} timeLimit={60} lobbyinfo={lobby} />
-      </div>
-      <div className="chat">
-        <RContent>
-          <Section>
-            <h2> CHATROOM Under Construction </h2>
-          </Section>
-        </RContent>
-      </div>
-    </Page>
-  )
+  console.log('Lobby: ' + LobbyWaitWrap())
+  const { loading, data } = useQuery<FetchUser, FetchUserVariables>(fetchUser, {
+    variables: { userId },
+    fetchPolicy: 'cache-and-network',
+  })
+  console.log('player id: ' + data?.user?.player?.id)
+  if (!loading) {
+    return (
+      <Page>
+        <div className="column">
+          <UpdateEnemyBoards lobbyId={lobby.id} />
+        </div>
+        <div className="column">
+          <Game playerID={data?.user?.player?.id} timeLimit={60} lobbyinfo={lobby} />
+        </div>
+        <div className="chat">
+          <RContent>
+            <Section>
+              <h2> CHATROOM Under Construction </h2>
+            </Section>
+          </RContent>
+        </div>
+      </Page>
+    )
+  } else {
+    return <div>Loding Player Data</div>
+  }
 }
 
 function LobbyWaitWrap() {
@@ -96,11 +111,15 @@ function UpdateEnemyBoards(p: uProps) {
     pollInterval: 1000,
   })
 
-  if (data == null) console.log('lobby query returned null' + loading)
-  //console.log(data)
-  console.log(data?.lobby.moves)
-  const len = data ? data?.lobby.moves.length : 0
-  const moves = data ? data?.lobby.moves : []
+  let len = 0
+  let moves: MoveTypes[] = []
+  if (data == null) {
+    console.log('lobby query returned null' + loading)
+  } else {
+    console.log(data?.lobby.moves)
+    len = data?.lobby ? data?.lobby.moves.length : 0
+    moves = data?.lobby.moves ? data?.lobby.moves : []
+  }
 
   enemyScores[0] = 0
   enemyScores[1] = 0
@@ -145,11 +164,14 @@ function UpdateEnemyBoards(p: uProps) {
       } else if (moves[i].player.id != userId) {
         continue
       }
-      for (let t = 0; t < moves[i].tiles.length; t++) {
-        if (moves[i].player.id == enemy1Id) {
-          enemy1board[moves[i].tiles[t].location] = moves[i].tiles[t]
-        } else if (moves[i].player.id == enemy2Id) {
-          enemy2board[moves[i].tiles[t].location] = moves[i].tiles[t]
+      if (moves[i].tiles != null) {
+        //check if null, incase server creates invalid move
+        for (let t = 0; t < moves[i].tiles.length; t++) {
+          if (moves[i].player.id == enemy1Id) {
+            enemy1board[moves[i].tiles[t].location] = moves[i].tiles[t]
+          } else if (moves[i].player.id == enemy2Id) {
+            enemy2board[moves[i].tiles[t].location] = moves[i].tiles[t]
+          }
         }
       }
     }

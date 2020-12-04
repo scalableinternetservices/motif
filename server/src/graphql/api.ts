@@ -240,7 +240,7 @@ export const graphqlRoot: Resolvers<Context> = {
             spawnedTile.move = serverMove
             spawnedTile.value = 1
             spawnedTile.tileType = TileType.Normal
-            await spawnedTile.save().catch(() => console.log('broke here 2'))
+            await spawnedTile.save().catch(() => console.log('Broke saving new spawned Tile in Submit'))
           })
           if (!dictionary.isInDictionary(word.toLowerCase())) {
             console.log(word.toLowerCase() + ' not dictionary')
@@ -260,7 +260,7 @@ export const graphqlRoot: Resolvers<Context> = {
             spawnedTile.move = serverMove2
             spawnedTile.value = 1
             spawnedTile.tileType = TileType.Normal
-            await spawnedTile.save().catch(res => console.log('Scramble ' + i + ' failed because ' + res))
+            await spawnedTile.save().catch(() => console.log('Broke saving new spawned Tile in Scrable'))
           }
           await serverMove2.save()
           break
