@@ -109,6 +109,11 @@ export const graphqlRoot: Resolvers<Context> = {
       await newLobby.save()
       player.lobby = newLobby
       await player.save()
+
+      //Get all lobbies and pass as payload for subscripton
+      const lobbies = check(await Lobby.find())
+      ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
+
       return newLobby.id
     },
     joinLobby: async (_, { userId, lobbyId }, ctx) => {
@@ -141,6 +146,11 @@ export const graphqlRoot: Resolvers<Context> = {
       }
       player.lobby = newLobby
       await player.save()
+
+      //Get all lobbies and pass as payload for subscripton
+      const lobbies = check(await Lobby.find())
+      ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
+
       return true
     },
     leaveLobby: async (_, { userId }, ctx) => {
@@ -158,6 +168,11 @@ export const graphqlRoot: Resolvers<Context> = {
       }
       // delete as Player, since user no longer in any lobbies
       await Player.remove(player)
+
+      //Get all lobbies and pass as payload for subscripton
+      const lobbies = check(await Lobby.find())
+      ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
+
       return true
     },
     startGame: async (_, { lobbyId }, ctx) => {
@@ -167,6 +182,11 @@ export const graphqlRoot: Resolvers<Context> = {
       lobby.state = LobbyState.InGame
       lobby.startTime = new Date()
       await lobby.save()
+
+      //Get all lobbies and pass as payload for subscripton
+      const lobbies = check(await Lobby.find())
+      ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
+
       return true
     },
     createUser: async (_, { name }, ctx) => {
@@ -287,6 +307,10 @@ export const graphqlRoot: Resolvers<Context> = {
       subscribe: (_, { surveyId }, context) => context.pubsub.asyncIterator('SURVEY_UPDATE_' + surveyId),
       resolve: (payload: any) => payload,
     },
+    lobbiesUpdates: {
+      subscribe: (_, {}, context) => context.pubsub.asyncIterator('LOBBIES_UPDATE'),
+      resolve: (payload: any) => payload,
+    },
   },
   // Apollo requires that a GraphQL interface has this resolver to distinguish implementations
   Move: {
@@ -296,12 +320,12 @@ export const graphqlRoot: Resolvers<Context> = {
   },
   User: {
     player: (self, args, ctx) => {
-      return Player.findOne({ where: { userId: self.id}}) as any
-    }
+      return Player.findOne({ where: { userId: self.id } }) as any
+    },
   },
   Player: {
     lobby: (self, args, ctx) => {
-      return Lobby.findOne({ where: { id: self.lobbyId}}) as any
-    }
+      return Lobby.findOne({ where: { id: self.lobbyId } }) as any
+    },
   },
 }

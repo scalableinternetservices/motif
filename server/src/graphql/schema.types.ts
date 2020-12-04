@@ -92,6 +92,7 @@ export interface MutationCreateLobbyArgs {
 export interface Subscription {
   __typename?: 'Subscription'
   surveyUpdates?: Maybe<Survey>
+  lobbiesUpdates?: Maybe<Array<Lobby>>
 }
 
 export interface SubscriptionSurveyUpdatesArgs {
@@ -482,6 +483,12 @@ export type SubscriptionResolvers<
     ParentType,
     ContextType,
     RequireFields<SubscriptionSurveyUpdatesArgs, 'surveyId'>
+  >
+  lobbiesUpdates?: SubscriptionResolver<
+    Maybe<Array<ResolversTypes['Lobby']>>,
+    'lobbiesUpdates',
+    ParentType,
+    ContextType
   >
 }
 

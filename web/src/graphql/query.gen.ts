@@ -3,6 +3,8 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
+import { LobbyState } from '../../../server/src/graphql/schema.types';
+
 // ====================================================
 // GraphQL query operation: FetchUserContext
 // ====================================================
@@ -72,6 +74,7 @@ export interface FetchLobbies_lobbies {
   id: number;
   maxUsers: number;
   gameTime: number;
+  state: LobbyState;
   players: FetchLobbies_lobbies_players[];
 }
 
@@ -153,6 +156,33 @@ export interface FetchUser {
 
 export interface FetchUserVariables {
   userId: number;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL subscription operation: LobbiesSubscription
+// ====================================================
+
+export interface LobbiesSubscription_lobbiesUpdates_players {
+  __typename: "Player";
+  id: number;
+}
+
+export interface LobbiesSubscription_lobbiesUpdates {
+  __typename: "Lobby";
+  id: number;
+  maxUsers: number;
+  gameTime: number;
+  state: LobbyState;
+  players: LobbiesSubscription_lobbiesUpdates_players[];
+}
+
+export interface LobbiesSubscription {
+  lobbiesUpdates: LobbiesSubscription_lobbiesUpdates[] | null;
 }
 
 /* tslint:disable */
