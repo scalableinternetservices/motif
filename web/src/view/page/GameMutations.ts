@@ -23,7 +23,7 @@ export function submitMove(input: Submit) {
   for (let i = 0; i < input.tiles.length; i++) {
     temp.push({
       letter: input.tiles[i].letter,
-      pointValue: input.tiles[i].pointValue,
+      pointValue: input.tiles[i].value,
       tileType: input.tiles[i].tileType,
       location: input.tiles[i].location,
     })
@@ -60,7 +60,7 @@ export function selectMove(input: SelectTile) {
   for (let i = 0; i < input.tiles.length; i++) {
     temp.push({
       letter: input.tiles[i].letter,
-      pointValue: input.tiles[i].pointValue,
+      pointValue: input.tiles[i].value,
       tileType: input.tiles[i].tileType,
       location: input.tiles[i].location,
     })
@@ -84,7 +84,7 @@ export function deselectMove(input: DeselectTile) {
   for (let i = 0; i < input.tiles.length; i++) {
     temp.push({
       letter: input.tiles[i].letter,
-      pointValue: input.tiles[i].pointValue,
+      pointValue: input.tiles[i].value,
       tileType: input.tiles[i].tileType,
       location: input.tiles[i].location,
     })
@@ -118,6 +118,19 @@ export const fetchLobbyMoves = gql`
           tiles {
             letter
             location
+          }
+        }
+        ... on SelectTile {
+          tiles {
+            letter
+            location
+          }
+        }
+        ... on Submit {
+          tiles {
+            letter
+            location
+            value
           }
         }
         ... on SpawnTiles {

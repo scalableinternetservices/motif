@@ -177,7 +177,6 @@ export const graphqlRoot: Resolvers<Context> = {
       return true
     },
     makeMove: async (_, { input }, ctx) => {
-      console.log('making move start ')
       const lobby = check(await Lobby.findOne({ where: { id: input.lobbyId } }), 'makeMove: lobby does not exist')
       if (lobby.state != LobbyState.InGame) {
         console.log('Lobby State mismatch')
@@ -261,7 +260,7 @@ export const graphqlRoot: Resolvers<Context> = {
             spawnedTile.move = serverMove2
             spawnedTile.value = 1
             spawnedTile.tileType = TileType.Normal
-            //await spawnedTile.save()
+            await spawnedTile.save().catch(res => console.log('Scramble ' + i + ' failed because ' + res))
           }
           await serverMove2.save()
           break
@@ -299,12 +298,12 @@ export const graphqlRoot: Resolvers<Context> = {
   },
   User: {
     player: (self, args, ctx) => {
-      return Player.findOne({ where: { userId: self.id}}) as any
-    }
+      return Player.findOne({ where: { userId: self.id } }) as any
+    },
   },
   Player: {
     lobby: (self, args, ctx) => {
-      return Lobby.findOne({ where: { id: self.lobbyId}}) as any
-    }
+      return Lobby.findOne({ where: { id: self.lobbyId } }) as any
+    },
   },
 }

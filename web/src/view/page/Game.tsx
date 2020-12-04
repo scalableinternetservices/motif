@@ -72,9 +72,9 @@ export default class Game extends React.Component<
     this.timer = setInterval(this.countdown, 100)
     for (let i = 0; i < 16; i++) {
       this.active.push(false)
-      this.board.push({ id: 0, letter: 'X', pointValue: 0, location: i, tileType: TileType.Normal })
+      this.board.push({ id: 0, letter: 'X', value: 0, location: i, tileType: TileType.Normal })
       for (let p = 0; p < this.enemyPlayers; p++) {
-        this.enemyTiles[p].push({ id: 0, letter: 'X', pointValue: 0, location: i, tileType: TileType.Normal })
+        this.enemyTiles[p].push({ id: 0, letter: 'X', value: 0, location: i, tileType: TileType.Normal })
       }
     }
   }
@@ -91,7 +91,7 @@ export default class Game extends React.Component<
   initalizeBoard() {
     for (let i = 0; i < 16; i++) {
       const c = this.getRandomLetter()
-      this.board[i] = { id: 0, letter: c, pointValue: pointVal[c], location: i, tileType: TileType.Normal }
+      this.board[i] = { id: 0, letter: c, value: pointVal[c], location: i, tileType: TileType.Normal }
     }
   }
   randomizeBoard() {
@@ -99,7 +99,7 @@ export default class Game extends React.Component<
       const c = this.getRandomLetter()
       this.active[i] = false
       this.board[i].letter = c
-      this.board[i].pointValue = pointVal[c]
+      this.board[i].value = pointVal[c]
     }
     const scramble: Scramble = {
       player: this.player,
@@ -156,7 +156,7 @@ export default class Game extends React.Component<
     this.submitTiles.push({
       id: this.board[key].id,
       letter: this.board[key].letter,
-      pointValue: this.board[key].pointValue,
+      value: this.board[key].value,
       location: this.board[key].location,
       tileType: this.board[key].tileType,
     })
@@ -184,11 +184,11 @@ export default class Game extends React.Component<
     let score = 0
     for (let i = 0; i < 16; i++) {
       if (this.active[i] === true) {
-        score += this.board[i].pointValue
+        score += this.board[i].value
         nl = this.getRandomLetter()
         this.active[i] = false
         this.board[i].letter = nl
-        this.board[i].pointValue = pointVal[nl]
+        this.board[i].value = pointVal[nl]
       }
     }
     const submit: Submit = {
@@ -216,11 +216,6 @@ export default class Game extends React.Component<
 
   render() {
     const tiles = []
-    const enemyTiles = [[<div key={0}></div>]]
-    enemyTiles.pop()
-    for (let p = 0; p < this.enemyPlayers; p++) {
-      enemyTiles.push([])
-    }
     for (let i = 0; i < 4; i++) {
       for (let j = 0; j < 4; j++) {
         const index = i * 4 + j
@@ -231,13 +226,6 @@ export default class Game extends React.Component<
             {c}
           </div>
         )
-        for (let p = 0; p < this.enemyPlayers; p++) {
-          enemyTiles[p].push(
-            <div className="miniTile" key={index}>
-              {this.enemyTiles[p][index].letter}
-            </div>
-          )
-        }
       }
     }
     if (!this.finished) {

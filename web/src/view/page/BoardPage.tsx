@@ -28,8 +28,10 @@ export function BoardPage(props: PlaygroundPageProps) {
     maxUsers: 3,
   }
   for (let p = 0; p < 16; p++) {
-    enemy1board.push({ id: 0, letter: 'X', pointValue: 0, location: p, tileType: TileType.Normal })
-    enemy2board.push({ id: 0, letter: 'X', pointValue: 0, location: p, tileType: TileType.Normal })
+    enemy1board.push({ id: 0, letter: 'X', value: 0, location: p, tileType: TileType.Normal })
+    active[0].push(false)
+    enemy2board.push({ id: 0, letter: 'X', value: 0, location: p, tileType: TileType.Normal })
+    active[1].push(false)
   }
   //console.log('user id: ' + user?.id)
   userId = user ? user?.id : -2
@@ -82,8 +84,10 @@ const enemy2board: Tile[] = []
 let enemy1Id = -1
 let enemy2Id = -1
 let userId = -1
+let userScore = 0
 const enemyPlayers = 2
 const enemyScores = [0, 0]
+const active: boolean[][] = [[], []]
 
 function UpdateEnemyBoards(p: uProps) {
   const lobbyid = p.lobbyId
@@ -98,7 +102,41 @@ function UpdateEnemyBoards(p: uProps) {
   const len = data ? data?.lobby.moves.length : 0
   const moves = data ? data?.lobby.moves : []
 
+  enemyScores[0] = 0
+  enemyScores[1] = 0
   for (let i = 0; i < len; i++) {
+    if (moves[i].moveType == 'Submit') {
+      if (moves[i].player.id == enemy1Id) {
+        for (let t = 0; t < moves[i].tiles.length; t++) {
+          enemyScores[0] += moves[i].tiles[t].value
+        }
+        clearActive(0)
+      } else if (moves[i].player.id == enemy2Id) {
+        for (let t = 0; t < moves[i].tiles.length; t++) {
+          enemyScores[1] += moves[i].tiles[t].value
+        }
+        clearActive(1)
+      } else if (moves[i].player.id == enemy1Id) {
+        for (let t = 0; t < moves[i].tiles.length; t++) {
+          userScore = userScore + moves[i].tiles[t].value
+        }
+      }
+    }
+
+    if (moves[i].moveType == 'SelectTile') {
+      if (moves[i].player.id == enemy1Id) {
+        active[0][moves[i].tiles[0].location] = true
+      } else if (moves[i].player.id == enemy2Id) {
+        active[1][moves[i].tiles[0].location] = true
+      }
+    }
+    if (moves[i].moveType == 'DeselectTile') {
+      if (moves[i].player.id == enemy1Id) {
+        active[0][moves[i].tiles[0].location] = false
+      } else if (moves[i].player.id == enemy2Id) {
+        active[1][moves[i].tiles[0].location] = false
+      }
+    }
     if (moves[i].moveType == 'SpawnTiles') {
       if (enemy1Id == -1 && moves[i].player.id != userId) {
         enemy1Id = moves[i].player.id
@@ -127,12 +165,12 @@ function UpdateEnemyBoards(p: uProps) {
       //const c = enemy1board[i * 4 + j].letter
       //const active = this.active[index]
       enemyTiles[0].push(
-        <div className="miniTile" key={index}>
+        <div className={active[0][index] ? 'miniredTile' : 'miniTile'} key={index}>
           {enemy1board[index].letter}
         </div>
       )
       enemyTiles[1].push(
-        <div className="miniTile" key={index}>
+        <div className={active[1][index] ? 'miniredTile' : 'miniTile'} key={index}>
           {enemy2board[index].letter}
         </div>
       )
@@ -149,6 +187,9 @@ function UpdateEnemyBoards(p: uProps) {
   )
 }
 
+function clearActive(ind: number) {
+  for (let i = 0; i < 16; i++) active[ind][i] = false
+}
 const RContent = style('div', 'flex-grow-0  w-30-r')
 
 const Section = style('div', 'mb4 mid-gray ba b--mid-gray br2 pa3', (p: { $color?: ColorName }) => ({
