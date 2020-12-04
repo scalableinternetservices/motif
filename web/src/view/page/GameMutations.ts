@@ -9,15 +9,14 @@ import {
   Submit
 } from '../../../../server/src/graphql/schema.types'
 import { getApolloClient } from '../../graphql/apolloClient'
+import { MakeMove } from '../../graphql/query.gen'
 
 const makeMoveMutation = gql`
   mutation MakeMove($input: MoveInput!) {
     makeMove(input: $input)
   }
 `
-interface MakeMove {
-  success: boolean
-}
+
 export function submitMove(input: Submit) {
   const temp = []
   for (let i = 0; i < input.tiles.length; i++) {

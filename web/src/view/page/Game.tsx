@@ -136,7 +136,7 @@ export default class Game extends React.Component<
       }
       //sent deselect move
       deselectMove(deselect)
-        .then(res => console.log('Deselect move worked ' + res.data?.success))
+        .then(res => console.log('Deselect move worked ' + res.data?.makeMove))
         .catch(() => console.log('broke'))
 
       this.moveStack.pop()
@@ -168,7 +168,7 @@ export default class Game extends React.Component<
       tiles: [this.board[key]],
     }
     selectMove(select)
-      .then(res => console.log('Select worked ' + res.data?.success))
+      .then(res => console.log('Select worked ' + res.data?.makeMove))
       .catch(() => console.log('broke'))
     this.setState({
       move: this.state.move + 1,
@@ -211,7 +211,9 @@ export default class Game extends React.Component<
     //.then(res => console.log('Submit worked ' + res.data?.success))
     //.catch(() => console.log('broke'))
     //Send word to server
-    console.log('data returned= ' + ret.data?.success)
+    //console.log(ret.data)
+    //console.log(ret.data?.makeMove)
+    console.log('data returned= ' + ret.data?.makeMove)
   }
 
   render() {
