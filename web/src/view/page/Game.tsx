@@ -163,7 +163,7 @@ export default class Game extends React.Component<
 
     const select: SelectTile = {
       player: this.player,
-      moveType: MoveType.DeselectTile,
+      moveType: MoveType.SelectTile,
       time: new Date().getTime() - this.startTime,
       tiles: [this.board[key]],
     }
