@@ -57,3 +57,15 @@ export const subscribeLobbies = gql`
     }
   }
 `
+
+export const subscribeLobby = gql`
+  subscription LobbySubscription($lobbyId: Int!) {
+    lobbyUpdates(lobbyId: $lobbyId) {
+      maxUsers
+      gameTime
+      players {
+        id
+      }
+    }
+  }
+`

@@ -1438,7 +1438,22 @@
           {
             "name": "lobbyUpdates",
             "description": null,
-            "args": [],
+            "args": [
+              {
+                "name": "lobbyId",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null
+              }
+            ],
             "type": {
               "kind": "OBJECT",
               "name": "Lobby",

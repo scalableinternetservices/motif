@@ -3,8 +3,6 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
-import { LobbyState } from '../../../server/src/graphql/schema.types';
-
 // ====================================================
 // GraphQL query operation: FetchUserContext
 // ====================================================
@@ -183,6 +181,35 @@ export interface LobbiesSubscription_lobbiesUpdates {
 
 export interface LobbiesSubscription {
   lobbiesUpdates: LobbiesSubscription_lobbiesUpdates[] | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL subscription operation: LobbySubscription
+// ====================================================
+
+export interface LobbySubscription_lobbyUpdates_players {
+  __typename: "Player";
+  id: number;
+}
+
+export interface LobbySubscription_lobbyUpdates {
+  __typename: "Lobby";
+  maxUsers: number;
+  gameTime: number;
+  players: LobbySubscription_lobbyUpdates_players[];
+}
+
+export interface LobbySubscription {
+  lobbyUpdates: LobbySubscription_lobbyUpdates | null;
+}
+
+export interface LobbySubscriptionVariables {
+  lobbyId: number;
 }
 
 /* tslint:disable */
@@ -487,6 +514,13 @@ export interface SurveyQuestion {
 //==============================================================
 // START Enums and Input Objects
 //==============================================================
+
+export enum LobbyState {
+  IN_GAME = "IN_GAME",
+  PRIVATE = "PRIVATE",
+  PUBLIC = "PUBLIC",
+  REPLAY = "REPLAY",
+}
 
 export enum MoveType {
   DeselectTile = "DeselectTile",

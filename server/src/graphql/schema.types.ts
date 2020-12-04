@@ -93,10 +93,15 @@ export interface Subscription {
   __typename?: 'Subscription'
   surveyUpdates?: Maybe<Survey>
   lobbiesUpdates?: Maybe<Array<Lobby>>
+  lobbyUpdates?: Maybe<Lobby>
 }
 
 export interface SubscriptionSurveyUpdatesArgs {
   surveyId: Scalars['Int']
+}
+
+export interface SubscriptionLobbyUpdatesArgs {
+  lobbyId: Scalars['Int']
 }
 
 export interface User {
@@ -489,6 +494,13 @@ export type SubscriptionResolvers<
     'lobbiesUpdates',
     ParentType,
     ContextType
+  >
+  lobbyUpdates?: SubscriptionResolver<
+    Maybe<ResolversTypes['Lobby']>,
+    'lobbyUpdates',
+    ParentType,
+    ContextType,
+    RequireFields<SubscriptionLobbyUpdatesArgs, 'lobbyId'>
   >
 }
 
