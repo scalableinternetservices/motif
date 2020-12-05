@@ -30,8 +30,8 @@ interface TopBarProps extends LobbyMainProps, UserInfo {
 }
 
 interface SettingsBarProps {
-  timeLimit: number | undefined
-  maxPlayer: number | undefined
+  timeLimit?: number
+  maxPlayer?: number
 }
 
 interface PlayerProps {
@@ -84,7 +84,7 @@ function LobbyContainer(p: LobbyMainProps) {
   return (
     <div>
       <TopBar userId={user.id} lobbyId={p.lobbyId} lobbyName={lobbyName} />
-      <PlayersContainer lobbyId={p.lobbyId} />
+      <PlayersContainer lobbyId={p.lobbyId} maxPlayers={p.maxPlayers} maxTime={p.maxTime} />
     </div>
   )
 }

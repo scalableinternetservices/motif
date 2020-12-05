@@ -114,6 +114,13 @@ export const graphqlRoot: Resolvers<Context> = {
       const lobbies = check(await Lobby.find())
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
+      if (oldLobby) {
+        const updatedOldLobby = check(await Lobby.findOne({ where: { id: oldLobby.id } }))
+        ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
+      }
+      const updatedLobby = check(await Lobby.findOne({ where: { id: newLobby.id } }))
+      ctx.pubsub.publish('LOBBY_UPDATE_' + newLobby.id, updatedLobby)
+
       return newLobby.id
     },
     joinLobby: async (_, { userId, lobbyId }, ctx) => {

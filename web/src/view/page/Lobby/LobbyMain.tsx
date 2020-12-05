@@ -34,22 +34,22 @@ function LobbyController() {
   const userId = user?.id
 
   //$POLL: (Un)Comment the pollInterval field to enable polling for this query
-  const { loading, data } = useQuery<FetchUser, FetchUserVariables>(fetchUser, {
+  const { data } = useQuery<FetchUser, FetchUserVariables>(fetchUser, {
     variables: { userId },
     fetchPolicy: 'cache-and-network',
     //pollInterval: 5000, //Comment out when using subscription
   })
 
-  const [userData, setUserData] = React.useState(data?.user)
+  const [userData, setUserData] = React.useState(data?.user?.player?.lobbyId)
 
   React.useEffect(() => {
     if (data?.user) {
-      setUserData(data.user)
+      setUserData(data.user.player?.lobbyId)
     }
-  }, [data])
+  }, [data?.user?.player?.lobbyId])
 
   //$POLL: (Un)Comment the pollInterval field to enable polling for this query
-  const lobbyId = userData?.player?.lobbyId ? userData?.player?.lobbyId : 0
+  const lobbyId = userData ? userData : 0
   const lobby = useQuery<FetchLobby, FetchLobbyVariables>(fetchLobby, {
     variables: { lobbyId },
     fetchPolicy: 'cache-and-network',
@@ -81,8 +81,8 @@ function LobbyController() {
     }
   }, [lobbySub.data])
 
-  if (loading) return <div>Loading User ...</div>
-  else if (!data) return <div>Error: User was not found</div>
+  //if (loading) return <div>Loading User ...</div>
+  if (!data) return <div>Error: User was not found</div>
   else if (!data.user?.player) return <div>Error: Player was not found</div>
 
   if (!state) {
@@ -91,7 +91,9 @@ function LobbyController() {
 
   switch (state) {
     case LobbyState.IN_GAME:
-      return <BoardPage lobbyId={lobbyId} playerId={userData?.player?.id} timeLimit={maxTime} maxUsers={maxPlayers} />
+      return (
+        <BoardPage lobbyId={lobbyId} playerId={userData ? userData : 0} timeLimit={maxTime} maxUsers={maxPlayers} />
+      )
     case LobbyState.PRIVATE:
       return <LobbyWait lobbyId={lobbyId} maxPlayers={maxPlayers} maxTime={maxTime} />
     case LobbyState.PUBLIC:
