@@ -13,7 +13,6 @@ import {
   TileType
 } from '../../../../server/src/graphql/schema.types'
 import { Spacer } from '../../style/spacer'
-import { style } from '../../style/styled'
 import { deselectMove, randomizeMove, selectMove, submitMove } from './GameMutations'
 
 export default class Game extends React.Component<
@@ -116,6 +115,7 @@ export default class Game extends React.Component<
       move: this.state.move + 1,
     })
     this.moveStack = []
+    this.submitTiles = []
   }
   getRandomLetter() {
     //A-9, B-2, C-2, D-4, E-12, F-2, G-3, H-2, I-9, J-1, K-1, L-4, M-2, N-6, O-8, P-2, Q-1, R-6, S-4, T-6, U-4, V-2, W-2, X-1, Y-2, Z-1
@@ -232,7 +232,7 @@ export default class Game extends React.Component<
     }
     if (!this.finished) {
       return (
-        <Content>
+        <div>
           <div>Time Remaining: {this.state.timeRemaining / 10}</div>
           <div>Your Score: {this.playerScore}</div>
           <Spacer $h1 />
@@ -245,7 +245,7 @@ export default class Game extends React.Component<
           <button className="button" onClick={this.randomizeBoard}>
             Randomize
           </button>
-        </Content>
+        </div>
       )
     } else {
       //calc scores
@@ -268,7 +268,7 @@ export default class Game extends React.Component<
   }
 }
 
-const Content = style('div', 'flex-l')
+//const Content = style('div', 'flex-l')
 
 const pointVal: { [letter: string]: number } = {
   A: 1,

@@ -54,27 +54,31 @@ export function BoardPage(props: PlaygroundPageProps) {
   if (!loading) {
     return (
       <Page>
-        <div className="column">
-          <UpdateEnemyBoards lobbyId={lobby.id} />
-        </div>
-        <div className="column">
-          <Game
-            playerID={data?.user?.player?.id}
-            timeLimit={props.timeLimit ? props.timeLimit : 60}
-            lobbyinfo={lobby}
-          />
-        </div>
-        <div className="chat">
-          <RContent>
-            <Section>
-              <h2> CHATROOM Under Construction </h2>
-            </Section>
-          </RContent>
-        </div>
+        <Content>
+          <div className="column">
+            <UpdateEnemyBoards lobbyId={lobby.id} />
+          </div>
+          <div className="column">
+            <Game
+              playerID={data?.user?.player?.id}
+              timeLimit={props.timeLimit ? props.timeLimit * 60 : 60}
+              lobbyinfo={lobby}
+            />
+          </div>
+          <div className="column">
+            <div className="chat">
+              <RContent>
+                <Section>
+                  <h2> CHATROOM Under Construction </h2>
+                </Section>
+              </RContent>
+            </div>
+          </div>
+        </Content>
       </Page>
     )
   } else {
-    return <div>Loding Player Data</div>
+    return <div>Loading Player Data</div>
   }
 }
 
@@ -117,6 +121,7 @@ function UpdateEnemyBoards(p: uProps) {
   const { loading, data } = useQuery<LobbyFetch, FetchLobbyVariables>(fetchLobbyMoves, {
     variables: { lobbyId: lobbyid },
     pollInterval: 1000,
+    fetchPolicy: 'network-only',
   })
 
   let len = 0
@@ -226,3 +231,5 @@ const Section = style('div', 'mb4 mid-gray ba b--mid-gray br2 pa3', (p: { $color
   borderLeftColor: Colors[p.$color || 'lemon'] + '!important',
   borderLeftWidth: '3px',
 }))
+
+const Content = style('div', 'flex-l')

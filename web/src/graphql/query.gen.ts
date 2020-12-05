@@ -76,7 +76,7 @@ export interface Lobby_lobby_moves_Scramble {
   __typename: "Scramble";
   time: any;
   moveType: MoveType;
-  player: Lobby_lobby_moves_Scramble_player;
+  player?: Lobby_lobby_moves_Scramble_player;
 }
 
 export interface Lobby_lobby_moves_DeselectTile_tiles {
