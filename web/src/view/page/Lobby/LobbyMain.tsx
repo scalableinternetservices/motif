@@ -33,21 +33,23 @@ function LobbyController() {
 
   const userId = user?.id
 
-  const { loading, data } = useQuery<FetchUser, FetchUserVariables>(fetchUser, {
+  //$POLL: (Un)Comment the pollInterval field to enable polling for this query
+  const { data } = useQuery<FetchUser, FetchUserVariables>(fetchUser, {
     variables: { userId },
     fetchPolicy: 'cache-and-network',
-    pollInterval: 5000, //Comment out when using subscription
+    //pollInterval: 5000, //Comment out when using subscription
   })
 
-  const [userData, setUserData] = React.useState(data?.user)
+  const [userData, setUserData] = React.useState(data?.user?.player?.lobbyId)
 
   React.useEffect(() => {
     if (data?.user) {
-      setUserData(data.user)
+      setUserData(data.user.player?.lobbyId)
     }
-  }, [data])
+  }, [data?.user?.player?.lobbyId])
 
-  const lobbyId = userData?.player?.lobbyId ? userData?.player?.lobbyId : 0
+  //$POLL: (Un)Comment the pollInterval field to enable polling for this query
+  const lobbyId = userData ? userData : 0
   const lobby = useQuery<FetchLobby, FetchLobbyVariables>(fetchLobby, {
     variables: { lobbyId },
     fetchPolicy: 'cache-and-network',
@@ -65,6 +67,7 @@ function LobbyController() {
     }
   }, [lobby.data])
 
+  //$SUB: (Un)Comment lobbySub and the associated useEffect below
   //Subscribe to this lobby and receive updates when a player joins or leaves
   const lobbySub = useSubscription<LobbySubscription, LobbySubscriptionVariables>(subscribeLobby, {
     variables: { lobbyId },
@@ -78,21 +81,23 @@ function LobbyController() {
     }
   }, [lobbySub.data])
 
-  if (loading) return <div>Loading User ...</div>
-  else if (!data) return <div>Error: User was not found</div>
+  //if (loading) return <div>Loading User ...</div>
+  if (!data) return <div>Error: User was not found</div>
   else if (!data.user?.player) return <div>Error: Player was not found</div>
 
   if (!state) {
     return <div>Error: lobby state is undefined</div>
   }
-  console.log('IN LOBBY MAIN, lobbyId: ' + lobbyId)
+
   switch (state) {
     case LobbyState.IN_GAME:
-      return <BoardPage lobbyId={lobbyId} playerId={userData?.player?.id} timeLimit={maxTime} maxUsers={maxPlayers} />
+      return (
+        <BoardPage lobbyId={lobbyId} playerId={userData ? userData : 0} timeLimit={maxTime} maxUsers={maxPlayers} />
+      )
     case LobbyState.PRIVATE:
-      return <LobbyWait />
+      return <LobbyWait lobbyId={lobbyId} maxPlayers={maxPlayers} maxTime={maxTime} />
     case LobbyState.PUBLIC:
-      return <LobbyWait />
+      return <LobbyWait lobbyId={lobbyId} maxPlayers={maxPlayers} maxTime={maxTime} />
     default:
       return <div>Error: Unknown Lobby State</div>
   }

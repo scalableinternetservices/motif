@@ -17,8 +17,9 @@ export const fetchLobbies = gql`
 export const fetchLobby = gql`
   query FetchLobby($lobbyId: Int!) {
     lobby(lobbyId: $lobbyId) {
-      gameTime
+      id
       maxUsers
+      gameTime
       state
       players {
         id
@@ -62,6 +63,7 @@ export const subscribeLobbies = gql`
 export const subscribeLobby = gql`
   subscription LobbySubscription($lobbyId: Int!) {
     lobbyUpdates(lobbyId: $lobbyId) {
+      id
       maxUsers
       gameTime
       state

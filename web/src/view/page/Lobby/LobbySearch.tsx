@@ -108,6 +108,7 @@ function LobbyList(p: UserInfo) {
   const [, setField] = React.useState('') //TODO: Remove if we don't go forward with the feature of a lobby name
   //const initList: LobbiesSubscription_lobbiesUpdates[] = []
 
+  //$POLL: (Un)Comment the pollInterval field to enable polling for this query
   //Query for lobbies from the database and display them in a list
   const { loading, data } = useQuery<FetchLobbies>(fetchLobbies, {
     fetchPolicy: 'cache-and-network',
@@ -125,6 +126,7 @@ function LobbyList(p: UserInfo) {
     }
   }, [data])
 
+  //$SUB: (Un)Comment lobbiesSub and the associated useEffect below
   //Subscribe the user to receiving the list of lobbies as it is updated
   const lobbiesSub = useSubscription<LobbiesSubscription>(subscribeLobbies)
 
