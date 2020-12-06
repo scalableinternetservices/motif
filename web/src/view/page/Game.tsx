@@ -185,10 +185,10 @@ export default class Game extends React.Component<
     for (let i = 0; i < 16; i++) {
       if (this.active[i] === true) {
         score += this.board[i].value
-        nl = this.getRandomLetter()
-        this.active[i] = false
-        this.board[i].letter = nl
-        this.board[i].value = pointVal[nl]
+        //nl = this.getRandomLetter()
+        //this.active[i] = false
+        //this.board[i].letter = nl
+        //this.board[i].value = pointVal[nl]
       }
     }
     const submit: Submit = {
@@ -199,21 +199,31 @@ export default class Game extends React.Component<
       tiles: this.submitTiles,
       pointValue: score,
     }
-
-    this.playerScore += score
+    const ret = await submitMove(submit)
+    console.log('data returned= ' + ret.data?.makeMove)
+    if (ret.data?.makeMove == true) {
+      console.log('in here')
+      this.playerScore += score
+      for (let i = 0; i < 16; i++) {
+        if (this.active[i] === true) {
+          nl = this.getRandomLetter()
+          this.active[i] = false
+          this.board[i].letter = nl
+          this.board[i].value = pointVal[nl]
+        }
+      }
+      this.setState({
+        move: this.state.move + 1,
+      })
+    }
+    for (let i = 0; i < 16; i++) {
+      if (this.active[i] === true) {
+        this.active[i] = false
+      }
+    }
     this.moveStack = []
     this.submitTiles = []
     this.playerWords = ''
-    this.setState({
-      move: this.state.move + 1,
-    })
-    const ret = await submitMove(submit)
-    //.then(res => console.log('Submit worked ' + res.data?.success))
-    //.catch(() => console.log('broke'))
-    //Send word to server
-    //console.log(ret.data)
-    //console.log(ret.data?.makeMove)
-    console.log('data returned= ' + ret.data?.makeMove)
   }
 
   render() {

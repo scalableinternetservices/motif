@@ -140,18 +140,24 @@ function UpdateEnemyBoards(p: uProps) {
   for (let i = 0; i < len; i++) {
     if (moves[i].moveType == 'Submit') {
       if (moves[i].player.id == enemy1Id) {
-        for (let t = 0; t < moves[i].tiles.length; t++) {
-          enemyScores[0] += moves[i].tiles[t].value
+        if (moves[i].tiles.length != 0) {
+          for (let t = 0; t < moves[i].tiles.length; t++) {
+            enemyScores[0] += moves[i].tiles[t].value
+          }
         }
         clearActive(0)
       } else if (moves[i].player.id == enemy2Id) {
-        for (let t = 0; t < moves[i].tiles.length; t++) {
-          enemyScores[1] += moves[i].tiles[t].value
+        if (moves[i].tiles.length != 0) {
+          for (let t = 0; t < moves[i].tiles.length; t++) {
+            enemyScores[1] += moves[i].tiles[t].value
+          }
         }
         clearActive(1)
       } else if (moves[i].player.id == enemy1Id) {
-        for (let t = 0; t < moves[i].tiles.length; t++) {
-          userScore = userScore + moves[i].tiles[t].value
+        if (moves[i].tiles.length != 0) {
+          for (let t = 0; t < moves[i].tiles.length; t++) {
+            userScore = userScore + moves[i].tiles[t].value
+          }
         }
       }
     }

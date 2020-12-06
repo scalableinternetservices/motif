@@ -245,7 +245,7 @@ export const graphqlRoot: Resolvers<Context> = {
       move.moveType = input.moveType
       move.player = player
 
-      let returnVal = true
+      const returnVal = true
       await move.save()
       switch (input.moveType) {
         case 'SelectTile':
@@ -271,9 +271,15 @@ export const graphqlRoot: Resolvers<Context> = {
           serverMove.lobby = lobby
           serverMove.moveType = MoveType.SpawnTiles
           let word = ''
+          for (let i = 0; i < inputTiles1.length; i++) {
+            word = word + inputTiles1[i].letter
+          }
+          if (!dictionary.isInDictionary(word.toLowerCase())) {
+            console.log(word.toLowerCase() + ' not dictionary')
+            return false //no need to save move or creat new tiles, invalid submit
+          } else console.log(word.toLowerCase() + ' is in dictionary: ')
           inputTiles1.forEach(async tile => {
             // save a copy of the tile for Submit move
-            word = word + tile.letter
             const newTile = new Tile()
             newTile.letter = tile.letter.toUpperCase()
             newTile.location = tile.location
@@ -291,10 +297,7 @@ export const graphqlRoot: Resolvers<Context> = {
             spawnedTile.tileType = TileType.Normal
             await spawnedTile.save().catch(() => console.log('Broke saving new spawned Tile in Submit'))
           })
-          if (!dictionary.isInDictionary(word.toLowerCase())) {
-            console.log(word.toLowerCase() + ' not dictionary')
-            returnVal = false
-          } else console.log(word.toLowerCase() + ' is in dictionary: ')
+
           await serverMove.save()
           break
         case 'Scramble':
