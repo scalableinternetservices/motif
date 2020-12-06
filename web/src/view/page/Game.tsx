@@ -1,3 +1,4 @@
+import { navigate } from '@reach/router'
 import * as React from 'react'
 import { ColorName, Colors } from '../../../../common/src/colors'
 import {
@@ -13,9 +14,13 @@ import {
   // eslint-disable-next-line prettier/prettier
   TileType
 } from '../../../../server/src/graphql/schema.types'
+import { Button } from '../../style/button'
 import { Spacer } from '../../style/spacer'
 import { style } from '../../style/styled'
+import { UserContext } from '../auth/user'
+import { handleError } from '../toast/error'
 import { deselectMove, randomizeMove, selectMove, submitMove } from './GameMutations'
+import { leaveLobby } from './Lobby/mutateLobbies'
 
 export default class Game extends React.Component<
   {
@@ -69,7 +74,7 @@ export default class Game extends React.Component<
     this.countdown = this.countdown.bind(this)
 
     //variable setup
-    this.player = { id: this.state.playerID, lobby: this.state.lobbyinfo, lobbyId: this.state.lobbyinfo.id}
+    this.player = { id: this.state.playerID, lobby: this.state.lobbyinfo, lobbyId: this.state.lobbyinfo.id }
     this.timer = setInterval(this.countdown, 100)
     for (let i = 0; i < 16; i++) {
       this.active.push(false)
@@ -299,11 +304,29 @@ export default class Game extends React.Component<
           <Spacer $h5 />
           <div> You Placed {ranks[place]}</div>
           <div> Your score: {this.playerScore}</div>
+          <Spacer $h5 />
+          <LeaveLobbyButton />
         </div>
       )
     }
   }
 }
+
+function LeaveLobbyButton() {
+  const { user } = React.useContext(UserContext)
+  function handleExit() {
+    if (!user) {
+      alert('Error: User was not found')
+    } else {
+      leaveLobby(user?.id)
+        .then(() => navigate('/app/LobbySearch'))
+        .catch(handleError)
+    }
+  }
+
+  return <Button onClick={() => handleExit()}>Leave</Button>
+}
+
 /*const Hero = style('div', 'mb4 w-100 ba b--mid-gray br2 pa3 tc', {
   borderLeftColor: Colors.lemon + '!important',
   borderRightColor: Colors.lemon + '!important',

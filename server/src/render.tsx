@@ -13,10 +13,29 @@ import { Config } from './config'
 const Styletron = require('styletron-engine-monolithic')
 
 export function renderApp(req: Request, res: Response, schema: any) {
+  const updatedCache = new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          lobbies: {
+            merge: true,
+          },
+        },
+      },
+      Lobby: {
+        fields: {
+          players: {
+            merge: true,
+          },
+        },
+      },
+    },
+  })
   const apolloClient = new ApolloClient({
     ssrMode: true,
     link: new SchemaLink({ schema }),
-    cache: new InMemoryCache(),
+    cache: updatedCache,
+    // cache: new InMemoryCache(),
   })
 
   const engine = new Styletron.Server()
