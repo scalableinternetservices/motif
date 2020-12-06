@@ -40,16 +40,16 @@ function LobbyController() {
     //pollInterval: 5000, //Comment out when using subscription
   })
 
-  const [userData, setUserData] = React.useState(data?.user?.player?.lobbyId)
+  const [userData, setUserData] = React.useState(data?.user)
 
   React.useEffect(() => {
     if (data?.user) {
-      setUserData(data.user.player?.lobbyId)
+      setUserData(data.user)
     }
-  }, [data?.user?.player?.lobbyId])
+  }, [data])
 
   //$POLL: (Un)Comment the pollInterval field to enable polling for this query
-  const lobbyId = userData ? userData : 0
+  const lobbyId = userData?.player?.lobbyId ? userData.player.lobbyId : 0
   const lobby = useQuery<FetchLobby, FetchLobbyVariables>(fetchLobby, {
     variables: { lobbyId },
     fetchPolicy: 'cache-and-network',
@@ -83,7 +83,6 @@ function LobbyController() {
 
   //if (loading) return <div>Loading User ...</div>
   if (!data) return <div>Error: User was not found</div>
-  else if (!data.user?.player) return <div>Error: Player was not found</div>
 
   if (!state) {
     return <div>Error: lobby state is undefined</div>
@@ -92,7 +91,12 @@ function LobbyController() {
   switch (state) {
     case LobbyState.IN_GAME:
       return (
-        <BoardPage lobbyId={lobbyId} playerId={userData ? userData : 0} timeLimit={maxTime} maxUsers={maxPlayers} />
+        <BoardPage
+          lobbyId={lobbyId}
+          playerId={userData?.player?.id ? userData.player.id : 0}
+          timeLimit={maxTime}
+          maxUsers={maxPlayers}
+        />
       )
     case LobbyState.PRIVATE:
       return <LobbyWait lobbyId={lobbyId} maxPlayers={maxPlayers} maxTime={maxTime} />
