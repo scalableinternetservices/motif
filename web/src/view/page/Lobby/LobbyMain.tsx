@@ -99,9 +99,9 @@ function LobbyController() {
         />
       )
     case LobbyState.PRIVATE:
-      return <LobbyWait lobbyId={lobbyId} maxPlayers={maxPlayers} maxTime={maxTime} />
+      return <LobbyWait lobbyId={lobbyId} maxPlayers={maxPlayers} maxTime={maxTime} state={state} />
     case LobbyState.PUBLIC:
-      return <LobbyWait lobbyId={lobbyId} maxPlayers={maxPlayers} maxTime={maxTime} />
+      return <LobbyWait lobbyId={lobbyId} maxPlayers={maxPlayers} maxTime={maxTime} state={state} />
     default:
       return <div>Error: Unknown Lobby State</div>
   }

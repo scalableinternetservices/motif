@@ -1,5 +1,5 @@
 import { useQuery, useSubscription } from '@apollo/client'
-import { RouteComponentProps } from '@reach/router'
+import { navigate, RouteComponentProps } from '@reach/router'
 import * as React from 'react'
 import { FetchLobbies, LobbiesSubscription } from '../../../graphql/query.gen'
 import { Button } from '../../../style/button'
@@ -7,7 +7,7 @@ import { Input } from '../../../style/input'
 import { style } from '../../../style/styled'
 import { UserContext } from '../../auth/user'
 import { link, Link_Self } from '../../nav/Link'
-import { AppRouteParams, getLobbyMainPath } from '../../nav/route'
+import { AppRouteParams } from '../../nav/route'
 import { handleError } from '../../toast/error'
 import { Page } from '../Page'
 import { CreateLobby } from './CreateLobby'
@@ -68,7 +68,9 @@ function LobbyContainer(p: UserInfo) {
 
 function LobbyButton(p: LobbyButtonProps) {
   function handleJoinLobby(userId: number, lobbyId: number) {
-    joinLobby(userId, lobbyId).catch(handleError)
+    joinLobby(userId, lobbyId)
+      .then(() => navigate('/app/Lobby'))
+      .catch(handleError)
   }
 
   if (p.userId == null) {
@@ -81,11 +83,7 @@ function LobbyButton(p: LobbyButtonProps) {
 
   return (
     <div className={p.active ? 'o-100' : 'o-50'}>
-      <Link_Self
-        onClick={p.active ? () => handleJoinLobby(p.userId, p.id) : () => alert('Cannot join Lobby')}
-        //to={p.active ? getLobbyWaitPath() : undefined}
-        to={p.active ? getLobbyMainPath() : undefined}
-      >
+      <Link_Self onClick={p.active ? () => handleJoinLobby(p.userId, p.id) : () => alert('Cannot join Lobby')}>
         Join
       </Link_Self>
     </div>

@@ -1,18 +1,19 @@
 import { useQuery, useSubscription } from '@apollo/client'
-import { RouteComponentProps } from '@reach/router'
+import { navigate, RouteComponentProps } from '@reach/router'
 import * as React from 'react'
 import {
   FetchLobby,
   FetchLobbyVariables,
   FetchUserName,
   FetchUserNameVariables,
+  LobbyState,
   LobbySubscription,
   // eslint-disable-next-line prettier/prettier
   LobbySubscriptionVariables
 } from '../../../graphql/query.gen'
 import { UserContext } from '../../auth/user'
 import { Link_Self } from '../../nav/Link'
-import { AppRouteParams, getLobbySearchPath } from '../../nav/route'
+import { AppRouteParams } from '../../nav/route'
 import { handleError } from '../../toast/error'
 import { Page } from '../Page'
 import { fetchLobby, fetchUserName, subscribeLobby } from './fetchLobbies'
@@ -42,6 +43,7 @@ interface LobbyData {
   lobbyId?: number
   maxTime?: number
   maxPlayers?: number
+  state?: LobbyState
 }
 
 interface ExitButtonProps extends UserInfo, LobbyMainProps {}
@@ -49,7 +51,12 @@ interface ExitButtonProps extends UserInfo, LobbyMainProps {}
 export function LobbyWait(props: LobbyWaitProps) {
   return (
     <Page>
-      <LobbyWaitWrap lobbyId={props.lobbyId} maxTime={props.maxTime} maxPlayers={props.maxPlayers} />
+      <LobbyWaitWrap
+        lobbyId={props.lobbyId}
+        maxTime={props.maxTime}
+        maxPlayers={props.maxPlayers}
+        state={props.state}
+      />
     </Page>
   )
 }
@@ -60,6 +67,7 @@ function LobbyWaitWrap(props: LobbyData) {
       lobbyId={props.lobbyId ? props.lobbyId : -1}
       maxTime={props.maxTime}
       maxPlayers={props.maxPlayers}
+      state={props.state}
     ></LobbyWaitMain>
   )
 }
@@ -67,7 +75,12 @@ function LobbyWaitWrap(props: LobbyData) {
 function LobbyWaitMain(props: LobbyMainProps) {
   return (
     <div className="baseCanvas">
-      <LobbyContainer lobbyId={props.lobbyId} maxTime={props.maxTime} maxPlayers={props.maxPlayers} />
+      <LobbyContainer
+        lobbyId={props.lobbyId}
+        maxTime={props.maxTime}
+        maxPlayers={props.maxPlayers}
+        state={props.state}
+      />
     </div>
   )
 }
@@ -84,7 +97,7 @@ function LobbyContainer(p: LobbyMainProps) {
   return (
     <div>
       <TopBar userId={user.id} lobbyId={p.lobbyId} lobbyName={lobbyName} />
-      <PlayersContainer lobbyId={p.lobbyId} maxPlayers={p.maxPlayers} maxTime={p.maxTime} />
+      <PlayersContainer lobbyId={p.lobbyId} maxPlayers={p.maxPlayers} maxTime={p.maxTime} state={p.state} />
     </div>
   )
 }
@@ -120,7 +133,10 @@ function PlayersContainer(p: LobbyMainProps) {
   // eg. when the query returns newer data from the db
   React.useEffect(() => {
     if (data?.lobby) {
-      setPlayerList(data.lobby.players)
+      if (p.state != LobbyState.IN_GAME) {
+        console.log('SETTING')
+        setPlayerList(data.lobby.players)
+      }
     }
   }, [data])
 
@@ -133,7 +149,10 @@ function PlayersContainer(p: LobbyMainProps) {
   //Ensure that the new data sent from the server to the client updates the state and gets re-rendered
   React.useEffect(() => {
     if (lobbySub.data?.lobbyUpdates) {
-      setPlayerList(lobbySub.data.lobbyUpdates.players)
+      if (p.state != LobbyState.IN_GAME) {
+        console.log('SETTING')
+        setPlayerList(lobbySub.data.lobbyUpdates.players)
+      }
     }
   }, [lobbySub.data])
 
@@ -203,12 +222,10 @@ function StartButton(p: LobbyMainProps) {
 
 function ExitButton(p: ExitButtonProps) {
   function handleExit() {
-    leaveLobby(p.userId).catch(handleError)
+    leaveLobby(p.userId)
+      .then(() => navigate('/app/LobbySearch'))
+      .catch(handleError)
   }
 
-  return (
-    <Link_Self to={getLobbySearchPath()} onClick={() => handleExit()}>
-      Exit
-    </Link_Self>
-  )
+  return <Link_Self onClick={() => handleExit()}>Exit</Link_Self>
 }
