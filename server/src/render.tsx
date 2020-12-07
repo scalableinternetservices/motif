@@ -25,7 +25,7 @@ export function renderApp(req: Request, res: Response, schema: any) {
       Lobby: {
         fields: {
           players: {
-            merge: true,
+            merge: false,
           },
         },
       },
