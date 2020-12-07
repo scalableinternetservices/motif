@@ -30,7 +30,7 @@ export function submitMove(input: Submit) {
   }
   const t: MoveInput = {
     playerId: input.player.id,
-    lobbyId: (input.player.lobby ? input.player.lobby.id : -1),
+    lobbyId: input.player.lobby ? input.player.lobby.id : -1,
     time: input.time,
     moveType: input.moveType,
     tiles: temp,
@@ -44,7 +44,7 @@ export function submitMove(input: Submit) {
 export function randomizeMove(input: Scramble) {
   const t: MoveInput = {
     playerId: input.player.id,
-    lobbyId: (input.player.lobby ? input.player.lobby.id : -1),
+    lobbyId: input.player.lobby ? input.player.lobby.id : -1,
     time: input.time,
     moveType: input.moveType,
     pointValue: 0,
@@ -67,7 +67,7 @@ export function selectMove(input: SelectTile) {
   }
   const t: MoveInput = {
     playerId: input.player.id,
-    lobbyId: (input.player.lobby ? input.player.lobby.id : -1),
+    lobbyId: input.player.lobby ? input.player.lobby.id : -1,
     time: input.time,
     moveType: input.moveType,
     tiles: temp,
@@ -91,7 +91,7 @@ export function deselectMove(input: DeselectTile) {
   }
   const t: MoveInput = {
     playerId: input.player.id,
-    lobbyId: (input.player.lobby ? input.player.lobby.id : -1),
+    lobbyId: input.player.lobby ? input.player.lobby.id : -1,
     time: input.time,
     moveType: input.moveType,
     tiles: temp,

@@ -61,6 +61,8 @@ type Subscription {
   lobbiesUpdates: [Lobby!]
 
   lobbyUpdates (lobbyId: Int!): Lobby
+
+  moveUpdates (lobbyId: Int!): Move
 }
 
 type User {
@@ -131,7 +133,7 @@ type Player {
 enum TileType {Normal, Double, Dud}
 type Tile {
   id: Int!
-  value: Int!
+  pointValue: Int!
   location: Int!
   letter: String!
   tileType: TileType!

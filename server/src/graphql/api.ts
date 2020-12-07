@@ -246,7 +246,6 @@ export const graphqlRoot: Resolvers<Context> = {
       move.moveType = input.moveType
       move.player = player
 
-      // TODO: check if move is valid
       await move.save()
       switch (input.moveType) {
         case 'SelectTile':
@@ -271,6 +270,7 @@ export const graphqlRoot: Resolvers<Context> = {
           serverMove.player = player
           serverMove.lobby = lobby
           serverMove.moveType = MoveType.SpawnTiles
+          await serverMove.save()
           let word = ''
           inputTiles1.forEach(async tile => {
             // save a copy of the tile for Submit move
@@ -281,7 +281,7 @@ export const graphqlRoot: Resolvers<Context> = {
             newTile.move = move
             newTile.value = tile.pointValue
             newTile.tileType = tile.tileType
-            await newTile.save().catch(() => console.log('broke here'))
+            await newTile.save().catch(() => console.log('makeMove resolver: tile save failed'))
             move.tiles.push(newTile)
             // spawn a new tile in the location by server
             const spawnedTile = new Tile()
@@ -290,26 +290,29 @@ export const graphqlRoot: Resolvers<Context> = {
             spawnedTile.move = serverMove
             spawnedTile.value = 1
             spawnedTile.tileType = TileType.Normal
-            await spawnedTile.save().catch(() => console.log('broke here 2'))
+            await spawnedTile.save().catch(err => console.log('makeMove resolver: spawn tile save failed ' + err))
           })
           console.log(word.toLowerCase() + ' in dictionary: ' + dictionary.isInDictionary(word.toLowerCase()))
-          await serverMove.save()
+          ctx.pubsub.publish('LOBBY_' + input.lobbyId + '_MOVES', serverMove)
           break
         case 'Scramble':
           const serverMove2 = new Move()
           serverMove2.player = player
           serverMove2.lobby = lobby
           serverMove2.moveType = MoveType.SpawnTiles
+          await serverMove2.save()
           for (let i = 0; i < 16; i++) {
             const spawnedTile = new Tile()
             spawnedTile.letter = getRandomLetter()
-            spawnedTile.location = i
+            spawnedTile.location = 1
             spawnedTile.move = serverMove2
             spawnedTile.value = 1
             spawnedTile.tileType = TileType.Normal
-            //await spawnedTile.save()
+            await spawnedTile
+              .save()
+              .catch(err => console.log('makeMove resolver: scramble spawn tile save failed ' + err))
           }
-          await serverMove2.save()
+          ctx.pubsub.publish('LOBBY_' + input.lobbyId + '_MOVES', serverMove2)
           break
         case 'SpawnTiles':
           // TODO: this is for testing, otherwise should be automated by server
@@ -327,6 +330,7 @@ export const graphqlRoot: Resolvers<Context> = {
           })
           break
       }
+      ctx.pubsub.publish('LOBBY_' + input.lobbyId + '_MOVES', move)
       await move.save()
       return true
     },
@@ -342,6 +346,10 @@ export const graphqlRoot: Resolvers<Context> = {
     },
     lobbyUpdates: {
       subscribe: (_, { lobbyId }, context) => context.pubsub.asyncIterator('LOBBY_UPDATE_' + lobbyId),
+      resolve: (payload: any) => payload,
+    },
+    moveUpdates: {
+      subscribe: (_, { lobbyId }, context) => context.pubsub.asyncIterator('LOBBY_' + lobbyId + '_MOVES'),
       resolve: (payload: any) => payload,
     },
   },

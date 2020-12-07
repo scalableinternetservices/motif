@@ -94,6 +94,7 @@ export interface Subscription {
   surveyUpdates?: Maybe<Survey>
   lobbiesUpdates?: Maybe<Array<Lobby>>
   lobbyUpdates?: Maybe<Lobby>
+  moveUpdates?: Maybe<Move>
 }
 
 export interface SubscriptionSurveyUpdatesArgs {
@@ -101,6 +102,10 @@ export interface SubscriptionSurveyUpdatesArgs {
 }
 
 export interface SubscriptionLobbyUpdatesArgs {
+  lobbyId: Scalars['Int']
+}
+
+export interface SubscriptionMoveUpdatesArgs {
   lobbyId: Scalars['Int']
 }
 
@@ -502,6 +507,13 @@ export type SubscriptionResolvers<
     ContextType,
     RequireFields<SubscriptionLobbyUpdatesArgs, 'lobbyId'>
   >
+  moveUpdates?: SubscriptionResolver<
+    Maybe<ResolversTypes['Move']>,
+    'moveUpdates',
+    ParentType,
+    ContextType,
+    RequireFields<SubscriptionMoveUpdatesArgs, 'lobbyId'>
+  >
 }
 
 export type UserResolvers<
@@ -567,7 +579,7 @@ export type TileResolvers<
   ParentType extends ResolversParentTypes['Tile'] = ResolversParentTypes['Tile']
 > = {
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  value?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  pointValue?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   location?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   letter?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   tileType?: Resolver<ResolversTypes['TileType'], ParentType, ContextType>

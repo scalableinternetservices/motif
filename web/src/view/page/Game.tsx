@@ -78,9 +78,9 @@ export default class Game extends React.Component<
     this.timer = setInterval(this.countdown, 100)
     for (let i = 0; i < 16; i++) {
       this.active.push(false)
-      this.board.push({ id: 0, letter: 'X', pointValue: 0, location: 0, tileType: TileType.Normal })
+      this.board.push({ id: 0, letter: 'X', pointValue: 0, location: i, tileType: TileType.Normal })
       for (let p = 0; p < this.enemyPlayers; p++) {
-        this.enemyTiles[p].push({ id: 0, letter: 'X', pointValue: 0, location: 0, tileType: TileType.Normal })
+        this.enemyTiles[p].push({ id: 0, letter: 'X', pointValue: 0, location: i, tileType: TileType.Normal })
       }
     }
   }

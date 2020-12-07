@@ -1461,6 +1461,33 @@
             },
             "isDeprecated": false,
             "deprecationReason": null
+          },
+          {
+            "name": "moveUpdates",
+            "description": null,
+            "args": [
+              {
+                "name": "lobbyId",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null
+              }
+            ],
+            "type": {
+              "kind": "INTERFACE",
+              "name": "Move",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
           }
         ],
         "inputFields": null,
@@ -2000,7 +2027,7 @@
             "deprecationReason": null
           },
           {
-            "name": "value",
+            "name": "pointValue",
             "description": null,
             "args": [],
             "type": {
