@@ -59,6 +59,37 @@ export interface MakeMoveVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: FetchLobbyPage
+// ====================================================
+
+export interface FetchLobbyPage_lobbypage_players {
+  __typename: "Player";
+  id: number;
+}
+
+export interface FetchLobbyPage_lobbypage {
+  __typename: "Lobby";
+  id: number;
+  maxUsers: number;
+  gameTime: number;
+  state: LobbyState;
+  players: FetchLobbyPage_lobbypage_players[];
+}
+
+export interface FetchLobbyPage {
+  lobbypage: FetchLobbyPage_lobbypage[] | null;
+}
+
+export interface FetchLobbyPageVariables {
+  offset: number;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: FetchLobbies
 // ====================================================
 

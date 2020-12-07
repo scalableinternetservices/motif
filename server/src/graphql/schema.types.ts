@@ -18,6 +18,7 @@ export interface Query {
   self?: Maybe<User>
   surveys: Array<Survey>
   survey?: Maybe<Survey>
+  lobbypage?: Maybe<Array<Lobby>>
   lobbies?: Maybe<Array<Lobby>>
   lobby?: Maybe<Lobby>
   user?: Maybe<User>
@@ -27,6 +28,10 @@ export interface Query {
 
 export interface QuerySurveyArgs {
   surveyId: Scalars['Int']
+}
+
+export interface QueryLobbypageArgs {
+  offset?: Maybe<Scalars['Int']>
 }
 
 export interface QueryLobbyArgs {
@@ -262,6 +267,14 @@ export interface Lobby {
   maxUsers: Scalars['Int']
 }
 
+export interface PaginatedLobbies {
+  __typename?: 'PaginatedLobbies'
+  id: Scalars['Int']
+  lobbies: Array<Lobby>
+  cursor: Scalars['Int']
+  has_next: Scalars['Boolean']
+}
+
 export type ResolverTypeWrapper<T> = Promise<T> | T
 
 export type LegacyStitchingResolver<TResult, TParent, TContext, TArgs> = {
@@ -371,6 +384,7 @@ export type ResolversTypes = {
   MoveInput: MoveInput
   LobbyState: LobbyState
   Lobby: ResolverTypeWrapper<Lobby>
+  PaginatedLobbies: ResolverTypeWrapper<PaginatedLobbies>
 }
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -403,6 +417,7 @@ export type ResolversParentTypes = {
   TileInput: TileInput
   MoveInput: MoveInput
   Lobby: Lobby
+  PaginatedLobbies: PaginatedLobbies
 }
 
 export type QueryResolvers<
@@ -416,6 +431,12 @@ export type QueryResolvers<
     ParentType,
     ContextType,
     RequireFields<QuerySurveyArgs, 'surveyId'>
+  >
+  lobbypage?: Resolver<
+    Maybe<Array<ResolversTypes['Lobby']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryLobbypageArgs, never>
   >
   lobbies?: Resolver<Maybe<Array<ResolversTypes['Lobby']>>, ParentType, ContextType>
   lobby?: Resolver<Maybe<ResolversTypes['Lobby']>, ParentType, ContextType, RequireFields<QueryLobbyArgs, 'lobbyId'>>
@@ -662,6 +683,17 @@ export type LobbyResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType>
 }
 
+export type PaginatedLobbiesResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['PaginatedLobbies'] = ResolversParentTypes['PaginatedLobbies']
+> = {
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  lobbies?: Resolver<Array<ResolversTypes['Lobby']>, ParentType, ContextType>
+  cursor?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  has_next?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType>
+}
+
 export type Resolvers<ContextType = any> = {
   Query?: QueryResolvers<ContextType>
   Mutation?: MutationResolvers<ContextType>
@@ -680,6 +712,7 @@ export type Resolvers<ContextType = any> = {
   Scramble?: ScrambleResolvers<ContextType>
   SpawnTiles?: SpawnTilesResolvers<ContextType>
   Lobby?: LobbyResolvers<ContextType>
+  PaginatedLobbies?: PaginatedLobbiesResolvers<ContextType>
 }
 
 /**

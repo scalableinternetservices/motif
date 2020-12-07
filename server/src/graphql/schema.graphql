@@ -24,6 +24,7 @@ type Query {
   surveys: [Survey!]!
   survey (surveyId: Int!): Survey
 
+  lobbypage (offset: Int): [Lobby!]
   lobbies: [Lobby!] # get all lobbies
   lobby (lobbyId: Int!): Lobby
 
@@ -219,4 +220,11 @@ type Lobby {
   moves: [Move!]!
   gameTime: Int!
   maxUsers: Int!
+}
+
+type PaginatedLobbies {
+  id: Int!
+  lobbies: [Lobby!]!
+  cursor: Int!
+  has_next: Boolean!
 }

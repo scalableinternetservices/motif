@@ -51,6 +51,18 @@ export const graphqlRoot: Resolvers<Context> = {
     self: (_, args, ctx) => ctx.user,
     survey: async (_, { surveyId }) => (await Survey.findOne({ where: { id: surveyId } })) || null,
     surveys: () => Survey.find(),
+    lobbypage: async (_, { offset }) => {
+      const limit = 10
+      const lobbies = check(await Lobby.find())
+
+      if (!offset) {
+        offset = 0
+      }
+
+      const lobbyPage_lobbies = lobbies.slice(offset, offset + limit)
+
+      return lobbyPage_lobbies
+    },
     lobbies: () => Lobby.find(),
     lobby: async (_, { lobbyId }) => (await Lobby.findOne({ where: { id: lobbyId } })) || null,
     user: async (_, { userId }) => (await User.findOne({ where: { id: userId } })) || null,

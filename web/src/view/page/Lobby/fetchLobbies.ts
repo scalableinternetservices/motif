@@ -1,5 +1,19 @@
 import { gql } from '@apollo/client'
 
+export const fetchLobbyPage = gql`
+  query FetchLobbyPage($offset: Int!) {
+    lobbypage(offset: $offset) {
+      id
+      maxUsers
+      gameTime
+      state
+      players {
+        id
+      }
+    }
+  }
+`
+
 export const fetchLobbies = gql`
   query FetchLobbies {
     lobbies {
