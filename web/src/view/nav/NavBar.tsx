@@ -3,10 +3,11 @@ import * as React from 'react'
 import { useContext, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import { useMediaQuery } from 'react-responsive'
+import { check } from '../../../../common/src/util'
 import { breakpoints } from '../../style/breakpoints'
-import { MenuIcon } from '../../style/icons'
 import { style } from '../../style/styled'
 import { UserContext } from '../auth/user'
+import { handleError } from '../toast/error'
 import { addToastListener, removeToastListener, Toast, ToastType } from '../toast/toast'
 import { link } from './Link'
 import { getLoginPath, getPath, getSignupPath, getSurveyPath, Route } from './route'
@@ -18,10 +19,10 @@ const title = {
 }
 
 const otherTabs = [
-  {
-    name: 'playground',
-    path: getPath(Route.PLAYGROUND),
-  },
+  // {
+  //   name: 'playground',
+  //   path: getPath(Route.PLAYGROUND),
+  // },
   {
     name: 'LobbySearch',
     path: getPath(Route.LobbySearch),
@@ -34,12 +35,22 @@ const otherTabs = [
     name: 'Board',
     path: getPath(Route.BOARD),
   },
-  {
-    name: 'User Login',
-    path: getPath(Route.USER_LOGIN),
-  },
+  // {
+  //   name: 'User Login',
+  //   path: getPath(Route.USER_LOGIN),
+  // },
 ]
-
+function logout() {
+  return fetch('/auth/logout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then(res => {
+      check(res.ok, 'response status ' + res.status)
+      window.location.reload()
+    })
+    .catch(handleError)
+}
 export function NavBar() {
   const location = useLocation()
   const { user } = useContext(UserContext)
@@ -65,6 +76,12 @@ export function NavBar() {
     return void 0
   }, [toast])
 
+  const login = user ? (
+    <NavLink onClick={() => logout()}>Logout</NavLink>
+  ) : (
+    <NavItem name="User Login" path={getPath(Route.USER_LOGIN)} />
+  )
+
   const tabs = isSmall ? [otherTabs.find(t => location.pathname.startsWith(t.path)) || otherTabs[0]] : otherTabs
   return (
     <>
@@ -81,7 +98,7 @@ export function NavBar() {
           {tabs.map((tab, i) => (
             <NavItem key={i} {...tab} />
           ))}
-          {user && <NavItem name="Logout" path={getLoginPath()} />}
+          {login}
 
           {isSmall && <NavMenu show={showMenu} onClick={() => setShowMenu(!showMenu)} />}
         </Nav>
@@ -95,7 +112,6 @@ export function NavBar() {
 function NavMenu(props: { show: boolean; onClick: () => void }) {
   return (
     <NavMenuButton onClick={props.onClick}>
-      <MenuIcon />
       {props.show && (
         <Modal>
           <NavMenuModal>
