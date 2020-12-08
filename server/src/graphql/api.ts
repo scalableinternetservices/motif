@@ -5,7 +5,7 @@ import { PubSub } from 'graphql-yoga'
 import path from 'path'
 import { getRandomLetter } from '../../../common/src/gameUtils'
 import { check } from '../../../common/src/util'
-import { getSQLConnection } from '../db/sql'
+import { getConnection, SQL } from '../db/sql'
 import { Lobby } from '../entities/Lobby'
 import { Move } from '../entities/Move'
 import { Player } from '../entities/Player'
@@ -84,7 +84,6 @@ export const graphqlRoot: Resolvers<Context> = {
       return survey
     },
     createLobby: async (_, { userId, maxUsers, maxTime, state }, ctx) => {
-      const sql = await getSQLConnection()
       const user = check(await User.findOne({ where: { id: userId }, relations: ['player'] }))
       // Create new player if DNE
       let player
@@ -100,6 +99,8 @@ export const graphqlRoot: Resolvers<Context> = {
       const oldLobby = player.lobby
       const newLobby = new Lobby()
 
+      const conn = await getConnection()
+      const sql = new SQL(conn)
       if (oldLobby) {
         // const oldPlayers = await Player.find({ where: { lobbyId: oldLobby.id } })
         const q_old = await sql.query('SELECT COUNT(id) AS count FROM player WHERE lobbyId=?', oldLobby.id)
@@ -114,6 +115,8 @@ export const graphqlRoot: Resolvers<Context> = {
         }
         console.log('LOG: Removing player from old lobby ' + oldLobby.id)
       }
+      conn.release()
+
       // Add player to new lobby
       newLobby.state = state ? LobbyState.Public : LobbyState.Private
       newLobby.maxUsers = maxUsers
@@ -137,7 +140,6 @@ export const graphqlRoot: Resolvers<Context> = {
     },
     joinLobby: async (_, { userId, lobbyId }, ctx) => {
       // TODO: need to validate: remove user from current lobbies, is lobby in right state, etc
-      const sql = await getSQLConnection()
       const user = check(await User.findOne({ where: { id: userId }, relations: ['player'] }))
       let player
       if (!user.player) {
@@ -154,8 +156,11 @@ export const graphqlRoot: Resolvers<Context> = {
 
       // Check if lobby is full
       // const players = await Player.find({ where: { lobbyId: newLobby.id } })
+      const conn = await getConnection()
+      const sql = new SQL(conn)
       const q_new = await sql.query('SELECT COUNT(id) AS count FROM player WHERE lobbyId=?', newLobby.id)
       if (newLobby.maxUsers <= q_new[0].count) {
+        conn.release()
         return false
       }
 
@@ -179,6 +184,8 @@ export const graphqlRoot: Resolvers<Context> = {
         console.log('LOG: Removing player from old lobby ' + oldLobby.id)
       }
 
+      conn.release()
+
       //Get all lobbies and pass as payload for lobbiesUpdates subscripton
       const lobbies = check(await Lobby.find())
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
@@ -196,11 +203,12 @@ export const graphqlRoot: Resolvers<Context> = {
       return true
     },
     leaveLobby: async (_, { userId }, ctx) => {
-      const sql = await getSQLConnection()
       const player = check(await Player.findOne({ where: { userId: userId }, relations: ['user', 'lobby'] }))
       const lobby = await Lobby.findOne({ where: { id: player.lobbyId } })
 
       if (!lobby) return false
+      const conn = await getConnection()
+      const sql = new SQL(conn)
 
       // const players = await Player.find({ where: { lobbyId: lobby.id } })
       const q = await sql.query('SELECT COUNT(player.id) AS count FROM player WHERE player.lobbyId=?', lobby.id)
@@ -220,6 +228,7 @@ export const graphqlRoot: Resolvers<Context> = {
         //pass the current updated lobby as payload for lobbyUpdates subscription
         ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
       }
+      conn.release()
       // delete as Player, since user no longer in any lobbies
       await Player.remove(player)
 
