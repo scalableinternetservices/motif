@@ -23,6 +23,6 @@ export class Tile extends BaseEntity {
   })
   tileType: TileType
 
-  @ManyToOne(() => Move, move => move.tiles)
+  @ManyToOne(() => Move, move => move.tiles, { onDelete: 'CASCADE' })
   move: Move
 }
