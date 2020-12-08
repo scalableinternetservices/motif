@@ -4,6 +4,7 @@ import { PubSub } from 'graphql-yoga'
 import path from 'path'
 import { getRandomLetter } from '../../../common/src/gameUtils'
 import { check } from '../../../common/src/util'
+import { getSQLConnection } from '../db/sql'
 import { Lobby } from '../entities/Lobby'
 import { Move } from '../entities/Move'
 import { Player } from '../entities/Player'
@@ -202,19 +203,27 @@ export const graphqlRoot: Resolvers<Context> = {
     },
     startGame: async (_, { lobbyId }, ctx) => {
       // TODO take player param and check if in lobby
-      const lobby = check(await Lobby.findOne({ where: { id: lobbyId } }))
-      if (lobby.state != LobbyState.Private && lobby.state != LobbyState.Public) return false
-      lobby.state = LobbyState.InGame
-      lobby.startTime = new Date()
-      await lobby.save()
+      const sql = await getSQLConnection()
+      const start_q = await sql.query(
+        'UPDATE lobby SET state = ?, startTime = NOW() WHERE state IN (?, ?) AND id = ?',
+        [LobbyState.InGame, LobbyState.Private, LobbyState.Public, lobbyId]
+      )
+      console.log(start_q.affectedRows)
+      if (start_q.affectedRows != 1) return false
+      // const lobby = check(await Lobby.findOne({ where: { id: lobbyId } }))
+      // if (lobby.state != LobbyState.Private && lobby.state != LobbyState.Public) return false
+      // lobby.state = LobbyState.InGame
+      // lobby.startTime = new Date(Date.UTC(Date.now()))
+      // console.log(lobby.startTime)
+      // await lobby.save()
 
       //Get all lobbies and pass as payload for lobbiesUpdates subscripton
       const lobbies = check(await Lobby.find())
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
       //pass the current updated lobby as payload for lobbyUpdates subscription
-      const updatedLobby = check(await Lobby.findOne({ where: { id: lobby.id } }))
-      ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
+      const updatedLobby = check(await Lobby.findOne({ where: { id: lobbyId } }))
+      ctx.pubsub.publish('LOBBY_UPDATE_' + lobbyId, updatedLobby)
 
       return true
     },
