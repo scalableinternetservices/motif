@@ -149,12 +149,14 @@ export const graphqlRoot: Resolvers<Context> = {
       if (!lobby) return false
       if (lobby.players.length <= 1) {
         // delete lobbies that have not started
-        if (lobby.state != LobbyState.InGame) {
-          await Lobby.remove(lobby)
-        } else {
+        await Lobby.remove(lobby)
+
+        /* Scrapping Lobby Replay System
+        else {
           lobby.state = LobbyState.Replay
           await lobby.save()
         }
+        */
       }
       // delete as Player, since user no longer in any lobbies
       await Player.remove(player)
