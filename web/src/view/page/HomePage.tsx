@@ -6,7 +6,7 @@ import { Spacer } from '../../style/spacer'
 import { style } from '../../style/styled'
 import { BodyText } from '../../style/text'
 import { Link } from '../nav/Link'
-import { AppRouteParams, getPath, Route } from '../nav/route'
+import { AppRouteParams } from '../nav/route'
 import { Page } from './Page'
 
 interface HomePageProps extends RouteComponentProps, AppRouteParams {}
@@ -48,9 +48,6 @@ export function HomePage(props: HomePageProps) {
                 <li>
                   Follow the <Link href="https://github.com/rothfels/bespin#quickstart">project Quickstart</Link> to
                   configure your dev environment.
-                </li>
-                <li>
-                  Find a project team. See <Link to={getPath(Route.PROJECTS)}>Projects</Link> for details.
                 </li>
                 <li>
                   Join the <Link href="https://piazza.com/ucla/fall2020/cs188">CS188 Piazza</Link>.

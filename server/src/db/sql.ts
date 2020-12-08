@@ -6,9 +6,6 @@ import { Move } from '../entities/Move'
 import { Player } from '../entities/Player'
 import { Session } from '../entities/Session'
 import { Spectator } from '../entities/Spectator'
-import { Survey } from '../entities/Survey'
-import { SurveyAnswer } from '../entities/SurveyAnswer'
-import { SurveyQuestion } from '../entities/SurveyQuestion'
 import { Tile } from '../entities/Tile'
 import { User } from '../entities/User'
 
@@ -26,7 +23,7 @@ export async function initORM() {
     username: process.env.MYSQL_USER || 'root',
     synchronize: true,
     logging: false,
-    entities: [User, Session, Survey, SurveyQuestion, SurveyAnswer, Player, Lobby, Spectator, Move, Tile, Message],
+    entities: [User, Session, Player, Lobby, Spectator, Move, Tile, Message],
     extra: {
       connectionLimit: 5,
     },

@@ -10,7 +10,7 @@ import { UserContext } from '../auth/user'
 import { handleError } from '../toast/error'
 import { addToastListener, removeToastListener, Toast, ToastType } from '../toast/toast'
 import { link } from './Link'
-import { getLoginPath, getPath, getSignupPath, getSurveyPath, Route } from './route'
+import { getPath, Route } from './route'
 
 const title = {
   name: 'Motif',
@@ -19,10 +19,6 @@ const title = {
 }
 
 const otherTabs = [
-  // {
-  //   name: 'playground',
-  //   path: getPath(Route.PLAYGROUND),
-  // },
   {
     name: 'LobbySearch',
     path: getPath(Route.LobbySearch),
@@ -102,7 +98,6 @@ export function NavBar() {
 
           {isSmall && <NavMenu show={showMenu} onClick={() => setShowMenu(!showMenu)} />}
         </Nav>
-        <SubNav />
       </div>
       {toast && <ToastContainer $isError={toast.type === ToastType.ERROR}>{toast.message}</ToastContainer>}
     </>
@@ -122,22 +117,6 @@ function NavMenu(props: { show: boolean; onClick: () => void }) {
         </Modal>
       )}
     </NavMenuButton>
-  )
-}
-
-function SubNav() {
-  const location = useLocation()
-  const { user } = useContext(UserContext)
-  if (!location.pathname.startsWith(getPath(Route.PLAYGROUND))) {
-    // only playground has subnav
-    return null
-  }
-  return (
-    <Nav $isSubNav>
-      <NavItem name="surveys" path={getSurveyPath()} />
-      <NavItem name={user ? 'logout' : 'login'} path={getLoginPath()} />
-      {!user && <NavItem name="signup" path={getSignupPath()} />}
-    </Nav>
   )
 }
 
