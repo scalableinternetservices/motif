@@ -22,7 +22,7 @@ export class Move extends BaseEntity {
   @JoinColumn()
   player: Player
 
-  @ManyToOne(() => Lobby, lobby => lobby.moves)
+  @ManyToOne(() => Lobby, lobby => lobby.moves, { onDelete: 'CASCADE' })
   lobby: Lobby
 
   @Column({
