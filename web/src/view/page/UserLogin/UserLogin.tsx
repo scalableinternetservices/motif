@@ -42,7 +42,7 @@ export function UserLogin(p: UserLoginProps) {
         check(res.ok, 'response status ' + res.status)
         return res.text()
       })
-      .then(() => window.location.replace('/'))
+      .then(() => window.location.replace('/app/LobbySearch'))
       .catch(err => {
         toastErr(err.toString())
         setError({ userName: true })
