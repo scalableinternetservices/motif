@@ -4,7 +4,7 @@ import { PubSub } from 'graphql-yoga'
 import path from 'path'
 import { getRandomLetter } from '../../../common/src/gameUtils'
 import { check } from '../../../common/src/util'
-import { getSQLConnection } from '../db/sql'
+import { getConnection, SQL } from '../db/sql'
 import { Lobby } from '../entities/Lobby'
 import { Move } from '../entities/Move'
 import { Player } from '../entities/Player'
@@ -203,12 +203,13 @@ export const graphqlRoot: Resolvers<Context> = {
     },
     startGame: async (_, { lobbyId }, ctx) => {
       // TODO take player param and check if in lobby
-      const sql = await getSQLConnection()
+      const conn = await getConnection()
+      const sql = new SQL(conn)
       const start_q = await sql.query(
         'UPDATE lobby SET state = ?, startTime = NOW() WHERE state IN (?, ?) AND id = ?',
         [LobbyState.InGame, LobbyState.Private, LobbyState.Public, lobbyId]
       )
-      console.log(start_q.affectedRows)
+      conn.release()
       if (start_q.affectedRows != 1) return false
       // const lobby = check(await Lobby.findOne({ where: { id: lobbyId } }))
       // if (lobby.state != LobbyState.Private && lobby.state != LobbyState.Public) return false

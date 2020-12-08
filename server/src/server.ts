@@ -19,7 +19,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { checkEqual, Unpromise } from '../../common/src/util'
 import { Config } from './config'
 import { migrate } from './db/migrate'
-import { getSQLConnection, initORM } from './db/sql'
+import { getConnection, initORM, SQL } from './db/sql'
 import { Session } from './entities/Session'
 import { User } from './entities/User'
 import { getSchema, graphqlRoot, pubsub } from './graphql/api'
@@ -297,11 +297,14 @@ initORM()
   )
   .catch(err => console.error(err))
 
+// checks for games that should be over
 setInterval(async () => {
-  const sql = await getSQLConnection()
+  const conn = await getConnection()
+  const sql = new SQL(conn)
   const result = await sql.query(
     'UPDATE lobby SET state="REPLAY" WHERE state="IN_GAME"\
      AND TIMESTAMPDIFF(second, `startTime`, NOW()) > gameTime*60;'
   )
   if (result.affectedRows > 0) console.log(result.affectedRows + ' games marked as expired')
+  conn.release()
 }, 1000)

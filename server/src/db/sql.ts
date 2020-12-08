@@ -57,7 +57,7 @@ const pool = createPool({
   multipleStatements: true,
 } as any)
 
-function getConnection() {
+export function getConnection() {
   return new Promise<PoolConnection>((resolve, reject) =>
     pool.getConnection((err, res) => (err ? reject(err) : resolve(res)))
   )
@@ -65,7 +65,7 @@ function getConnection() {
 
 export async function getSQLConnection() {
   const conn = await getConnection()
-  return new SQL(conn)
+  return conn
 }
 
 /**
