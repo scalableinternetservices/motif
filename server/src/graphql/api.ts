@@ -381,5 +381,8 @@ export const graphqlRoot: Resolvers<Context> = {
     players: (self, args, ctx) => {
       return Player.find({ where: { lobbyId: self.id } }) as any
     },
+    moves: (self, args, ctx) => {
+      return Move.find({ where: { lobbyId: self.id } }) as any
+    },
   },
 }
