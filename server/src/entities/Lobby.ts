@@ -31,7 +31,7 @@ export class Lobby extends BaseEntity {
   moves: Move[]
 
   @OneToMany(() => Player, player => player.lobby)
-  players: Promise<Player[]>
+  players: Player[]
 
   @OneToMany(() => Spectator, spectator => spectator.lobby)
   spectators: Spectator[]

@@ -1,3 +1,4 @@
+import console from 'console'
 import { readFileSync } from 'fs'
 import { GraphQLScalarType, Kind } from 'graphql'
 import { PubSub } from 'graphql-yoga'
@@ -96,10 +97,18 @@ export const graphqlRoot: Resolvers<Context> = {
       }
       const oldLobby = player.lobby
       const newLobby = new Lobby()
-      // TODO I'm pretty sure this is actually unnecessary, remove later
+
       if (oldLobby) {
-        // oldLobby.players.splice(oldLobby.players.indexOf(player), 1)
-        // await oldLobby.save()
+        const oldPlayers = await Player.find({ where: { lobbyId: oldLobby.id } })
+        if (oldPlayers.length < 1) {
+          console.log('LOG: Deleting empty lobby ' + oldLobby.id)
+          if (oldLobby.state != LobbyState.InGame) {
+            await Lobby.remove(oldLobby)
+          } else {
+            oldLobby.state = LobbyState.Replay
+            await oldLobby.save()
+          }
+        }
         console.log('LOG: Removing player from old lobby ' + oldLobby.id)
       }
       // Add player to new lobby
@@ -138,21 +147,25 @@ export const graphqlRoot: Resolvers<Context> = {
       }
       const oldLobby = player.lobby
       const newLobby = check(await Lobby.findOne(lobbyId))
-      const players = await newLobby.players
+      const players = await Player.find({ where: { lobbyId: newLobby.id } })
 
-      // TODO I'm pretty sure this is actually unnecessary, remove later
-      if (oldLobby) {
-        // oldLobby.players.splice(oldLobby.players.indexOf(player), 1)
-        // await oldLobby.save()
-        console.log('LOG: Removing player from old lobby ' + oldLobby.id)
-      }
-      if (newLobby.maxUsers > players.length) {
-        // newLobby.players.push(player)
-        // await newLobby.save()
-      } else {
+      if (newLobby.maxUsers <= players.length) {
         return false
       }
       player.lobby = newLobby
+      if (oldLobby) {
+        const oldPlayers = await Player.find({ where: { lobbyId: oldLobby.id } })
+        if (oldPlayers.length < 1) {
+          console.log('LOG: Deleting empty lobby ' + oldLobby.id)
+          if (oldLobby.state != LobbyState.InGame) {
+            await Lobby.remove(oldLobby)
+          } else {
+            oldLobby.state = LobbyState.Replay
+            await oldLobby.save()
+          }
+        }
+        console.log('LOG: Removing player from old lobby ' + oldLobby.id)
+      }
       await player.save()
 
       //Get all lobbies and pass as payload for lobbiesUpdates subscripton
@@ -177,7 +190,7 @@ export const graphqlRoot: Resolvers<Context> = {
 
       if (!lobby) return false
 
-      const players = await lobby.players
+      const players = await Player.find({ where: { lobbyId: lobby.id } })
       if (players.length <= 1) {
         console.log('LOG: Deleting empty lobby ' + lobby.id)
         // delete lobbies that have not started
@@ -365,7 +378,7 @@ export const graphqlRoot: Resolvers<Context> = {
     },
   },
   Lobby: {
-    players: async (self, args, ctx) => {
+    players: (self, args, ctx) => {
       return Player.find({ where: { lobbyId: self.id } }) as any
     },
   },
