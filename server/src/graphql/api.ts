@@ -5,6 +5,7 @@ import { PubSub } from 'graphql-yoga'
 import path from 'path'
 import { getRandomLetter } from '../../../common/src/gameUtils'
 import { check } from '../../../common/src/util'
+import { getSQLConnection } from '../db/sql'
 import { Lobby } from '../entities/Lobby'
 import { Move } from '../entities/Move'
 import { Player } from '../entities/Player'
@@ -83,6 +84,7 @@ export const graphqlRoot: Resolvers<Context> = {
       return survey
     },
     createLobby: async (_, { userId, maxUsers, maxTime, state }, ctx) => {
+      const sql = await getSQLConnection()
       const user = check(await User.findOne({ where: { id: userId }, relations: ['player'] }))
       // Create new player if DNE
       let player
@@ -99,8 +101,9 @@ export const graphqlRoot: Resolvers<Context> = {
       const newLobby = new Lobby()
 
       if (oldLobby) {
-        const oldPlayers = await Player.find({ where: { lobbyId: oldLobby.id } })
-        if (oldPlayers.length < 1) {
+        // const oldPlayers = await Player.find({ where: { lobbyId: oldLobby.id } })
+        const q_old = await sql.query('SELECT COUNT(id) AS count FROM player WHERE lobbyId=?', oldLobby.id)
+        if (q_old[0].count < 1) {
           console.log('LOG: Deleting empty lobby ' + oldLobby.id)
           if (oldLobby.state != LobbyState.InGame) {
             await Lobby.remove(oldLobby)
@@ -134,6 +137,7 @@ export const graphqlRoot: Resolvers<Context> = {
     },
     joinLobby: async (_, { userId, lobbyId }, ctx) => {
       // TODO: need to validate: remove user from current lobbies, is lobby in right state, etc
+      const sql = await getSQLConnection()
       const user = check(await User.findOne({ where: { id: userId }, relations: ['player'] }))
       let player
       if (!user.player) {
@@ -147,15 +151,23 @@ export const graphqlRoot: Resolvers<Context> = {
       }
       const oldLobby = player.lobby
       const newLobby = check(await Lobby.findOne(lobbyId))
-      const players = await Player.find({ where: { lobbyId: newLobby.id } })
 
-      if (newLobby.maxUsers <= players.length) {
+      // Check if lobby is full
+      // const players = await Player.find({ where: { lobbyId: newLobby.id } })
+      const q_new = await sql.query('SELECT COUNT(id) AS count FROM player WHERE lobbyId=?', newLobby.id)
+      if (newLobby.maxUsers <= q_new[0].count) {
         return false
       }
+
+      // join new lobby
       player.lobby = newLobby
+      await player.save()
+
+      // delete old lobby if now empty
       if (oldLobby) {
-        const oldPlayers = await Player.find({ where: { lobbyId: oldLobby.id } })
-        if (oldPlayers.length < 1) {
+        // const oldPlayers = await Player.find({ where: { lobbyId: oldLobby.id } })
+        const q_old = await sql.query('SELECT COUNT(id) AS count FROM player WHERE lobbyId=?', oldLobby.id)
+        if (q_old[0].count < 1) {
           console.log('LOG: Deleting empty lobby ' + oldLobby.id)
           if (oldLobby.state != LobbyState.InGame) {
             await Lobby.remove(oldLobby)
@@ -166,7 +178,6 @@ export const graphqlRoot: Resolvers<Context> = {
         }
         console.log('LOG: Removing player from old lobby ' + oldLobby.id)
       }
-      await player.save()
 
       //Get all lobbies and pass as payload for lobbiesUpdates subscripton
       const lobbies = check(await Lobby.find())
@@ -185,13 +196,15 @@ export const graphqlRoot: Resolvers<Context> = {
       return true
     },
     leaveLobby: async (_, { userId }, ctx) => {
+      const sql = await getSQLConnection()
       const player = check(await Player.findOne({ where: { userId: userId }, relations: ['user', 'lobby'] }))
       const lobby = await Lobby.findOne({ where: { id: player.lobbyId } })
 
       if (!lobby) return false
 
-      const players = await Player.find({ where: { lobbyId: lobby.id } })
-      if (players.length <= 1) {
+      // const players = await Player.find({ where: { lobbyId: lobby.id } })
+      const q = await sql.query('SELECT COUNT(player.id) AS count FROM player WHERE player.lobbyId=?', lobby.id)
+      if (q[0].count <= 1) {
         console.log('LOG: Deleting empty lobby ' + lobby.id)
         // delete lobbies that have not started
         if (lobby.state != LobbyState.InGame) {
