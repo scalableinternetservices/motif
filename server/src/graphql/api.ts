@@ -226,6 +226,7 @@ export const graphqlRoot: Resolvers<Context> = {
       return true
     },
     makeMove: async (_, { input }, ctx) => {
+      console.log(input.lobbyId)
       const lobby = check(await Lobby.findOne({ where: { id: input.lobbyId } }), 'makeMove: lobby does not exist')
       if (lobby.state != LobbyState.InGame) {
         console.log('Lobby State mismatch')

@@ -34,10 +34,10 @@ export default class Game extends React.Component<
   timer: any
   finished = false
   player: Player = {
-    id: -1,
-    lobbyId: -1,
+    id: 1,
+    lobbyId: 1,
     lobby: {
-      id: -1,
+      id: 1,
       state: LobbyState.InGame,
       players: [],
       spectators: [],
@@ -185,10 +185,6 @@ export default class Game extends React.Component<
     for (let i = 0; i < 16; i++) {
       if (this.active[i] === true) {
         score += this.board[i].value
-        //nl = this.getRandomLetter()
-        //this.active[i] = false
-        //this.board[i].letter = nl
-        //this.board[i].value = pointVal[nl]
       }
     }
     const submit: Submit = {
@@ -200,9 +196,8 @@ export default class Game extends React.Component<
       pointValue: score,
     }
     const ret = await submitMove(submit)
-    console.log('data returned= ' + ret.data?.makeMove)
+    //console.log('data returned= ' + ret.data?.makeMove)
     if (ret.data?.makeMove == true) {
-      console.log('in here')
       this.playerScore += score
       for (let i = 0; i < 16; i++) {
         if (this.active[i] === true) {

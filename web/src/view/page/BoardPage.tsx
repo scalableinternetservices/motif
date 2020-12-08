@@ -24,7 +24,7 @@ interface PlaygroundPageProps extends RouteComponentProps, AppRouteParams {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function BoardPage(props: PlaygroundPageProps) {
   const { user } = React.useContext(UserContext)
-  let lobby_id = 0
+  let lobby_id = 1
   if (props.lobbyId != null) lobby_id = props.lobbyId
   else lobby_id = LobbyWaitWrap()
   const lobby: Lobby = {
@@ -43,14 +43,14 @@ export function BoardPage(props: PlaygroundPageProps) {
     active[1].push(false)
   }
   console.log('user id: ' + user?.id)
-  userId = user ? user?.id : -2
+  userId = user ? user?.id : 1
   //console.log('Lobby: ' + LobbyWaitWrap())
   const { loading, data } = useQuery<FetchUser, FetchUserVariables>(fetchUser, {
     variables: { userId },
     fetchPolicy: 'cache-and-network',
   })
   console.log('player id: ' + data?.user?.player?.id)
-  userId = data?.user?.player?.id ? data?.user?.player?.id : -2
+  userId = data?.user?.player?.id ? data?.user?.player?.id : 1
   if (!loading) {
     return (
       <Page>
@@ -59,11 +59,7 @@ export function BoardPage(props: PlaygroundPageProps) {
             <UpdateEnemyBoards lobbyId={lobby.id} />
           </div>
           <div className="column">
-            <Game
-              playerID={data?.user?.player?.id}
-              timeLimit={props.timeLimit ? props.timeLimit * 60 : 60}
-              lobbyinfo={lobby}
-            />
+            <Game playerID={userId} timeLimit={props.timeLimit ? props.timeLimit * 60 : 60} lobbyinfo={lobby} />
           </div>
           <div className="column">
             <div className="chat">
@@ -85,7 +81,7 @@ export function BoardPage(props: PlaygroundPageProps) {
 function LobbyWaitWrap() {
   const location = useLocation()
   const [, lobbyId] = (location.search || '').split('?lobbyId=')
-  return lobbyId ? Number(lobbyId) : 0
+  return lobbyId ? Number(lobbyId) : 1
 }
 interface uProps {
   lobbyId: number
@@ -120,7 +116,7 @@ function UpdateEnemyBoards(p: uProps) {
   const lobbyid = p.lobbyId
   const { loading, data } = useQuery<LobbyFetch, FetchLobbyVariables>(fetchLobbyMoves, {
     variables: { lobbyId: lobbyid },
-    pollInterval: 1000,
+    pollInterval: 500,
     fetchPolicy: 'network-only',
   })
 
@@ -128,68 +124,69 @@ function UpdateEnemyBoards(p: uProps) {
   let moves: MoveTypes[] = []
   if (data == null) {
     console.log('lobby query returned null' + loading)
-  } else {
-    console.log(data?.lobby.moves)
+  } else if (data?.lobby != null && data?.lobby.moves != null) {
+    //console.log(data?.lobby.moves)
     len = data?.lobby ? data?.lobby.moves.length : 0
     moves = data?.lobby.moves ? data?.lobby.moves : []
-  }
-  console.log('Player1: ' + userId)
-  console.log('Player2 id: ' + enemy1Id + ', Player 3 id: ' + enemy2Id)
-  enemyScores[0] = 0
-  enemyScores[1] = 0
-  for (let i = 0; i < len; i++) {
-    if (moves[i].moveType == 'Submit') {
-      if (moves[i].player.id == enemy1Id) {
-        if (moves[i].tiles.length != 0) {
-          for (let t = 0; t < moves[i].tiles.length; t++) {
-            enemyScores[0] += moves[i].tiles[t].value
-          }
-        }
-        clearActive(0)
-      } else if (moves[i].player.id == enemy2Id) {
-        if (moves[i].tiles.length != 0) {
-          for (let t = 0; t < moves[i].tiles.length; t++) {
-            enemyScores[1] += moves[i].tiles[t].value
-          }
-        }
-        clearActive(1)
-      } else if (moves[i].player.id == enemy1Id) {
-        if (moves[i].tiles.length != 0) {
-          for (let t = 0; t < moves[i].tiles.length; t++) {
-            userScore = userScore + moves[i].tiles[t].value
-          }
-        }
-      }
-    }
 
-    if (moves[i].moveType == 'SelectTile') {
-      if (moves[i].player.id == enemy1Id && moves[i].tiles.length != 0) {
-        active[0][moves[i].tiles[0].location] = true
-      } else if (moves[i].player.id == enemy2Id && moves[i].tiles.length != 0) {
-        active[1][moves[i].tiles[0].location] = true
+    //console.log('Player1: ' + userId)
+    //console.log('Player2 id: ' + enemy1Id + ', Player 3 id: ' + enemy2Id)
+    enemyScores[0] = 0
+    enemyScores[1] = 0
+    for (let i = 0; i < len; i++) {
+      if (moves[i].moveType == 'Submit') {
+        if (moves[i].player.id == enemy1Id) {
+          if (moves[i].tiles.length != 0) {
+            for (let t = 0; t < moves[i].tiles.length; t++) {
+              enemyScores[0] += moves[i].tiles[t].value
+            }
+          }
+          clearActive(0)
+        } else if (moves[i].player.id == enemy2Id) {
+          if (moves[i].tiles.length != 0) {
+            for (let t = 0; t < moves[i].tiles.length; t++) {
+              enemyScores[1] += moves[i].tiles[t].value
+            }
+          }
+          clearActive(1)
+        } else if (moves[i].player.id == enemy1Id) {
+          if (moves[i].tiles.length != 0) {
+            for (let t = 0; t < moves[i].tiles.length; t++) {
+              userScore = userScore + moves[i].tiles[t].value
+            }
+          }
+        }
       }
-    }
-    if (moves[i].moveType == 'DeselectTile') {
-      if (moves[i].player.id == enemy1Id && moves[i].tiles.length != 0) {
-        active[0][moves[i].tiles[0].location] = false
-      } else if (moves[i].player.id == enemy2Id && moves[i].tiles.length != 0) {
-        active[1][moves[i].tiles[0].location] = false
+
+      if (moves[i].moveType == 'SelectTile') {
+        if (moves[i].player.id == enemy1Id && moves[i].tiles.length != 0) {
+          active[0][moves[i].tiles[0].location] = true
+        } else if (moves[i].player.id == enemy2Id && moves[i].tiles.length != 0) {
+          active[1][moves[i].tiles[0].location] = true
+        }
       }
-    }
-    if (moves[i].moveType == 'SpawnTiles') {
-      if (enemy1Id == -1 && moves[i].player.id != userId) {
-        enemy1Id = moves[i].player.id
-      } else if (enemy2Id == -1 && moves[i].player.id != userId && moves[i].player.id != enemy1Id) {
-        enemy2Id = moves[i].player.id
+      if (moves[i].moveType == 'DeselectTile') {
+        if (moves[i].player.id == enemy1Id && moves[i].tiles.length != 0) {
+          active[0][moves[i].tiles[0].location] = false
+        } else if (moves[i].player.id == enemy2Id && moves[i].tiles.length != 0) {
+          active[1][moves[i].tiles[0].location] = false
+        }
       }
-      if (moves[i].tiles != null) {
-        //check if null, incase server creates invalid move
-        for (let t = 0; t < moves[i].tiles.length; t++) {
-          if (moves[i].player.id == enemy1Id) {
-            //console.log('location ' + moves[i].tiles[t].location + ' is updated with ' + moves[i].tiles[t].letter)
-            enemy1board[moves[i].tiles[t].location] = moves[i].tiles[t]
-          } else if (moves[i].player.id == enemy2Id) {
-            enemy2board[moves[i].tiles[t].location] = moves[i].tiles[t]
+      if (moves[i].moveType == 'SpawnTiles') {
+        if (enemy1Id == -1 && moves[i].player.id != userId) {
+          enemy1Id = moves[i].player.id
+        } else if (enemy2Id == -1 && moves[i].player.id != userId && moves[i].player.id != enemy1Id) {
+          enemy2Id = moves[i].player.id
+        }
+        if (moves[i].tiles != null) {
+          //check if null, incase server creates invalid move
+          for (let t = 0; t < moves[i].tiles.length; t++) {
+            if (moves[i].player.id == enemy1Id) {
+              //console.log('location ' + moves[i].tiles[t].location + ' is updated with ' + moves[i].tiles[t].letter)
+              enemy1board[moves[i].tiles[t].location] = moves[i].tiles[t]
+            } else if (moves[i].player.id == enemy2Id) {
+              enemy2board[moves[i].tiles[t].location] = moves[i].tiles[t]
+            }
           }
         }
       }
