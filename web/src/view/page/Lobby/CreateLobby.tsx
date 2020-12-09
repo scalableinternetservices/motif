@@ -1,10 +1,10 @@
+import { navigate } from '@reach/router'
 import * as React from 'react'
 import { Button } from '../../../style/button'
 import { H2 } from '../../../style/header'
 import { style } from '../../../style/styled'
 import { UserContext } from '../../auth/user'
 import { Link_Self } from '../../nav/Link'
-import { getLobbyMainPath } from '../../nav/route'
 import { handleError } from '../../toast/error'
 import { UserInfo } from './LobbySearch'
 import { createLobby } from './mutateLobbies'
@@ -96,7 +96,9 @@ function DisplaySettings(p: DisplaySettingsProps) {
 
 function CreateLobbyButton(p: DisplaySettingsProps) {
   function createNewLobby() {
-    createLobby(p.userId, p.maxPlayers, p.timeLimit, true).catch(handleError)
+    createLobby(p.userId, p.maxPlayers, p.timeLimit, true)
+      .then(() => navigate('/app/Lobby'))
+      .catch(handleError)
   }
   const active = p.maxPlayers != 0 && p.timeLimit != 0
   return (
@@ -106,8 +108,6 @@ function CreateLobbyButton(p: DisplaySettingsProps) {
         onClick={() => {
           active ? createNewLobby() : alert('Must choose non-zero Player/Time Limit')
         }}
-        //to={active ? getLobbyWaitPath() : undefined}
-        to={active ? getLobbyMainPath() : undefined}
       >
         Create Lobby
       </Link_Self>

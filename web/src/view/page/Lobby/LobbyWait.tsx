@@ -1,5 +1,5 @@
 import { useQuery, useSubscription } from '@apollo/client'
-import { RouteComponentProps } from '@reach/router'
+import { navigate, RouteComponentProps } from '@reach/router'
 import * as React from 'react'
 import {
   FetchLobby,
@@ -12,7 +12,7 @@ import {
 } from '../../../graphql/query.gen'
 import { UserContext } from '../../auth/user'
 import { Link_Self } from '../../nav/Link'
-import { AppRouteParams, getLobbySearchPath } from '../../nav/route'
+import { AppRouteParams } from '../../nav/route'
 import { handleError } from '../../toast/error'
 import { Page } from '../Page'
 import { fetchLobby, fetchUserName, subscribeLobby } from './fetchLobbies'
@@ -203,12 +203,10 @@ function StartButton(p: LobbyMainProps) {
 
 function ExitButton(p: ExitButtonProps) {
   function handleExit() {
-    leaveLobby(p.userId).catch(handleError)
+    leaveLobby(p.userId)
+      .then(() => navigate('/app/LobbySearch'))
+      .catch(handleError)
   }
 
-  return (
-    <Link_Self to={getLobbySearchPath()} onClick={() => handleExit()}>
-      Exit
-    </Link_Self>
-  )
+  return <Link_Self onClick={() => handleExit()}>Exit</Link_Self>
 }

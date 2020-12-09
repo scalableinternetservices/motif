@@ -1,3 +1,4 @@
+import { navigate } from '@reach/router'
 import * as React from 'react'
 import {
   DeselectTile,
@@ -12,8 +13,12 @@ import {
   // eslint-disable-next-line prettier/prettier
   TileType
 } from '../../../../server/src/graphql/schema.types'
+import { Button } from '../../style/button'
 import { Spacer } from '../../style/spacer'
+import { UserContext } from '../auth/user'
+import { handleError } from '../toast/error'
 import { deselectMove, randomizeMove, selectMove, submitMove } from './GameMutations'
+import { leaveLobby } from './Lobby/mutateLobbies'
 
 export default class Game extends React.Component<
   {
@@ -267,13 +272,28 @@ export default class Game extends React.Component<
           <Spacer $h5 />
           <div> You Placed {ranks[place]}</div>
           <div> Your score: {this.playerScore}</div>
+          <Spacer $h5 />
+          <LeaveLobbyButton />
         </div>
       )
     }
   }
 }
 
-//const Content = style('div', 'flex-l')
+function LeaveLobbyButton() {
+  const { user } = React.useContext(UserContext)
+  function handleExit() {
+    if (!user) {
+      alert('Error: User was not found')
+    } else {
+      leaveLobby(user?.id)
+        .then(() => navigate('/app/LobbySearch'))
+        .catch(handleError)
+    }
+  }
+
+  return <Button onClick={() => handleExit()}>Leave</Button>
+}
 
 const pointVal: { [letter: string]: number } = {
   A: 1,

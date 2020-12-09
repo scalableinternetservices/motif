@@ -14,7 +14,7 @@ export const options = {
       maxVUs: 500,
       gracefulStop: '110s',
       stages: [
-        { target: 1, duration: '60s' },
+        { target: 1, duration: '30s' },
         // { target: 20, duration: '10s' },
         // { target: 0, duration: '10s' },
       ],
