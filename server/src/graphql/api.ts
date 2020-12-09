@@ -84,17 +84,11 @@ export const graphqlRoot: Resolvers<Context> = {
       return survey
     },
     createLobby: async (_, { userId, maxUsers, maxTime, state }, ctx) => {
-      const user = check(await User.findOne({ where: { id: userId }, relations: ['player'] }))
-      // Create new player if DNE
-      let player
-      if (!user.player) {
+      let player = await Player.findOne({ where: { userId: userId } })
+      if (!player) {
         player = new Player()
-        player.user = user
-        user.player = player
-        await user.save()
+        player.userId = userId
         await player.save()
-      } else {
-        player = check(await Player.findOne({ where: { id: user.player.id }, relations: ['lobby'] }))
       }
       const oldLobby = player.lobby
       const newLobby = new Lobby()
@@ -126,30 +120,25 @@ export const graphqlRoot: Resolvers<Context> = {
       await player.save()
 
       //Get all lobbies and pass as payload for lobbiesUpdates subscripton
-      const lobbies = check(await Lobby.find())
-      ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
+      // const lobbies = check(await Lobby.find())
+      // ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
-      if (oldLobby) {
-        const updatedOldLobby = check(await Lobby.findOne({ where: { id: oldLobby.id } }))
-        ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
-      }
-      const updatedLobby = check(await Lobby.findOne({ where: { id: newLobby.id } }))
-      ctx.pubsub.publish('LOBBY_UPDATE_' + newLobby.id, updatedLobby)
+      // if (oldLobby) {
+      //   const updatedOldLobby = check(await Lobby.findOne({ where: { id: oldLobby.id } }))
+      //   ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
+      // }
+      // const updatedLobby = check(await Lobby.findOne({ where: { id: newLobby.id } }))
+      // ctx.pubsub.publish('LOBBY_UPDATE_' + newLobby.id, updatedLobby)
 
       return newLobby.id
     },
     joinLobby: async (_, { userId, lobbyId }, ctx) => {
       // TODO: need to validate: remove user from current lobbies, is lobby in right state, etc
-      const user = check(await User.findOne({ where: { id: userId }, relations: ['player'] }))
-      let player
-      if (!user.player) {
+      let player = await Player.findOne({ where: { userId: userId } })
+      if (!player) {
         player = new Player()
-        player.user = user
-        user.player = player
-        await user.save()
+        player.userId = userId
         await player.save()
-      } else {
-        player = check(await Player.findOne({ where: { id: user.player.id }, relations: ['lobby'] }))
       }
       const oldLobby = player.lobby
       const newLobby = check(await Lobby.findOne(lobbyId))
@@ -186,24 +175,24 @@ export const graphqlRoot: Resolvers<Context> = {
 
       conn.release()
 
-      //Get all lobbies and pass as payload for lobbiesUpdates subscripton
-      const lobbies = check(await Lobby.find())
-      ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
+      // //Get all lobbies and pass as payload for lobbiesUpdates subscripton
+      // const lobbies = check(await Lobby.find())
+      // ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
-      //pass the current updated lobby as payload for lobbyUpdates subscription
-      //Joining from an old Lobby really shouldn't be a case as long as the nav bar is updated
-      // to prevent jumping from a lobby waiting room to the search page
-      if (oldLobby) {
-        const updatedOldLobby = check(await Lobby.findOne({ where: { id: oldLobby.id } }))
-        ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
-      }
-      const updatedNewLobby = check(await Lobby.findOne({ where: { id: newLobby.id } }))
-      ctx.pubsub.publish('LOBBY_UPDATE_' + newLobby.id, updatedNewLobby) //send update to new lobby
+      // //pass the current updated lobby as payload for lobbyUpdates subscription
+      // //Joining from an old Lobby really shouldn't be a case as long as the nav bar is updated
+      // // to prevent jumping from a lobby waiting room to the search page
+      // if (oldLobby) {
+      //   const updatedOldLobby = check(await Lobby.findOne({ where: { id: oldLobby.id } }))
+      //   ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
+      // }
+      // const updatedNewLobby = check(await Lobby.findOne({ where: { id: newLobby.id } }))
+      // ctx.pubsub.publish('LOBBY_UPDATE_' + newLobby.id, updatedNewLobby) //send update to new lobby
 
       return true
     },
     leaveLobby: async (_, { userId }, ctx) => {
-      const player = check(await Player.findOne({ where: { userId: userId }, relations: ['user', 'lobby'] }))
+      const player = check(await Player.findOne({ where: { userId: userId } }))
       const lobby = await Lobby.findOne({ where: { id: player.lobbyId } })
 
       if (!lobby) return false
@@ -222,19 +211,18 @@ export const graphqlRoot: Resolvers<Context> = {
           await lobby.save()
         }
       } else {
-        //No need to update the subscribers of the lobby if the lobby is removed
-        const updatedLobby = check(await Lobby.findOne({ where: { id: lobby.id } }))
-
-        //pass the current updated lobby as payload for lobbyUpdates subscription
-        ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
+        // //No need to update the subscribers of the lobby if the lobby is removed
+        // const updatedLobby = check(await Lobby.findOne({ where: { id: lobby.id } }))
+        // //pass the current updated lobby as payload for lobbyUpdates subscription
+        // ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
       }
       conn.release()
       // delete as Player, since user no longer in any lobbies
       await Player.remove(player)
 
-      //Get all lobbies and pass as payload for lobbiesUpdates subscripton
-      const lobbies = check(await Lobby.find())
-      ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
+      // //Get all lobbies and pass as payload for lobbiesUpdates subscripton
+      // const lobbies = check(await Lobby.find())
+      // ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
       return true
     },
@@ -246,13 +234,13 @@ export const graphqlRoot: Resolvers<Context> = {
       lobby.startTime = new Date()
       await lobby.save()
 
-      //Get all lobbies and pass as payload for lobbiesUpdates subscripton
-      const lobbies = check(await Lobby.find())
-      ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
+      // //Get all lobbies and pass as payload for lobbiesUpdates subscripton
+      // const lobbies = check(await Lobby.find())
+      // ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
-      //pass the current updated lobby as payload for lobbyUpdates subscription
-      const updatedLobby = check(await Lobby.findOne({ where: { id: lobby.id } }))
-      ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
+      // //pass the current updated lobby as payload for lobbyUpdates subscription
+      // const updatedLobby = check(await Lobby.findOne({ where: { id: lobby.id } }))
+      // ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
 
       return true
     },
@@ -402,6 +390,9 @@ export const graphqlRoot: Resolvers<Context> = {
   Lobby: {
     players: (self, args, ctx) => {
       return Player.find({ where: { lobbyId: self.id } }) as any
+    },
+    moves: (self, args, ctx) => {
+      return Move.find({ where: { lobbyId: self.id } }) as any
     },
   },
 }
