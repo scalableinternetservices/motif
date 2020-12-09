@@ -1,7 +1,7 @@
-import { useQuery, useSubscription } from '@apollo/client'
+import { useQuery } from '@apollo/client'
 import { navigate, RouteComponentProps } from '@reach/router'
 import * as React from 'react'
-import { FetchLobbies, LobbiesSubscription } from '../../../graphql/query.gen'
+import { FetchLobbies } from '../../../graphql/query.gen'
 import { Button } from '../../../style/button'
 import { Input } from '../../../style/input'
 import { style } from '../../../style/styled'
@@ -11,7 +11,7 @@ import { AppRouteParams } from '../../nav/route'
 import { handleError } from '../../toast/error'
 import { Page } from '../Page'
 import { CreateLobby } from './CreateLobby'
-import { fetchLobbies, subscribeLobbies } from './fetchLobbies'
+import { fetchLobbies } from './fetchLobbies'
 import { joinLobby } from './mutateLobbies'
 
 interface LobbySearchProps extends RouteComponentProps, AppRouteParams {}
@@ -124,16 +124,16 @@ function LobbyList(p: UserInfo) {
     }
   }, [data])
 
-  //$SUB: (Un)Comment lobbiesSub and the associated useEffect below
-  //Subscribe the user to receiving the list of lobbies as it is updated
-  const lobbiesSub = useSubscription<LobbiesSubscription>(subscribeLobbies)
+  // //$SUB: (Un)Comment lobbiesSub and the associated useEffect below
+  // //Subscribe the user to receiving the list of lobbies as it is updated
+  // const lobbiesSub = useSubscription<LobbiesSubscription>(subscribeLobbies)
 
-  //Make sure to update the list of lobbies whenever the subscription is updated with new data
-  React.useEffect(() => {
-    if (lobbiesSub.data?.lobbiesUpdates) {
-      setLobbyList(lobbiesSub.data.lobbiesUpdates)
-    }
-  }, [lobbiesSub.data])
+  // //Make sure to update the list of lobbies whenever the subscription is updated with new data
+  // React.useEffect(() => {
+  //   if (lobbiesSub.data?.lobbiesUpdates) {
+  //     setLobbyList(lobbiesSub.data.lobbiesUpdates)
+  //   }
+  // }, [lobbiesSub.data])
 
   if (loading) {
     return <div>loading...</div>

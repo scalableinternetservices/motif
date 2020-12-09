@@ -1,4 +1,4 @@
-import { useQuery, useSubscription } from '@apollo/client'
+import { useQuery } from '@apollo/client'
 import { RouteComponentProps } from '@reach/router'
 import * as React from 'react'
 import {
@@ -6,16 +6,13 @@ import {
   FetchLobbyVariables,
   FetchUser,
   FetchUserVariables,
-  LobbyState,
-  LobbySubscription,
-  // eslint-disable-next-line prettier/prettier
-  LobbySubscriptionVariables
+  LobbyState
 } from '../../../graphql/query.gen'
 import { UserContext } from '../../auth/user'
 import { AppRouteParams } from '../../nav/route'
 import { BoardPage } from '../BoardPage'
 import { Page } from '../Page'
-import { fetchLobby, fetchUser, subscribeLobby } from './fetchLobbies'
+import { fetchLobby, fetchUser } from './fetchLobbies'
 import { LobbyWait } from './LobbyWait'
 
 interface LobbyMainProps extends RouteComponentProps, AppRouteParams {
@@ -67,19 +64,19 @@ function LobbyController() {
     }
   }, [lobby.data])
 
-  //$SUB: (Un)Comment lobbySub and the associated useEffect below
-  //Subscribe to this lobby and receive updates when a player joins or leaves
-  const lobbySub = useSubscription<LobbySubscription, LobbySubscriptionVariables>(subscribeLobby, {
-    variables: { lobbyId },
-  })
-  //Ensure that the new data sent from the server to the client updates the state and gets re-rendered
-  React.useEffect(() => {
-    if (lobbySub.data?.lobbyUpdates) {
-      setState(lobbySub.data.lobbyUpdates.state)
-      setMaxTime(lobbySub.data.lobbyUpdates.gameTime)
-      setMaxPlayers(lobbySub.data.lobbyUpdates.maxUsers)
-    }
-  }, [lobbySub.data])
+  // //$SUB: (Un)Comment lobbySub and the associated useEffect below
+  // //Subscribe to this lobby and receive updates when a player joins or leaves
+  // const lobbySub = useSubscription<LobbySubscription, LobbySubscriptionVariables>(subscribeLobby, {
+  //   variables: { lobbyId },
+  // })
+  // //Ensure that the new data sent from the server to the client updates the state and gets re-rendered
+  // React.useEffect(() => {
+  //   if (lobbySub.data?.lobbyUpdates) {
+  //     setState(lobbySub.data.lobbyUpdates.state)
+  //     setMaxTime(lobbySub.data.lobbyUpdates.gameTime)
+  //     setMaxPlayers(lobbySub.data.lobbyUpdates.maxUsers)
+  //   }
+  // }, [lobbySub.data])
 
   //if (loading) return <div>Loading User ...</div>
   if (!data) return <div>Error: User was not found</div>

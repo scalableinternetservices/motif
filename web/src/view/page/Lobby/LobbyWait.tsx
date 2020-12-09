@@ -1,21 +1,18 @@
-import { useQuery, useSubscription } from '@apollo/client'
+import { useQuery } from '@apollo/client'
 import { navigate, RouteComponentProps } from '@reach/router'
 import * as React from 'react'
 import {
   FetchLobby,
   FetchLobbyVariables,
   FetchUserName,
-  FetchUserNameVariables,
-  LobbySubscription,
-  // eslint-disable-next-line prettier/prettier
-  LobbySubscriptionVariables
+  FetchUserNameVariables
 } from '../../../graphql/query.gen'
 import { UserContext } from '../../auth/user'
 import { Link_Self } from '../../nav/Link'
 import { AppRouteParams } from '../../nav/route'
 import { handleError } from '../../toast/error'
 import { Page } from '../Page'
-import { fetchLobby, fetchUserName, subscribeLobby } from './fetchLobbies'
+import { fetchLobby, fetchUserName } from './fetchLobbies'
 import { UserInfo } from './LobbySearch'
 import { leaveLobby, startGame } from './mutateLobbies'
 
@@ -124,18 +121,18 @@ function PlayersContainer(p: LobbyMainProps) {
     }
   }, [data])
 
-  //$SUB: (Un)Comment lobbySub and the associated useEffect below
-  //Subscribe to this lobby and receive updates when a player joins or leaves
-  const lobbySub = useSubscription<LobbySubscription, LobbySubscriptionVariables>(subscribeLobby, {
-    variables: { lobbyId },
-  })
+  // //$SUB: (Un)Comment lobbySub and the associated useEffect below
+  // //Subscribe to this lobby and receive updates when a player joins or leaves
+  // const lobbySub = useSubscription<LobbySubscription, LobbySubscriptionVariables>(subscribeLobby, {
+  //   variables: { lobbyId },
+  // })
 
-  //Ensure that the new data sent from the server to the client updates the state and gets re-rendered
-  React.useEffect(() => {
-    if (lobbySub.data?.lobbyUpdates) {
-      setPlayerList(lobbySub.data.lobbyUpdates.players)
-    }
-  }, [lobbySub.data])
+  // //Ensure that the new data sent from the server to the client updates the state and gets re-rendered
+  // React.useEffect(() => {
+  //   if (lobbySub.data?.lobbyUpdates) {
+  //     setPlayerList(lobbySub.data.lobbyUpdates.players)
+  //   }
+  // }, [lobbySub.data])
 
   if (lobbyId != -1) {
     if (loading) {
