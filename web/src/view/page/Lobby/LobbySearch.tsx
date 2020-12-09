@@ -110,7 +110,7 @@ function LobbyList(p: UserInfo) {
   //Query for lobbies from the database and display them in a list
   const { loading, data } = useQuery<FetchLobbies>(fetchLobbies, {
     fetchPolicy: 'cache-and-network',
-    //pollInterval: 5000, //Comment out when using subscription
+    pollInterval: 5000, //Comment out when using subscription
   })
 
   //Make the list of lobbies stateful
