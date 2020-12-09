@@ -148,7 +148,7 @@ function LobbyList(p: UserInfo) {
         <Input placeholder="Search..." $onChange={setField}></Input>
       </div>
       {lobbyList
-        ?.filter(lobby => lobby.id > 0)
+        ?.filter(lobby => lobby.id > 0 && lobby.state != 'IN_GAME' && lobby.state != 'REPLAY')
         .map((lobby, i) => (
           <div key={i}>
             <LobbyEntry
