@@ -14,7 +14,7 @@ export class Player extends BaseEntity {
   @JoinColumn()
   user: User
 
-  @Column({default: null})
+  @Column({ default: null })
   lobbyId: number
 
   @ManyToOne(() => Lobby, lobby => lobby.players, { onDelete: 'CASCADE' })

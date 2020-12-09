@@ -1,3 +1,4 @@
+import console from 'console'
 import { readFileSync } from 'fs'
 import { GraphQLScalarType, Kind } from 'graphql'
 import { PubSub } from 'graphql-yoga'
@@ -48,13 +49,13 @@ export const graphqlRoot: Resolvers<Context> = {
     },
   }),
   Query: {
-    self: (_, args, ctx) => ctx.user,
+    self: (_, args, ctx) => ctx.user as any,
     survey: async (_, { surveyId }) => (await Survey.findOne({ where: { id: surveyId } })) || null,
     surveys: () => Survey.find(),
-    lobbies: () => Lobby.find(),
-    lobby: async (_, { lobbyId }) => (await Lobby.findOne({ where: { id: lobbyId } })) || null,
-    user: async (_, { userId }) => (await User.findOne({ where: { id: userId } })) || null,
-    users: () => User.find(),
+    lobbies: async () => (await Lobby.find()) as any,
+    lobby: async (_, { lobbyId }) => ((await Lobby.findOne({ where: { id: lobbyId } })) || null) as any,
+    user: async (_, { userId }) => ((await User.findOne({ where: { id: userId } })) || null) as any,
+    users: async () => (await User.find()) as any,
     username: async (_, { playerId }) =>
       (await Player.findOne({ where: { id: playerId }, relations: ['user'] }))?.user?.name || null,
   },
@@ -90,10 +91,18 @@ export const graphqlRoot: Resolvers<Context> = {
       }
       const oldLobby = player.lobby
       const newLobby = new Lobby()
-      // TODO I'm pretty sure this is actually unnecessary, remove later
+
       if (oldLobby) {
-        // oldLobby.players.splice(oldLobby.players.indexOf(player), 1)
-        // await oldLobby.save()
+        const oldPlayers = await Player.find({ where: { lobbyId: oldLobby.id } })
+        if (oldPlayers.length < 1) {
+          console.log('LOG: Deleting empty lobby ' + oldLobby.id)
+          if (oldLobby.state != LobbyState.InGame) {
+            await Lobby.remove(oldLobby)
+          } else {
+            oldLobby.state = LobbyState.Replay
+            await oldLobby.save()
+          }
+        }
         console.log('LOG: Removing player from old lobby ' + oldLobby.id)
       }
       // Add player to new lobby
@@ -127,20 +136,25 @@ export const graphqlRoot: Resolvers<Context> = {
       }
       const oldLobby = player.lobby
       const newLobby = check(await Lobby.findOne(lobbyId))
+      const players = await Player.find({ where: { lobbyId: newLobby.id } })
 
-      // TODO I'm pretty sure this is actually unnecessary, remove later
-      if (oldLobby) {
-        // oldLobby.players.splice(oldLobby.players.indexOf(player), 1)
-        // await oldLobby.save()
-        console.log('LOG: Removing player from old lobby ' + oldLobby.id)
-      }
-      if (newLobby.maxUsers > newLobby.players.length) {
-        // newLobby.players.push(player)
-        // await newLobby.save()
-      } else {
+      if (newLobby.maxUsers <= players.length) {
         return false
       }
       player.lobby = newLobby
+      if (oldLobby) {
+        const oldPlayers = await Player.find({ where: { lobbyId: oldLobby.id } })
+        if (oldPlayers.length < 1) {
+          console.log('LOG: Deleting empty lobby ' + oldLobby.id)
+          if (oldLobby.state != LobbyState.InGame) {
+            await Lobby.remove(oldLobby)
+          } else {
+            oldLobby.state = LobbyState.Replay
+            await oldLobby.save()
+          }
+        }
+        console.log('LOG: Removing player from old lobby ' + oldLobby.id)
+      }
       await player.save()
 
       // //Get all lobbies and pass as payload for lobbiesUpdates subscripton
@@ -160,10 +174,14 @@ export const graphqlRoot: Resolvers<Context> = {
       return true
     },
     leaveLobby: async (_, { userId }, ctx) => {
-      const player = check(await Player.findOne({ where: { userId: userId }, relations: ['lobby'] }))
-      const lobby = player.lobby
+      const player = check(await Player.findOne({ where: { userId: userId }, relations: ['user', 'lobby'] }))
+      const lobby = await Lobby.findOne({ where: { id: player.lobbyId } })
+
       if (!lobby) return false
-      if (lobby.players.length <= 1) {
+
+      const players = await Player.find({ where: { lobbyId: lobby.id } })
+      if (players.length <= 1) {
+        console.log('LOG: Deleting empty lobby ' + lobby.id)
         // delete lobbies that have not started
         if (lobby.state != LobbyState.InGame) {
           await Lobby.remove(lobby)
@@ -171,6 +189,11 @@ export const graphqlRoot: Resolvers<Context> = {
           lobby.state = LobbyState.Replay
           await lobby.save()
         }
+      } else {
+        // //No need to update the subscribers of the lobby if the lobby is removed
+        // const updatedLobby = check(await Lobby.findOne({ where: { id: lobby.id } }))
+        // //pass the current updated lobby as payload for lobbyUpdates subscription
+        // ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
       }
       // delete as Player, since user no longer in any lobbies
       await Player.remove(player)
@@ -178,14 +201,6 @@ export const graphqlRoot: Resolvers<Context> = {
       // //Get all lobbies and pass as payload for lobbiesUpdates subscripton
       // const lobbies = check(await Lobby.find())
       // ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
-
-      // //No need to update the subscribers of the lobby if the lobby is removed
-      // if (lobby.players.length > 1) {
-      //   const updatedLobby = check(await Lobby.findOne({ where: { id: lobby.id } }))
-
-      //   //pass the current updated lobby as payload for lobbyUpdates subscription
-      //   ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
-      // }
 
       return true
     },
@@ -348,6 +363,11 @@ export const graphqlRoot: Resolvers<Context> = {
   Player: {
     lobby: (self, args, ctx) => {
       return Lobby.findOne({ where: { id: self.lobbyId } }) as any
+    },
+  },
+  Lobby: {
+    players: (self, args, ctx) => {
+      return Player.find({ where: { lobbyId: self.id } }) as any
     },
   },
 }
