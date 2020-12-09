@@ -1,10 +1,7 @@
 import { useLocation } from '@reach/router'
 import * as React from 'react'
 import { useContext, useEffect } from 'react'
-import ReactDOM from 'react-dom'
-import { useMediaQuery } from 'react-responsive'
 import { check } from '../../../../common/src/util'
-import { breakpoints } from '../../style/breakpoints'
 import { style } from '../../style/styled'
 import { UserContext } from '../auth/user'
 import { handleError } from '../toast/error'
@@ -13,29 +10,29 @@ import { link } from './Link'
 import { getPath, Route } from './route'
 
 const title = {
-  name: 'Motif',
+  name: 'MOTIF',
   path: getPath(Route.HOME),
   title: true,
 }
 
-const otherTabs = [
-  {
-    name: 'LobbySearch',
-    path: getPath(Route.LobbySearch),
-  },
-  {
-    name: 'LobbyWait',
-    path: getPath(Route.LobbyWait),
-  },
-  {
-    name: 'Board',
-    path: getPath(Route.BOARD),
-  },
-  // {
-  //   name: 'User Login',
-  //   path: getPath(Route.USER_LOGIN),
-  // },
-]
+// const otherTabs = [
+//   {
+//     name: 'LobbySearch',
+//     path: getPath(Route.LobbySearch),
+//   },
+//   {
+//     name: 'LobbyWait',
+//     path: getPath(Route.LobbyWait),
+//   },
+//   {
+//     name: 'Board',
+//     path: getPath(Route.BOARD),
+//   },
+//   // {
+//   //   name: 'User Login',
+//   //   path: getPath(Route.USER_LOGIN),
+//   // },
+// ]
 function logout() {
   return fetch('/auth/logout', {
     method: 'POST',
@@ -48,10 +45,10 @@ function logout() {
     .catch(handleError)
 }
 export function NavBar() {
-  const location = useLocation()
+  // const location = useLocation()
   const { user } = useContext(UserContext)
-  const isSmall = useMediaQuery(breakpoints.small)
-  const [showMenu, setShowMenu] = React.useState(false)
+  // const isSmall = useMediaQuery(breakpoints.small)
+  // const [showMenu, setShowMenu] = React.useState(false)
   const [toast, setToast] = React.useState<Toast | null>(null)
 
   function onToast(feedback: Toast) {
@@ -78,7 +75,7 @@ export function NavBar() {
     <NavItem name="User Login" path={getPath(Route.USER_LOGIN)} />
   )
 
-  const tabs = isSmall ? [otherTabs.find(t => location.pathname.startsWith(t.path)) || otherTabs[0]] : otherTabs
+  // const tabs = isSmall ? [otherTabs.find(t => location.pathname.startsWith(t.path)) || otherTabs[0]] : otherTabs
   return (
     <>
       <div className="fixed top-0 left-0 w-100 avenir">
@@ -87,16 +84,16 @@ export function NavBar() {
         <Nav>
           <NavItem {...title} />
 
-          {/* push tab to the right on small screens */}
-          {isSmall && <div style={{ flex: 1 }} />}
+          {/* push tab to the right on small screens
+          {isSmall && <div style={{ flex: 1 }} />} */}
 
-          {/* layout additional tabs (possibly hidden for small screens) */}
+          {/* layout additional tabs (possibly hidden for small screens)
           {tabs.map((tab, i) => (
             <NavItem key={i} {...tab} />
-          ))}
+          ))} */}
           {login}
 
-          {isSmall && <NavMenu show={showMenu} onClick={() => setShowMenu(!showMenu)} />}
+          {/* {isSmall && <NavMenu show={showMenu} onClick={() => setShowMenu(!showMenu)} />} */}
         </Nav>
       </div>
       {toast && <ToastContainer $isError={toast.type === ToastType.ERROR}>{toast.message}</ToastContainer>}
@@ -104,21 +101,21 @@ export function NavBar() {
   )
 }
 
-function NavMenu(props: { show: boolean; onClick: () => void }) {
-  return (
-    <NavMenuButton onClick={props.onClick}>
-      {props.show && (
-        <Modal>
-          <NavMenuModal>
-            {otherTabs.map((tab, i) => (
-              <NavItem key={i} {...tab} />
-            ))}
-          </NavMenuModal>
-        </Modal>
-      )}
-    </NavMenuButton>
-  )
-}
+// function NavMenu(props: { show: boolean; onClick: () => void }) {
+//   return (
+//     <NavMenuButton onClick={props.onClick}>
+//       {props.show && (
+//         <Modal>
+//           <NavMenuModal>
+//             {otherTabs.map((tab, i) => (
+//               <NavItem key={i} {...tab} />
+//             ))}
+//           </NavMenuModal>
+//         </Modal>
+//       )}
+//     </NavMenuButton>
+//   )
+// }
 
 const Nav = style(
   'nav',
@@ -151,13 +148,13 @@ const NavAnchor = style(
 )
 const NavLink = link(NavAnchor)
 
-const NavMenuButton = style('div', 'ml3 pa2 hover-bg-black-10 pointer')
+// const NavMenuButton = style('div', 'ml3 pa2 hover-bg-black-10 pointer')
 
-const NavMenuModal = style(
-  'div',
-  'avenir f4 fixed flex flex-column items-center top-0 br3 pa3 right-0 bg-black-90 mt5 mr4 mr5-ns',
-  { zIndex: 100 }
-)
+// const NavMenuModal = style(
+//   'div',
+//   'avenir f4 fixed flex flex-column items-center top-0 br3 pa3 right-0 bg-black-90 mt5 mr4 mr5-ns',
+//   { zIndex: 100 }
+// )
 
 const ToastContainer = style<'div', { $isError?: boolean }>(
   'div',
@@ -168,6 +165,6 @@ const ToastContainer = style<'div', { $isError?: boolean }>(
   })
 )
 
-function Modal(props: { children: React.ReactNode }) {
-  return ReactDOM.createPortal(props.children, document.querySelector('#nav-modal')!)
-}
+// function Modal(props: { children: React.ReactNode }) {
+//   return ReactDOM.createPortal(props.children, document.querySelector('#nav-modal')!)
+// }

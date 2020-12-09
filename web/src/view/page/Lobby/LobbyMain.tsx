@@ -23,7 +23,7 @@ interface LobbyMainProps extends RouteComponentProps, AppRouteParams {
 }
 
 export function LobbyMain(props: LobbyMainProps) {
-  return <Page>{LobbyController()}</Page>
+  return <LobbyController />
 }
 
 function LobbyController() {
@@ -82,10 +82,19 @@ function LobbyController() {
   }, [lobbySub.data])
 
   //if (loading) return <div>Loading User ...</div>
-  if (!data) return <div>Error: User was not found</div>
+  if (!data)
+    return (
+      <Page>
+        <div>Error: User was not found</div>
+      </Page>
+    )
 
   if (!state) {
-    return <div>Error: lobby state is undefined</div>
+    return (
+      <Page>
+        <div>Error: lobby state is undefined</div>
+      </Page>
+    )
   }
 
   switch (state) {
