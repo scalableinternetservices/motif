@@ -298,13 +298,19 @@ initORM()
   .catch(err => console.error(err))
 
 // checks for games that should be over
-setInterval(async () => {
+async function bgProcess() {
   const conn = await getConnection()
   const sql = new SQL(conn)
-  const result = await sql.query(
-    'UPDATE lobby SET state="REPLAY" WHERE state="IN_GAME"\
-     AND TIMESTAMPDIFF(second, `startTime`, NOW()) > gameTime*60;'
-  )
-  if (result.affectedRows > 0) console.log(result.affectedRows + ' games marked as expired')
+  setInterval(async () => {
+    const result = await sql.query(
+      'UPDATE lobby SET state="REPLAY" WHERE state="IN_GAME"\
+       AND TIMESTAMPDIFF(second, `startTime`, NOW()) > gameTime*60;'
+    )
+    if (result.affectedRows > 0) console.log(result.affectedRows + ' games marked as expired')
+  }, 1000)
   conn.release()
-}, 1000)
+}
+
+bgProcess().catch(error => {
+  console.error(error)
+})
