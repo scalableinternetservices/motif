@@ -82,17 +82,11 @@ export const graphqlRoot: Resolvers<Context> = {
       return survey
     },
     createLobby: async (_, { userId, maxUsers, maxTime, state }, ctx) => {
-      const user = check(await User.findOne({ where: { id: userId }, relations: ['player'] }))
-      // Create new player if DNE
-      let player
-      if (!user.player) {
+      let player = await Player.findOne({ where: { userId: userId } })
+      if (!player) {
         player = new Player()
-        player.user = user
-        user.player = player
-        await user.save()
+        player.userId = userId
         await player.save()
-      } else {
-        player = check(await Player.findOne({ where: { id: user.player.id }, relations: ['lobby'] }))
       }
       const oldLobby = player.lobby
       const newLobby = new Lobby()
@@ -125,16 +119,11 @@ export const graphqlRoot: Resolvers<Context> = {
     },
     joinLobby: async (_, { userId, lobbyId }, ctx) => {
       // TODO: need to validate: remove user from current lobbies, is lobby in right state, etc
-      const user = check(await User.findOne({ where: { id: userId }, relations: ['player'] }))
-      let player
-      if (!user.player) {
+      let player = await Player.findOne({ where: { userId: userId } })
+      if (!player) {
         player = new Player()
-        player.user = user
-        user.player = player
-        await user.save()
+        player.userId = userId
         await player.save()
-      } else {
-        player = check(await Player.findOne({ where: { id: user.player.id }, relations: ['lobby'] }))
       }
       const oldLobby = player.lobby
       const newLobby = check(await Lobby.findOne(lobbyId))
@@ -171,7 +160,7 @@ export const graphqlRoot: Resolvers<Context> = {
       return true
     },
     leaveLobby: async (_, { userId }, ctx) => {
-      const player = check(await Player.findOne({ where: { userId: userId }, relations: ['user', 'lobby'] }))
+      const player = check(await Player.findOne({ where: { userId: userId }, relations: ['lobby'] }))
       const lobby = player.lobby
       if (!lobby) return false
       if (lobby.players.length <= 1) {
