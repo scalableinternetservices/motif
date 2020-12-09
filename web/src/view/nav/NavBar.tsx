@@ -28,7 +28,7 @@ const otherTabs = [
   },
   {
     name: 'LobbyWait',
-    path: getPath(Route.LobbyWait),
+    path: getPath(Route.LobbyMain),
   },
   {
     name: 'Board',
