@@ -62,6 +62,18 @@ server.express.get(
 
 const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000 // 30 days
 
+// server.express.post(
+//   '/q/playerCount',
+//   asyncRoute(async (req, res) => {
+//     console.log('POST /q/playerCount')
+//     const conn = await getConnection()
+//     const sql = new SQL(conn)
+//     const count = await sql.query('SELECT COUNT(id) AS count FROM player WHERE lobbyId=?', req.body.id)
+//     res.status(200).type('json').send(count[0])
+//     conn.release()
+//   })
+// )
+
 server.express.post(
   '/auth/createUser',
   asyncRoute(async (req, res) => {

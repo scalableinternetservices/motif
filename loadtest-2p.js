@@ -9,11 +9,11 @@ export const options = {
       executor: 'ramping-arrival-rate',
       startRate: '50',
       timeUnit: '1s',
-      preAllocatedVUS: 50,
-      maxVUs: 500,
+      preAllocatedVUS: 25,
+      maxVUs: 250,
       stages: [
+        { target: 50, duration: '30s' },
         { target: 100, duration: '30s' },
-        { target: 200, duration: '30s' },
         { target: 0, duration: '30s' },
       ],
     },
@@ -36,10 +36,10 @@ export default function () {
   http.get(`${BASE_URL}/app/UserLogin`)
   sleep(Math.random() * 3)
 
-  // create user
+  // create user 1
   const body = JSON.stringify({ email, name })
-  let createUserRes = http.post(
-    `${BASE_URL}/auth/createUser`,
+  let createUserRes1 = http.post(
+    `${BASE_URL}/auth/createUser_`,
     `${body}`,
     {
       headers: {
@@ -47,10 +47,10 @@ export default function () {
      },
     }
   );
-  check(createUserRes, { 'created user': (r) => r.status === 200 });
+  check(createUserRes1, { 'created user 1': (r) => r.status === 200 });
 
   // get id
-  let fetchUserRes = http.post(
+  let fetchUserRes1 = http.post(
     `${BASE_URL}/graphql`,
     '{"operationName":"FetchUserContext","variables":{},"query":"query FetchUserContext{self{id}}"}',
     {
@@ -59,7 +59,7 @@ export default function () {
      },
     }
   );
-  const id = fetchUserRes.json('data').self.id
+  const id1 = fetchUserRes1.json('data').self.id
 
   // route to lobby search
   http.get(`${BASE_URL}/app/LobbySearch`)
@@ -68,7 +68,7 @@ export default function () {
   // create lobby
   let createLobbyRes = http.post(
     `${BASE_URL}/graphql`,
-    `{"operationName":"CreateLobby","variables":{"userId":${id},"maxUsers":4,"maxTime":5,"state":true},"query":"mutation CreateLobby($userId: Int!, $maxUsers: Int!, $maxTime: Int!, $state: Boolean!) { createLobby(userId: $userId, maxUsers: $maxUsers, maxTime: $maxTime, state: $state)}"}`,
+    `{"operationName":"CreateLobby","variables":{"userId":${id1},"maxUsers":4,"maxTime":5,"state":true},"query":"mutation CreateLobby($userId: Int!, $maxUsers: Int!, $maxTime: Int!, $state: Boolean!) { createLobby(userId: $userId, maxUsers: $maxUsers, maxTime: $maxTime, state: $state)}"}`,
     {
       headers: {
       'Content-Type': 'application/json',
@@ -78,21 +78,11 @@ export default function () {
   const lobby_id = createLobbyRes.json('data').createLobby
   check(createLobbyRes, { 'created lobby': (r) => r.status == 200 });
 
-  // join same lobby
-  let joinLobbyRes = http.post(
-    `${BASE_URL}/graphql`,
-    `{"operationName":"JoinLobby","variables":{"userId":${id},"lobbyId":${lobby_id}},"query":"mutation JoinLobby($userId: Int!, $lobbyId: Int!) {  joinLobby(userId: $userId, lobbyId: $lobbyId)}"}`,
-    {
-      headers: {
-      'Content-Type': 'application/json',
-     },
-    }
-  );
-  check(joinLobbyRes, { 'joined lobby': (r) => r.status == 200 });
-
   // route to lobby page
   http.get(`${BASE_URL}/app/LobbyWait/lobby?lobbyId=${lobby_id}`)
   sleep(Math.random() * 3)
+
+
 
   // start game
   let startGameRes = http.post(
@@ -111,7 +101,7 @@ export default function () {
   sleep(Math.random() * 3)
 
   // logout
-  let logoutRes = http.post(
+  let logoutRes2 = http.post(
     `${BASE_URL}/auth/logout`,
     {
       headers: {
@@ -119,7 +109,7 @@ export default function () {
      },
     }
   );
-  check(logoutRes, { 'logged out': (r) => r.status == 200 });
+  check(logoutRes2, { 'logged out user 2': (r) => r.status == 200 });
 }
 
 // const count200 = new Counter('status_code_2xx')
