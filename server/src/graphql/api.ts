@@ -174,7 +174,7 @@ export const graphqlRoot: Resolvers<Context> = {
       return true
     },
     leaveLobby: async (_, { userId }, ctx) => {
-      const player = check(await Player.findOne({ where: { userId: userId }, relations: ['user', 'lobby'] }))
+      const player = check(await Player.findOne({ where: { userId: userId } }))
       const lobby = await Lobby.findOne({ where: { id: player.lobbyId } })
 
       if (!lobby) return false
