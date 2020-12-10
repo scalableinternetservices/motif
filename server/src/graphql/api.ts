@@ -2,6 +2,7 @@ import console from 'console'
 import { readFileSync } from 'fs'
 import { GraphQLScalarType, Kind } from 'graphql'
 import { PubSub } from 'graphql-yoga'
+import Redis from 'ioredis'
 import path from 'path'
 import { getRandomLetter } from '../../../common/src/gameUtils'
 import { check } from '../../../common/src/util'
@@ -16,6 +17,7 @@ import { User } from '../entities/User'
 import Dictionary from './dictionary'
 import { LobbyState, MoveType, Resolvers, TileType } from './schema.types'
 
+export const redis = new Redis()
 export const pubsub = new PubSub()
 export const dictionary = new Dictionary()
 
@@ -29,6 +31,21 @@ interface Context {
   request: Request
   response: Response
   pubsub: PubSub
+  redis: Redis.Redis
+}
+
+//From: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cyclic_object_value
+const getCircularReplacer = () => {
+  const seen = new WeakSet()
+  return (_key: any, value: any) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return
+      }
+      seen.add(value)
+    }
+    return value
+  }
 }
 
 export const graphqlRoot: Resolvers<Context> = {
@@ -52,12 +69,74 @@ export const graphqlRoot: Resolvers<Context> = {
     self: (_, args, ctx) => ctx.user as any,
     survey: async (_, { surveyId }) => (await Survey.findOne({ where: { id: surveyId } })) || null,
     surveys: () => Survey.find(),
-    lobbies: async () => (await Lobby.find()) as any,
-    lobby: async (_, { lobbyId }) => ((await Lobby.findOne({ where: { id: lobbyId } })) || null) as any,
-    user: async (_, { userId }) => ((await User.findOne({ where: { id: userId } })) || null) as any,
-    users: async () => (await User.find()) as any,
-    username: async (_, { playerId }) =>
-      (await Player.findOne({ where: { id: playerId }, relations: ['user'] }))?.user?.name || null,
+    lobbies: async (_, args, ctx) => {
+      const redisRes = await ctx.redis.hvals('LOBBIES')
+      if (redisRes.length != 0) {
+        console.log(redisRes)
+        const res: any[] = []
+        redisRes.forEach(item => {
+          if (item != '') res.push(JSON.parse(item))
+        })
+        return res
+      } else {
+        const lobbies = await Lobby.find()
+        lobbies.forEach(async lobby => await ctx.redis.hset('LOBBIES', `${lobby.id}`, JSON.stringify(lobby)))
+        return lobbies
+      }
+    },
+    lobby: async (_, { lobbyId }, ctx) => {
+      const redisRes = await ctx.redis.hget('LOBBIES', lobbyId.toString())
+      if (redisRes) {
+        console.log('CACHE')
+        return JSON.parse(redisRes)
+      } else {
+        console.log('NO CACHE')
+        if (lobbyId <= 0) {
+          return undefined
+        }
+        const res = await Lobby.findOne({ where: { id: lobbyId } })
+        if (res) {
+          await ctx.redis.hset('LOBBIES', `${res.id}`, JSON.stringify(res))
+        }
+        return res
+      }
+    },
+    user: async (_, { userId }, ctx) => {
+      const redisRes = await ctx.redis.get(`USER:${userId}`)
+      if (redisRes) {
+        console.log('CACHE')
+        const user = JSON.parse(redisRes)
+        return user
+      } else {
+        console.log('NO CACHE')
+        const user = await User.findOne({ where: { id: userId } })
+        const userJSON = JSON.stringify(user, getCircularReplacer())
+        await ctx.redis.set(`USER:${userId}`, userJSON)
+        return user
+      }
+    },
+    users: () => User.find(),
+    username: async (_, { playerId }, ctx) => {
+      const redisRes = await ctx.redis.get(`USERNAME:${playerId}`)
+      if (redisRes) {
+        console.log('CACHE')
+        const userName = JSON.parse(redisRes)
+        return userName
+      } else {
+        console.log('NO CACHE')
+        const player = await Player.findOne({ where: { id: playerId }, relations: ['user'] })
+        if (!player) {
+          return undefined
+        }
+        const userName = player.user.name
+        if (!userName) {
+          return undefined
+        }
+        const userNameJSON = JSON.stringify(userName, getCircularReplacer())
+        await ctx.redis.set(`USERNAME:${playerId}`, userNameJSON)
+        return userName
+      }
+    },
   },
   Mutation: {
     answerSurvey: async (_, { input }, ctx) => {
@@ -87,6 +166,7 @@ export const graphqlRoot: Resolvers<Context> = {
       newLobby.state = state ? LobbyState.Public : LobbyState.Private
       newLobby.maxUsers = maxUsers
       newLobby.gameTime = maxTime
+      newLobby.players = [player]
       await newLobby.save()
 
       let player = await Player.findOne({ where: { userId: userId } })
@@ -165,13 +245,36 @@ export const graphqlRoot: Resolvers<Context> = {
         }
       }
 
-      //Get all lobbies and pass as payload for lobbiesUpdates subscripton
-      const lobbies = check(await Lobby.find())
+      //Save updates to user and lobbies in redis
+      await ctx.redis.set(`USER:${userId}`, JSON.stringify(user, getCircularReplacer()))
+      await ctx.redis.set(`USERNAME:${player.id}`, JSON.stringify(user.name, getCircularReplacer()))
+      await ctx.redis.hset(`LOBBIES`, `${newLobby.id}`, JSON.stringify(newLobby, getCircularReplacer()))
+
+      const lobbiesJSON = await ctx.redis.hvals('LOBBIES')
+      const lobbies: Lobby[] = []
+      lobbiesJSON.forEach(item => {
+        if (item != '') lobbies.push(JSON.parse(item))
+      })
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
-      //pass the current updated lobby as payload for lobbyUpdates subscription
-      const updatedNewLobby = check(await Lobby.findOne(newLobby.id))
-      ctx.pubsub.publish('LOBBY_UPDATE_' + newLobby.id, updatedNewLobby) //send update to new lobby
+      //If user belonged to an old lobby, push the update (using data from redis)
+      if (oldLobby) {
+        const oldLobbyJSON = await ctx.redis.hget('LOBBIES', `${oldLobby.id}`)
+        if (oldLobbyJSON) {
+          const updatedOldLobby = JSON.parse(oldLobbyJSON)
+          ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
+        } else {
+          console.log(`ERROR: Old Lobby with id:${oldLobby.id} not found in redis`)
+        }
+      }
+      //push the update to the newly joined lobby
+      const lobbyJSON = await ctx.redis.hget('LOBBIES', `${newLobby.id}`)
+      if (lobbyJSON) {
+        const updatedLobby = JSON.parse(lobbyJSON)
+        ctx.pubsub.publish('LOBBY_UPDATE_' + newLobby.id, updatedLobby)
+      } else {
+        console.log(`ERROR: New Lobby with id:${newLobby.id} not found in redis`)
+      }
 
       return true
     },
@@ -185,11 +288,13 @@ export const graphqlRoot: Resolvers<Context> = {
       if (players.length <= 1) {
         console.log('LOG: Deleting empty lobby ' + lobby.id)
         // delete lobbies that have not started
-        if (lobby.state != LobbyState.InGame) {
-          await Lobby.remove(lobby)
-        } else {
+        if (lobby.state == LobbyState.InGame) {
           lobby.state = LobbyState.Replay
           await lobby.save()
+          await ctx.redis.hset('LOBBIES', `${lobby.id}`, JSON.stringify(lobby, getCircularReplacer()))
+        } else {
+          await ctx.redis.hdel('LOBBIES', `${lobby.id}`)
+          await Lobby.remove(lobby)
         }
       } else {
         //No need to update the subscribers of the lobby if the lobby is removed
@@ -197,12 +302,32 @@ export const graphqlRoot: Resolvers<Context> = {
         //pass the current updated lobby as payload for lobbyUpdates subscription
         ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
       }
+
+      await ctx.redis.del(`USERNAME:${player.id}`)
       // delete as Player, since user no longer in any lobbies
       await Player.remove(player)
 
-      // //Get all lobbies and pass as payload for lobbiesUpdates subscripton
-      const lobbies = check(await Lobby.find())
+      //Currently removing player from the redis cache is not done
+      //This could leave stale players in the cache
+
+      //Update lobby search page with pubsub and redis cache
+      const lobbiesJSON = await ctx.redis.hvals('LOBBIES')
+      const lobbies: Lobby[] = []
+      lobbiesJSON.forEach(item => {
+        if (item != '') lobbies.push(JSON.parse(item))
+      })
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
+
+      //No need to update the subscribers of the lobby if the lobby is removed
+      if (players.length > 1) {
+        const lobbyJSON = await ctx.redis.hget('LOBBIES', `${lobby.id}`)
+        if (lobbyJSON) {
+          const updatedLobby = JSON.parse(lobbyJSON)
+          ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
+        } else {
+          console.log(`ERROR: New Lobby with id:${lobby.id} not found in redis`)
+        }
+      }
 
       return true
     },
@@ -214,13 +339,24 @@ export const graphqlRoot: Resolvers<Context> = {
       lobby.startTime = new Date()
       await lobby.save()
 
-      //Get all lobbies and pass as payload for lobbiesUpdates subscripton
-      const lobbies = check(await Lobby.find())
+      await ctx.redis.hset(`LOBBIES`, `${lobby.id}`, JSON.stringify(lobby, getCircularReplacer()))
+
+      //Update lobby search page with pubsub and redis cache
+      const lobbiesJSON = await ctx.redis.hvals('LOBBIES')
+      const lobbies: Lobby[] = []
+      lobbiesJSON.forEach(item => {
+        if (item != '') lobbies.push(JSON.parse(item))
+      })
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
-      //pass the current updated lobby as payload for lobbyUpdates subscription
-      const updatedLobby = check(await Lobby.findOne({ where: { id: lobby.id } }))
-      ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
+      //push the update to the started lobby
+      const lobbyJSON = await ctx.redis.hget('LOBBIES', `${lobby.id}`)
+      if (lobbyJSON) {
+        const updatedLobby = JSON.parse(lobbyJSON)
+        ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
+      } else {
+        console.log(`ERROR: New Lobby with id:${lobby.id} not found in redis`)
+      }
 
       return true
     },

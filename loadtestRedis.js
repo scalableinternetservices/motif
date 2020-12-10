@@ -78,17 +78,13 @@ export default function () {
   const lobby_id = createLobbyRes.json('data').createLobby
   check(createLobbyRes, { 'created lobby': (r) => r.status == 200 });
 
-  // join same lobby
-  let joinLobbyRes = http.post(
-    `${BASE_URL}/graphql`,
-    `{"operationName":"JoinLobby","variables":{"userId":${id},"lobbyId":${lobby_id}},"query":"mutation JoinLobby($userId: Int!, $lobbyId: Int!) {  joinLobby(userId: $userId, lobbyId: $lobbyId)}"}`,
-    {
-      headers: {
-      'Content-Type': 'application/json',
-     },
-    }
-  );
-  check(joinLobbyRes, { 'joined lobby': (r) => r.status == 200 });
+  // route to lobby page
+  http.get(`${BASE_URL}/app/Lobby`)
+  sleep(Math.random() * 3)
+
+  // route to lobby search
+  http.get(`${BASE_URL}/app/LobbySearch`)
+  sleep(Math.random() * 3)
 
   // route to lobby page
   http.get(`${BASE_URL}/app/Lobby`)

@@ -22,7 +22,7 @@ import { migrate } from './db/migrate'
 import { initORM } from './db/sql'
 import { Session } from './entities/Session'
 import { User } from './entities/User'
-import { getSchema, graphqlRoot, pubsub } from './graphql/api'
+import { getSchema, graphqlRoot, pubsub, redis } from './graphql/api'
 import { ConnectionManager } from './graphql/ConnectionManager'
 import { UserType } from './graphql/schema.types'
 import { expressLambdaProxy } from './lambda/handler'
@@ -31,7 +31,7 @@ import { renderApp } from './render'
 const server = new GraphQLServer({
   typeDefs: getSchema(),
   resolvers: graphqlRoot as any,
-  context: ctx => ({ ...ctx, pubsub, user: (ctx.request as any)?.user || null }),
+  context: ctx => ({ ...ctx, pubsub, user: (ctx.request as any)?.user || null, redis: redis }),
 })
 
 server.express.use(cookieParser())
@@ -88,6 +88,8 @@ server.express.post(
     // save the User model to the database, refresh `user` to get ID
     user = await user.save()
 
+    await redis.set(`USER:${user.id}`, JSON.stringify(user))
+
     const authToken = await createSession(user)
     res
       .status(200)
@@ -108,6 +110,8 @@ server.express.post(
 
     // save the User model to the database, refresh `user` to get ID
     user = await user.save()
+
+    await redis.set(`USER:${user.id}`, JSON.stringify(user))
 
     const authToken = await createSession(user)
     res
@@ -281,13 +285,30 @@ server.express.post(
   '/graphql',
   asyncRoute(async (req, res, next) => {
     const authToken = req.cookies.authToken || req.header('x-authtoken')
-    if (authToken) {
+
+    //Redis Caching for gql authentication
+    const redisRes = await redis.get(authToken)
+    if (redisRes) {
+      console.log('CACHE')
+      const reqAny = req as any
+      reqAny.user = JSON.parse(redisRes)
+    } else {
+      console.log('NO CACHE')
       const session = await Session.findOne({ where: { authToken }, relations: ['user'] })
       if (session) {
+        await redis.set(authToken, JSON.stringify(session.user))
         const reqAny = req as any
         reqAny.user = session.user
       }
     }
+
+    // if (authToken) {
+    //   const session = await Session.findOne({ where: { authToken }, relations: ['user'] })
+    //   if (session) {
+    //     const reqAny = req as any
+    //     reqAny.user = session.user
+    //   }
+    // }
     next()
   })
 )

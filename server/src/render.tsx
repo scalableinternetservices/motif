@@ -29,6 +29,13 @@ export function renderApp(req: Request, res: Response, schema: any) {
           },
         },
       },
+      User: {
+        fields: {
+          player: {
+            merge: false,
+          },
+        },
+      },
     },
   })
   const apolloClient = new ApolloClient({
