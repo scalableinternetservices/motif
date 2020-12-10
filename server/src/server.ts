@@ -289,11 +289,11 @@ server.express.post(
     //Redis Caching for gql authentication
     const redisRes = await redis.get(authToken)
     if (redisRes) {
-      console.log('CACHE')
+      console.log('CACHE-SESSION')
       const reqAny = req as any
       reqAny.user = JSON.parse(redisRes)
     } else {
-      console.log('NO CACHE')
+      console.log('NO-CACHE-SESSION')
       const session = await Session.findOne({ where: { authToken }, relations: ['user'] })
       if (session) {
         await redis.set(authToken, JSON.stringify(session.user))

@@ -166,7 +166,6 @@ export const graphqlRoot: Resolvers<Context> = {
       newLobby.state = state ? LobbyState.Public : LobbyState.Private
       newLobby.maxUsers = maxUsers
       newLobby.gameTime = maxTime
-      newLobby.players = [player]
       await newLobby.save()
 
       let player = await Player.findOne({ where: { userId: userId } })
@@ -175,40 +174,82 @@ export const graphqlRoot: Resolvers<Context> = {
         player.userId = userId
         player.lobby = newLobby
         await player.save()
+
+        //Update a user and username in the redis cache for later query
+        const userJSON = await ctx.redis.get(`USER:${userId}`)
+        if (userJSON) {
+          const user = JSON.parse(userJSON)
+          user.player = player
+          await ctx.redis.set(`USERNAME:${player.id}`, JSON.stringify(user.name, getCircularReplacer()))
+          await ctx.redis.set(`USER:${userId}`, JSON.stringify(user, getCircularReplacer()))
+        }
+
+        //Save player in redis cache
+        await ctx.redis.set(`PLAYERS:${userId}`, JSON.stringify(player, getCircularReplacer()))
       } else {
-        const oldLobby = await Lobby.findOne(player.lobbyId)
+        //Look for old lobby first through redis cache
+        const oldLobbyJSON = await ctx.redis.hget('LOBBIES', `${player.lobbyId}`)
+        let oldLobby
+        if (oldLobbyJSON) {
+          oldLobby = JSON.parse(oldLobbyJSON)
+        } else {
+          oldLobby = await Lobby.findOne(player.lobbyId)
+        }
         player.lobby = newLobby
         await player.save()
+        //Save player in redis cache
+        await ctx.redis.set(`PLAYERS:${userId}`, JSON.stringify(player, getCircularReplacer()))
         if (oldLobby) {
           console.log('LOG: Removing player from old lobby ' + oldLobby.id)
           const oldPlayers = await Player.find({ where: { lobbyId: oldLobby.id } })
           if (oldPlayers.length < 1) {
             console.log('LOG: Deleting empty lobby ' + oldLobby.id)
             if (oldLobby.state != LobbyState.InGame) {
+              await ctx.redis.hdel('LOBBIES', `${oldLobby.id}`)
               await Lobby.remove(oldLobby)
             } else {
               oldLobby.state = LobbyState.Replay
               await oldLobby.save()
+              await ctx.redis.hset('LOBBIES', `${oldLobby.id}`, JSON.stringify(oldLobby, getCircularReplacer()))
             }
           } else {
-            const updatedOldLobby = check(await Lobby.findOne(oldLobby.id))
-            ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
+            // const oldLobbyJSON = await ctx.redis.hget('LOBBIES', `${oldLobby.id}`)
+            // if (oldLobbyJSON) {
+            //   const updatedOldLobby = JSON.parse(oldLobbyJSON)
+            //   ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
+            // } else {
+            //   console.log(`ERROR: Old Lobby with id:${oldLobby.id} not found in redis`)
+            // }
           }
         }
       }
 
+      await ctx.redis.hset('LOBBIES', `${newLobby.id}`, JSON.stringify(newLobby, getCircularReplacer()))
+
       // Get all lobbies and pass as payload for lobbiesUpdates subscripton
-      const lobbies = check(await Lobby.find())
+      const lobbiesJSON = await ctx.redis.hvals('LOBBIES')
+      const lobbies: Lobby[] = []
+      lobbiesJSON.forEach(item => {
+        if (item != '') lobbies.push(JSON.parse(item))
+      })
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
-      const updatedLobby = check(await Lobby.findOne(newLobby.id))
-      ctx.pubsub.publish('LOBBY_UPDATE_' + newLobby.id, updatedLobby)
+      //push the update to the newly joined lobby
+      const lobbyJSON = await ctx.redis.hget('LOBBIES', `${newLobby.id}`)
+      if (lobbyJSON) {
+        const updatedLobby = JSON.parse(lobbyJSON)
+        ctx.pubsub.publish('LOBBY_UPDATE_' + newLobby.id, updatedLobby)
+      } else {
+        console.log(`ERROR_CREATE_LOBBY: New Lobby with id:${newLobby.id} not found in redis`)
+      }
 
       return newLobby.id
     },
     joinLobby: async (_, { userId, lobbyId }, ctx) => {
       // TODO: need to validate: remove user from current lobbies, is lobby in right state, etc
-      const newLobby = check(await Lobby.findOne(lobbyId))
+      //Try and grab newLobby from redis cache
+      const newLobbyString = check(await ctx.redis.hget('LOBBIES', `${lobbyId}`))
+      const newLobby = JSON.parse(newLobbyString)
       const players = await Player.find({ where: { lobbyId: lobbyId } })
       if (newLobby.maxUsers <= players.length) {
         return false
@@ -221,10 +262,18 @@ export const graphqlRoot: Resolvers<Context> = {
         player.userId = userId
         player.lobby = newLobby
         await player.save()
+        await ctx.redis.set(`PLAYERS:${userId}`, JSON.stringify(player, getCircularReplacer()))
       } else {
-        const oldLobby = await Lobby.findOne(player.lobbyId)
+        const oldLobbyString = await ctx.redis.hget('LOBBIES', `${player.lobbyId}`)
+        let oldLobby
+        if (oldLobbyString) {
+          oldLobby = JSON.parse(oldLobbyString)
+        } else {
+          oldLobby = await Lobby.findOne(player.lobbyId)
+        }
         player.lobby = newLobby
         await player.save()
+        await ctx.redis.set(`PLAYERS:${userId}`, JSON.stringify(player, getCircularReplacer()))
 
         // if player exists already, check to see if old lobbies need to be cleaned up
         if (oldLobby) {
@@ -233,23 +282,38 @@ export const graphqlRoot: Resolvers<Context> = {
           if (oldPlayers.length < 1) {
             console.log('LOG: Deleting empty lobby ' + oldLobby.id)
             if (oldLobby.state != LobbyState.InGame) {
+              await ctx.redis.hdel('LOBBIES', `${oldLobby.id}`)
               await Lobby.remove(oldLobby)
             } else {
               oldLobby.state = LobbyState.Replay
               await oldLobby.save()
+              await ctx.redis.hset('LOBBIES', `${oldLobby.id}`, JSON.stringify(oldLobby, getCircularReplacer()))
             }
           } else {
-            const updatedOldLobby = check(await Lobby.findOne(oldLobby.id))
-            ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
+            const oldLobbyJSON = await ctx.redis.hget('LOBBIES', `${oldLobby.id}`)
+            if (oldLobbyJSON) {
+              const updatedOldLobby = JSON.parse(oldLobbyJSON)
+              ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
+            } else {
+              console.log(`ERROR: Old Lobby with id:${oldLobby.id} not found in redis`)
+            } //send update to old lobby
           }
         }
       }
 
       //Save updates to user and lobbies in redis
-      await ctx.redis.set(`USER:${userId}`, JSON.stringify(user, getCircularReplacer()))
-      await ctx.redis.set(`USERNAME:${player.id}`, JSON.stringify(user.name, getCircularReplacer()))
+      //Update a user and username in the redis cache for later query
+      const userJSON = await ctx.redis.get(`USER:${userId}`)
+      if (userJSON) {
+        const user = JSON.parse(userJSON)
+        user.player = player
+        await ctx.redis.set(`USERNAME:${player.id}`, JSON.stringify(user.name, getCircularReplacer()))
+        await ctx.redis.set(`USER:${userId}`, JSON.stringify(user, getCircularReplacer()))
+      }
+
       await ctx.redis.hset(`LOBBIES`, `${newLobby.id}`, JSON.stringify(newLobby, getCircularReplacer()))
 
+      //get all lobbies from redis and pass as payload for lobbiesUpdates sub
       const lobbiesJSON = await ctx.redis.hvals('LOBBIES')
       const lobbies: Lobby[] = []
       lobbiesJSON.forEach(item => {
@@ -257,16 +321,6 @@ export const graphqlRoot: Resolvers<Context> = {
       })
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
-      //If user belonged to an old lobby, push the update (using data from redis)
-      if (oldLobby) {
-        const oldLobbyJSON = await ctx.redis.hget('LOBBIES', `${oldLobby.id}`)
-        if (oldLobbyJSON) {
-          const updatedOldLobby = JSON.parse(oldLobbyJSON)
-          ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
-        } else {
-          console.log(`ERROR: Old Lobby with id:${oldLobby.id} not found in redis`)
-        }
-      }
       //push the update to the newly joined lobby
       const lobbyJSON = await ctx.redis.hget('LOBBIES', `${newLobby.id}`)
       if (lobbyJSON) {
@@ -279,7 +333,15 @@ export const graphqlRoot: Resolvers<Context> = {
       return true
     },
     leaveLobby: async (_, { userId }, ctx) => {
-      const player = check(await Player.findOne({ where: { userId: userId } }))
+      //Try to grab player from redis cache
+      const playerJSON = check(await ctx.redis.get(`PLAYERS:${userId}`))
+      let player
+      if (playerJSON) {
+        player = JSON.parse(playerJSON)
+      } else {
+        player = check(await Player.findOne({ where: { userId: userId } }))
+        await ctx.redis.set(`PLAYERS:${userId}`, JSON.stringify(player, getCircularReplacer()))
+      }
       const lobby = await Lobby.findOne(player.lobbyId)
 
       if (!lobby) return false
@@ -288,28 +350,34 @@ export const graphqlRoot: Resolvers<Context> = {
       if (players.length <= 1) {
         console.log('LOG: Deleting empty lobby ' + lobby.id)
         // delete lobbies that have not started
-        if (lobby.state == LobbyState.InGame) {
+        if (lobby.state != LobbyState.InGame) {
+          await ctx.redis.hdel('LOBBIES', `${lobby.id}`)
+          await Lobby.remove(lobby)
+        } else {
           lobby.state = LobbyState.Replay
           await lobby.save()
           await ctx.redis.hset('LOBBIES', `${lobby.id}`, JSON.stringify(lobby, getCircularReplacer()))
-        } else {
-          await ctx.redis.hdel('LOBBIES', `${lobby.id}`)
-          await Lobby.remove(lobby)
         }
       } else {
-        //No need to update the subscribers of the lobby if the lobby is removed
-        const updatedLobby = check(await Lobby.findOne({ where: { id: lobby.id } }))
-        //pass the current updated lobby as payload for lobbyUpdates subscription
-        ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
+        const lobbyJSON = await ctx.redis.hget('LOBBIES', `${lobby.id}`)
+        if (lobbyJSON) {
+          const updatedLobby = JSON.parse(lobbyJSON)
+          ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
+        } else {
+          console.log(`ERROR_JOIN_LOBBY: New Lobby with id:${lobby.id} not found in redis`)
+        }
       }
 
       await ctx.redis.del(`USERNAME:${player.id}`)
       // delete as Player, since user no longer in any lobbies
       await Player.remove(player)
-
-      //Currently removing player from the redis cache is not done
-      //This could leave stale players in the cache
-
+      //Update a user and username in the redis cache for later query
+      const userJSON = await ctx.redis.get(`USER:${userId}`)
+      if (userJSON) {
+        const user = JSON.parse(userJSON)
+        user.player = null
+        await ctx.redis.set(`USER:${userId}`, JSON.stringify(user, getCircularReplacer()))
+      }
       //Update lobby search page with pubsub and redis cache
       const lobbiesJSON = await ctx.redis.hvals('LOBBIES')
       const lobbies: Lobby[] = []
@@ -325,7 +393,7 @@ export const graphqlRoot: Resolvers<Context> = {
           const updatedLobby = JSON.parse(lobbyJSON)
           ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
         } else {
-          console.log(`ERROR: New Lobby with id:${lobby.id} not found in redis`)
+          console.log(`ERROR_LEAVE__LOBBY: New Lobby with id:${lobby.id} not found in redis`)
         }
       }
 
@@ -338,7 +406,7 @@ export const graphqlRoot: Resolvers<Context> = {
       lobby.state = LobbyState.InGame
       lobby.startTime = new Date()
       await lobby.save()
-
+      //Update the redis cache with the started lobby
       await ctx.redis.hset(`LOBBIES`, `${lobby.id}`, JSON.stringify(lobby, getCircularReplacer()))
 
       //Update lobby search page with pubsub and redis cache
@@ -355,7 +423,7 @@ export const graphqlRoot: Resolvers<Context> = {
         const updatedLobby = JSON.parse(lobbyJSON)
         ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
       } else {
-        console.log(`ERROR: New Lobby with id:${lobby.id} not found in redis`)
+        console.log(`ERROR_START_GAME: New Lobby with id:${lobby.id} not found in redis`)
       }
 
       return true
