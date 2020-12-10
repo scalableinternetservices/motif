@@ -7,9 +7,6 @@ import { check } from '../../../common/src/util'
 import { Lobby } from '../entities/Lobby'
 import { Move } from '../entities/Move'
 import { Player } from '../entities/Player'
-import { Survey } from '../entities/Survey'
-import { SurveyAnswer } from '../entities/SurveyAnswer'
-import { SurveyQuestion } from '../entities/SurveyQuestion'
 import { Tile } from '../entities/Tile'
 import { User } from '../entities/User'
 import Dictionary from './dictionary'
@@ -49,8 +46,6 @@ export const graphqlRoot: Resolvers<Context> = {
   }),
   Query: {
     self: (_, args, ctx) => ctx.user,
-    survey: async (_, { surveyId }) => (await Survey.findOne({ where: { id: surveyId } })) || null,
-    surveys: () => Survey.find(),
     lobbies: () => Lobby.find(),
     lobby: async (_, { lobbyId }) => (await Lobby.findOne({ where: { id: lobbyId } })) || null,
     user: async (_, { userId }) => (await User.findOne({ where: { id: userId } })) || null,
@@ -59,28 +54,6 @@ export const graphqlRoot: Resolvers<Context> = {
       (await Player.findOne({ where: { id: playerId }, relations: ['user'] }))?.user?.name || null,
   },
   Mutation: {
-    answerSurvey: async (_, { input }, ctx) => {
-      const { answer, questionId } = input
-      const question = check(await SurveyQuestion.findOne({ where: { id: questionId }, relations: ['survey'] }))
-
-      const surveyAnswer = new SurveyAnswer()
-      surveyAnswer.question = question
-      surveyAnswer.answer = answer
-      await surveyAnswer.save()
-
-      question.survey.currentQuestion?.answers.push(surveyAnswer)
-      ctx.pubsub.publish('SURVEY_UPDATE_' + question.survey.id, question.survey)
-
-      return true
-    },
-    nextSurveyQuestion: async (_, { surveyId }, ctx) => {
-      // check(ctx.user?.userType === UserType.Admin)
-      const survey = check(await Survey.findOne({ where: { id: surveyId } }))
-      survey.currQuestion = survey.currQuestion == null ? 0 : survey.currQuestion + 1
-      await survey.save()
-      ctx.pubsub.publish('SURVEY_UPDATE_' + surveyId, survey)
-      return survey
-    },
     createLobby: async (_, { userId, maxUsers, maxTime, state }, ctx) => {
       const user = check(await User.findOne({ where: { id: userId }, relations: ['player'] }))
       // Create new player if DNE
@@ -176,14 +149,12 @@ export const graphqlRoot: Resolvers<Context> = {
       if (!lobby) return false
       if (lobby.players.length <= 1) {
         // delete lobbies that have not started
-        await Lobby.remove(lobby)
-
-        /* Scrapping Lobby Replay System
-        else {
+        if (lobby.state == LobbyState.InGame) {
           lobby.state = LobbyState.Replay
           await lobby.save()
+        } else {
+          await Lobby.remove(lobby)
         }
-        */
       }
       // delete as Player, since user no longer in any lobbies
       await Player.remove(player)
@@ -340,10 +311,6 @@ export const graphqlRoot: Resolvers<Context> = {
     },
   },
   Subscription: {
-    surveyUpdates: {
-      subscribe: (_, { surveyId }, context) => context.pubsub.asyncIterator('SURVEY_UPDATE_' + surveyId),
-      resolve: (payload: any) => payload,
-    },
     lobbiesUpdates: {
       subscribe: (_, {}, context) => context.pubsub.asyncIterator('LOBBIES_UPDATE'),
       resolve: (payload: any) => payload,

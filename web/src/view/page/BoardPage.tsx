@@ -14,7 +14,7 @@ import { fetchUser } from './Lobby/fetchLobbies'
 import { Page } from './Page'
 
 // eslint-disable-next-line prettier/prettier
-interface PlaygroundPageProps extends RouteComponentProps, AppRouteParams {
+interface BoardPageProps extends RouteComponentProps, AppRouteParams {
   lobbyId?: number
   playerId?: number
   timeLimit?: number
@@ -22,7 +22,7 @@ interface PlaygroundPageProps extends RouteComponentProps, AppRouteParams {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function BoardPage(props: PlaygroundPageProps) {
+export function BoardPage(props: BoardPageProps) {
   const { user } = React.useContext(UserContext)
   let lobby_id = 1
   if (props.lobbyId != null) lobby_id = props.lobbyId

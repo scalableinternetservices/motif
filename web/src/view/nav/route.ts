@@ -6,10 +6,6 @@
  */
 export enum Route {
   HOME = 'app/index',
-  LECTURES = 'app/lectures',
-  PROJECTS = 'app/projects',
-  PLAYGROUND = 'app/playground',
-  PLAYGROUND_APP = 'app/playground/:app',
   LobbySearch = 'app/LobbySearch',
   LobbyWait = 'app/LobbyWait',
   LobbyMain = 'app/Lobby',
@@ -17,17 +13,6 @@ export enum Route {
   USER_LOGIN = 'app/UserLogin',
   Lobby_Inst = 'app/LobbyWait/:lobby',
   Game_Inst = 'app/board/:game',
-}
-
-export enum PlaygroundApp {
-  SURVEYS = 'surveys',
-  LOGIN = 'login',
-  SIGNUP = 'signup',
-}
-
-export function getSurveyPath(surveyId?: number) {
-  const path = getPath(Route.PLAYGROUND_APP, { app: PlaygroundApp.SURVEYS })
-  return path + (surveyId ? `?surveyId=${surveyId}` : '')
 }
 
 export function getLobbyPath(lobbyId?: number) {
@@ -38,18 +23,6 @@ export function getLobbyPath(lobbyId?: number) {
 export function getGamePath(lobbyId?: number) {
   const path = getPath(Route.Game_Inst, { game: 'game' })
   return path + (lobbyId ? `?lobbyId=${lobbyId}` : '')
-}
-
-export function getSignupPath() {
-  return getPath(Route.PLAYGROUND_APP, { app: PlaygroundApp.SIGNUP })
-}
-
-export function getLoginPath() {
-  return getPath(Route.PLAYGROUND_APP, { app: PlaygroundApp.LOGIN })
-}
-
-export function getPlaygroundPath() {
-  return getPath(Route.PLAYGROUND)
 }
 
 export function getLobbyMainPath() {
@@ -103,7 +76,6 @@ export function getPath(route: Route, arg?: Partial<ReturnType<typeof routeParam
  */
 export interface AppRouteParams {
   userId?: string
-  app?: PlaygroundApp
   lobby?: string
   game?: string
 }
@@ -114,7 +86,6 @@ export interface AppRouteParams {
 export function routeParams(params: AppRouteParams) {
   return {
     userId: Number(params.userId || 0),
-    app: params.app,
     lobby: String(params.lobby || ''),
     game: String(params.game || ''),
   }
