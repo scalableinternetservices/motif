@@ -135,9 +135,15 @@ export const graphqlRoot: Resolvers<Context> = {
     },
     joinLobby: async (_, { userId, lobbyId }, ctx) => {
       // TODO: need to validate: remove user from current lobbies, is lobby in right state, etc
-      const newLobby = check(await Lobby.findOne(lobbyId))
-      const players = await Player.find({ where: { lobbyId: lobbyId } })
-      if (newLobby.maxUsers <= players.length) {
+      const conn = await getConnection()
+      const sql = new SQL(conn)
+      const cRow = await sql.query(
+        'SELECT lobby.id, lobby.maxUsers, COUNT(player.id) AS count FROM lobby JOIN player on lobby.id = player.lobbyId WHERE lobby.id=?',
+        lobbyId
+      )
+      const players = cRow[0].count
+      if (cRow[0].maxUsers <= players.length) {
+        conn.release()
         return false
       }
 
@@ -146,17 +152,15 @@ export const graphqlRoot: Resolvers<Context> = {
       if (!player) {
         player = new Player()
         player.userId = userId
-        player.lobby = newLobby
+        player.lobbyId = lobbyId
         await player.save()
       } else {
         if (player.lobbyId != lobbyId) {
-          const conn = await getConnection()
-          const sql = new SQL(conn)
           const row = await sql.query(
             'SELECT lobby.id, lobby.state, COUNT(player.id) AS count FROM lobby JOIN player on lobby.id = player.lobbyId WHERE lobby.id=?',
             player.lobbyId
           )
-          player.lobby = newLobby
+          player.lobbyId = lobbyId
           await player.save()
           if (row) {
             const oldLobby = row[0]
@@ -174,20 +178,19 @@ export const graphqlRoot: Resolvers<Context> = {
               ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
             }
           }
-          conn.release()
         } else {
-          player.lobby = newLobby
+          player.lobbyId = lobbyId
           await player.save()
         }
       }
-
+      conn.release()
       //Get all lobbies and pass as payload for lobbiesUpdates subscripton
       const lobbies = check(await Lobby.find())
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
       //pass the current updated lobby as payload for lobbyUpdates subscription
-      const updatedNewLobby = check(await Lobby.findOne(newLobby.id))
-      ctx.pubsub.publish('LOBBY_UPDATE_' + newLobby.id, updatedNewLobby) //send update to new lobby
+      const updatedNewLobby = check(await Lobby.findOne(lobbyId))
+      ctx.pubsub.publish('LOBBY_UPDATE_' + lobbyId, updatedNewLobby) //send update to new lobby
 
       return true
     },
@@ -221,7 +224,7 @@ export const graphqlRoot: Resolvers<Context> = {
         const updatedOldLobby = check(await Lobby.findOne(lobby.id))
         ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedOldLobby) //send update to old lobby
       }
-
+      conn.release()
       // //Get all lobbies and pass as payload for lobbiesUpdates subscripton
       const lobbies = check(await Lobby.find())
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)

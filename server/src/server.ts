@@ -12,6 +12,8 @@ import cors from 'cors'
 import { json, raw, RequestHandler, static as expressStatic } from 'express'
 import { getOperationAST, parse as parseGraphql, specifiedRules, subscribe as gqlSubscribe, validate } from 'graphql'
 import { GraphQLServer } from 'graphql-yoga'
+// @ts-ignore
+import beeline from 'honeycomb-beeline'
 import { forAwaitEach, isAsyncIterable } from 'iterall'
 import path from 'path'
 import 'reflect-metadata'
@@ -280,6 +282,8 @@ server.express.post('/graphqlsubscription/disconnect', (req, res) => {
 server.express.post(
   '/graphql',
   asyncRoute(async (req, res, next) => {
+    beeline.addContext({ 'graphql.query': req.body })
+    beeline.addContext({ 'graphql.operationName': req.body.operationName })
     const authToken = req.cookies.authToken || req.header('x-authtoken')
     if (authToken) {
       const session = await Session.findOne({ where: { authToken }, relations: ['user'] })
@@ -308,3 +312,31 @@ initORM()
     )
   )
   .catch(err => console.error(err))
+
+// // checks for games that should be over
+// async function bgProcess() {
+//   const conn = await getConnection()
+//   const sql = new SQL(conn)
+//   setInterval(async () => {
+//     const date = new Date()
+//     const result = await sql.query(
+//       'UPDATE lobby SET state="REPLAY" WHERE state="IN_GAME"\
+//        AND TIMESTAMPDIFF(second, `startTime`, ?) > gameTime*60;',
+//       date
+//     )
+//     if (result.affectedRows > 0) {
+//       console.log(result.affectedRows + ' games marked as expired')
+//       const res2 = await sql.query(
+//         'DELETE p FROM player p INNER JOIN lobby ON p.lobbyId = lobby.id WHERE lobby.state="REPLAY";'
+//       )
+//       if (res2.affectedRows > 0) {
+//         console.log(res2.affectedRows + ' players removed from finished games')
+//       }
+//     }
+//   }, 1000)
+//   conn.release()
+// }
+
+// bgProcess().catch(error => {
+//   console.error(error)
+// })
