@@ -1,6 +1,5 @@
 import { navigate } from '@reach/router'
 import * as React from 'react'
-import { ColorName, Colors } from '../../../../common/src/colors'
 import {
   DeselectTile,
   Lobby,
@@ -16,7 +15,6 @@ import {
 } from '../../../../server/src/graphql/schema.types'
 import { Button } from '../../style/button'
 import { Spacer } from '../../style/spacer'
-import { style } from '../../style/styled'
 import { UserContext } from '../auth/user'
 import { handleError } from '../toast/error'
 import { deselectMove, randomizeMove, selectMove, submitMove } from './GameMutations'
@@ -41,10 +39,10 @@ export default class Game extends React.Component<
   timer: any
   finished = false
   player: Player = {
-    id: -1,
-    lobbyId: -1,
+    id: 1,
+    lobbyId: 1,
     lobby: {
-      id: -1,
+      id: 1,
       state: LobbyState.InGame,
       players: [],
       spectators: [],
@@ -78,9 +76,9 @@ export default class Game extends React.Component<
     this.timer = setInterval(this.countdown, 100)
     for (let i = 0; i < 16; i++) {
       this.active.push(false)
-      this.board.push({ id: 0, letter: 'X', pointValue: 0, location: 0, tileType: TileType.Normal })
+      this.board.push({ id: 0, letter: 'X', value: 0, location: i, tileType: TileType.Normal })
       for (let p = 0; p < this.enemyPlayers; p++) {
-        this.enemyTiles[p].push({ id: 0, letter: 'X', pointValue: 0, location: 0, tileType: TileType.Normal })
+        this.enemyTiles[p].push({ id: 0, letter: 'X', value: 0, location: i, tileType: TileType.Normal })
       }
     }
   }
@@ -97,7 +95,7 @@ export default class Game extends React.Component<
   initalizeBoard() {
     for (let i = 0; i < 16; i++) {
       const c = this.getRandomLetter()
-      this.board[i] = { id: 0, letter: c, pointValue: pointVal[c], location: i, tileType: TileType.Normal }
+      this.board[i] = { id: 0, letter: c, value: pointVal[c], location: i, tileType: TileType.Normal }
     }
   }
   randomizeBoard() {
@@ -105,7 +103,7 @@ export default class Game extends React.Component<
       const c = this.getRandomLetter()
       this.active[i] = false
       this.board[i].letter = c
-      this.board[i].pointValue = pointVal[c]
+      this.board[i].value = pointVal[c]
     }
     const scramble: Scramble = {
       player: this.player,
@@ -122,6 +120,7 @@ export default class Game extends React.Component<
       move: this.state.move + 1,
     })
     this.moveStack = []
+    this.submitTiles = []
   }
   getRandomLetter() {
     //A-9, B-2, C-2, D-4, E-12, F-2, G-3, H-2, I-9, J-1, K-1, L-4, M-2, N-6, O-8, P-2, Q-1, R-6, S-4, T-6, U-4, V-2, W-2, X-1, Y-2, Z-1
@@ -142,7 +141,7 @@ export default class Game extends React.Component<
       }
       //sent deselect move
       deselectMove(deselect)
-        .then(() => console.log('Deselect move worked'))
+        .then(res => console.log('Deselect move worked ' + res.data?.makeMove))
         .catch(() => console.log('broke'))
 
       this.moveStack.pop()
@@ -162,37 +161,35 @@ export default class Game extends React.Component<
     this.submitTiles.push({
       id: this.board[key].id,
       letter: this.board[key].letter,
-      pointValue: this.board[key].pointValue,
+      value: this.board[key].value,
       location: this.board[key].location,
       tileType: this.board[key].tileType,
     })
 
     const select: SelectTile = {
       player: this.player,
-      moveType: MoveType.DeselectTile,
+      moveType: MoveType.SelectTile,
       time: new Date().getTime() - this.startTime,
       tiles: [this.board[key]],
     }
     selectMove(select)
-      .then(() => console.log('Select worked'))
+      .then(res => console.log('Select worked ' + res.data?.makeMove))
       .catch(() => console.log('broke'))
     this.setState({
       move: this.state.move + 1,
     })
   }
 
-  submitWord() {
+  async submitWord() {
     //submit word
+    if (this.playerWords.length < 2) return
+
     console.log('The submitted word is:' + this.playerWords)
     let nl = ''
     let score = 0
     for (let i = 0; i < 16; i++) {
       if (this.active[i] === true) {
-        score += this.board[i].pointValue
-        nl = this.getRandomLetter()
-        this.active[i] = false
-        this.board[i].letter = nl
-        this.board[i].pointValue = pointVal[nl]
+        score += this.board[i].value
       }
     }
     const submit: Submit = {
@@ -203,29 +200,34 @@ export default class Game extends React.Component<
       tiles: this.submitTiles,
       pointValue: score,
     }
-
-    this.playerScore += score
+    const ret = await submitMove(submit)
+    //console.log('data returned= ' + ret.data?.makeMove)
+    if (ret.data?.makeMove == true) {
+      this.playerScore += score
+      for (let i = 0; i < 16; i++) {
+        if (this.active[i] === true) {
+          nl = this.getRandomLetter()
+          this.active[i] = false
+          this.board[i].letter = nl
+          this.board[i].value = pointVal[nl]
+        }
+      }
+      this.setState({
+        move: this.state.move + 1,
+      })
+    }
+    for (let i = 0; i < 16; i++) {
+      if (this.active[i] === true) {
+        this.active[i] = false
+      }
+    }
     this.moveStack = []
     this.submitTiles = []
     this.playerWords = ''
-    this.setState({
-      move: this.state.move + 1,
-    })
-    submitMove(submit)
-      .then(() => console.log('Submit worked'))
-      .catch(() => console.log('broke'))
-    //Send word to server
   }
 
   render() {
     const tiles = []
-    //const enemy1Tiles = []
-    //const enemy2Tiles = []
-    const enemyTiles = [[<div key={0}></div>]]
-    enemyTiles.pop()
-    for (let p = 0; p < this.enemyPlayers; p++) {
-      enemyTiles.push([])
-    }
     for (let i = 0; i < 4; i++) {
       for (let j = 0; j < 4; j++) {
         const index = i * 4 + j
@@ -236,58 +238,24 @@ export default class Game extends React.Component<
             {c}
           </div>
         )
-        for (let p = 0; p < this.enemyPlayers; p++) {
-          enemyTiles[p].push(
-            //<div className={this.enemyTiles[p][index]'miniTile'} key={index}>
-            <div className="miniTile" key={index}>
-              {this.enemyTiles[p][index].letter}
-            </div>
-          )
-        }
-        /*         enemy1Tiles.push(
-          <div className="miniTile" key={index}>
-            {c}
-          </div>
-        )
-        enemy2Tiles.push(
-          <div className="miniTile" key={index}>
-            {c}
-          </div>
-        ) */
       }
     }
     if (!this.finished) {
       return (
-        <Content>
-          <div className="column">
-            <div>Player 2 score: {this.enemyScores[0]}</div>
-            <div className="miniBoard">{enemyTiles[0]}</div>
-            <Spacer $h5 />
-            <div>Player 3 score: {this.enemyScores[1]}</div>
-            <div className="miniBoard">{enemyTiles[1]}</div>
-          </div>
-          <div className="column">
-            <div>Time Remaining: {this.state.timeRemaining / 10}</div>
-            <div>Your Score: {this.playerScore}</div>
-            <Spacer $h1 />
-            <div className="board">{tiles}</div>
-            <div className="wordbox">{'Word: ' + this.playerWords}</div>
-            <button className="button" onClick={this.submitWord}>
-              Submit
-            </button>
+        <div>
+          <div>Time Remaining: {this.state.timeRemaining / 10}</div>
+          <div>Your Score: {this.playerScore}</div>
+          <Spacer $h1 />
+          <div className="board">{tiles}</div>
+          <div className="wordbox">{'Word: ' + this.playerWords}</div>
+          <button className="button" onClick={this.submitWord}>
+            Submit
+          </button>
 
-            <button className="button" onClick={this.randomizeBoard}>
-              Randomize
-            </button>
-          </div>
-          <div className="chat">
-            <RContent>
-              <Section>
-                <h2> CHATROOM HERE </h2>
-              </Section>
-            </RContent>
-          </div>
-        </Content>
+          <button className="button" onClick={this.randomizeBoard}>
+            Randomize
+          </button>
+        </div>
       )
     } else {
       //calc scores
@@ -327,22 +295,6 @@ function LeaveLobbyButton() {
   return <Button onClick={() => handleExit()}>Leave</Button>
 }
 
-/*const Hero = style('div', 'mb4 w-100 ba b--mid-gray br2 pa3 tc', {
-  borderLeftColor: Colors.lemon + '!important',
-  borderRightColor: Colors.lemon + '!important',
-  borderLeftWidth: '4px',
-  borderRightWidth: '4px',
-})*/
-
-const Content = style('div', 'flex-l')
-
-const RContent = style('div', 'flex-grow-0  w-30-r')
-
-const Section = style('div', 'mb4 mid-gray ba b--mid-gray br2 pa3', (p: { $color?: ColorName }) => ({
-  borderLeftColor: Colors[p.$color || 'lemon'] + '!important',
-  borderLeftWidth: '3px',
-}))
-
 const pointVal: { [letter: string]: number } = {
   A: 1,
   B: 3,
@@ -371,3 +323,18 @@ const pointVal: { [letter: string]: number } = {
   Y: 4,
   Z: 10,
 }
+// interface uProps {
+//   lobbyId: number
+// }
+// // eslint-disable-next-line @typescript-eslint/no-unused-vars
+// function UpdateEnemyBoards(p: uProps) {
+//   const lobbyid = p.lobbyId
+//   const { loading, data } = useQuery<any, FetchLobbyVariables>(fetchLobbyMoves, {
+//     variables: { lobbyId: lobbyid },
+//   })
+
+//   if (data == null) console.log('lobby query returned null' + loading)
+
+//   console.log(data)
+//   return <div> Test </div>
+// }

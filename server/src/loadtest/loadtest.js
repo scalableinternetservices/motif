@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
 import http from 'k6/http'
 import { check, group, sleep, fail } from 'k6'
@@ -7,12 +8,13 @@ export const options = {
   scenarios: {
     scenario1: {
       executor: 'ramping-arrival-rate',
-      startRate: '50',
-      timeUnit: '1s',
-      preAllocatedVUS: 20,
-      maxVUs: 100,
+      startRate: '20',
+      //timeUnit: '1s',
+      preAllocatedVUS: 100,
+      maxVUs: 500,
+      gracefulStop: '110s',
       stages: [
-        { target: 10, duration: '1s' },
+        { target: 1, duration: '30s' },
         // { target: 20, duration: '10s' },
         // { target: 0, duration: '10s' },
       ],
@@ -75,8 +77,9 @@ export default function () {
   check(createLobbyRes, { 'created lobby': (r) => r.status == 200 });
 
   // route to lobby page
-  http.get(`${BASE_URL}/app/LobbyWait/lobby?lobbyId=${lobby_id}`)
+  //http.get(`${BASE_URL}/app/LobbyWait/lobby?lobbyId=${lobby_id}`)
   sleep(1)
+  //{"operationName":"StartGame","variables":{"lobbyId":141},"query":"mutation StartGame($lobbyId: Int!) {\n  startGame(lobbyId: $lobbyId)\n}\n"}
 
   // start game
   let startGameRes = http.post(
@@ -91,9 +94,22 @@ export default function () {
   check(startGameRes, { 'started game': (r) => r.status == 200 });
 
   // navigate to game page
-  http.get(`${BASE_URL}/app/board/game?lobbyId=${lobby_id}`)
-  sleep(1)
+  //http.get(`${BASE_URL}/app/board/game?lobbyId=${lobby_id}`)
+  sleep(1);
 
+  // click move
+  let makeMoveRes = http.post(
+    `${BASE_URL}/graphql`,
+    `{"operationName":"MakeMove","variables":{"input":{"playerId":${id},"lobbyId":${lobby_id},"time":6828,"moveType":"DeselectTile","tiles":[{"letter":"E","pointValue":1,"tileType":"Normal","location":0}],"pointValue":0}},"query":"mutation MakeMove($input: MoveInput!) {makeMove(input: $input)}"}`,
+    {
+      headers: {
+      'Content-Type': 'application/json',
+     },
+    }
+  );
+  check(makeMoveRes, { 'move made': (r) => r.status == 200 });
+
+  sleep(2);
   // logout
   let logoutRes = http.post(
     `${BASE_URL}/auth/logout`,

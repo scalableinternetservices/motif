@@ -166,7 +166,7 @@ export enum TileType {
 export interface Tile {
   __typename?: 'Tile'
   id: Scalars['Int']
-  pointValue: Scalars['Int']
+  value: Scalars['Int']
   location: Scalars['Int']
   letter: Scalars['String']
   tileType: TileType

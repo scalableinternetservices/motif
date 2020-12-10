@@ -77,7 +77,7 @@ function ChooseSettings(p: ChooseSettingsProps) {
             <Button onClick={() => p.setTime(5)}>5</Button>
           </MR>
           <div>
-            <Button onClick={() => p.setTime(10)}>10</Button>
+            <Button onClick={() => p.setTime(10000)}>10</Button>
           </div>
         </div>
       </div>

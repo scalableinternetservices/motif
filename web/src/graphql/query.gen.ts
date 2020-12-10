@@ -59,6 +59,130 @@ export interface MakeMoveVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: Lobby
+// ====================================================
+
+export interface Lobby_lobby_players {
+  __typename: "Player";
+  id: number;
+}
+
+export interface Lobby_lobby_moves_Scramble_player {
+  __typename: "Player";
+  id: number;
+}
+
+export interface Lobby_lobby_moves_Scramble {
+  __typename: "Scramble";
+  time: any;
+  moveType: MoveType;
+  player?: Lobby_lobby_moves_Scramble_player;
+}
+
+export interface Lobby_lobby_moves_DeselectTile_tiles {
+  __typename: "Tile";
+  letter: string;
+  location: number;
+}
+
+export interface Lobby_lobby_moves_DeselectTile_player {
+  __typename: "Player";
+  id: number;
+}
+
+export interface Lobby_lobby_moves_DeselectTile {
+  __typename: "DeselectTile";
+  time: any;
+  moveType: MoveType;
+  tiles: Lobby_lobby_moves_DeselectTile_tiles[];
+  player: Lobby_lobby_moves_DeselectTile_player;
+}
+
+export interface Lobby_lobby_moves_SelectTile_tiles {
+  __typename: "Tile";
+  letter: string;
+  location: number;
+}
+
+export interface Lobby_lobby_moves_SelectTile_player {
+  __typename: "Player";
+  id: number;
+}
+
+export interface Lobby_lobby_moves_SelectTile {
+  __typename: "SelectTile";
+  time: any;
+  moveType: MoveType;
+  tiles: Lobby_lobby_moves_SelectTile_tiles[];
+  player: Lobby_lobby_moves_SelectTile_player;
+}
+
+export interface Lobby_lobby_moves_Submit_tiles {
+  __typename: "Tile";
+  letter: string;
+  location: number;
+  value: number;
+}
+
+export interface Lobby_lobby_moves_Submit_player {
+  __typename: "Player";
+  id: number;
+}
+
+export interface Lobby_lobby_moves_Submit {
+  __typename: "Submit";
+  time: any;
+  moveType: MoveType;
+  tiles: Lobby_lobby_moves_Submit_tiles[];
+  player: Lobby_lobby_moves_Submit_player;
+}
+
+export interface Lobby_lobby_moves_SpawnTiles_player {
+  __typename: "Player";
+  id: number;
+}
+
+export interface Lobby_lobby_moves_SpawnTiles_tiles {
+  __typename: "Tile";
+  letter: string;
+  location: number;
+  id: number;
+  value: number;
+  tileType: TileType;
+}
+
+export interface Lobby_lobby_moves_SpawnTiles {
+  __typename: "SpawnTiles";
+  time: any;
+  moveType: MoveType;
+  player: Lobby_lobby_moves_SpawnTiles_player;
+  tiles: Lobby_lobby_moves_SpawnTiles_tiles[];
+}
+
+export type Lobby_lobby_moves = Lobby_lobby_moves_Scramble | Lobby_lobby_moves_DeselectTile | Lobby_lobby_moves_SelectTile | Lobby_lobby_moves_Submit | Lobby_lobby_moves_SpawnTiles;
+
+export interface Lobby_lobby {
+  __typename: "Lobby";
+  state: LobbyState;
+  maxUsers: number;
+  players: Lobby_lobby_players[];
+  moves: Lobby_lobby_moves[];
+}
+
+export interface Lobby {
+  lobby: Lobby_lobby | null;
+}
+
+export interface LobbyVariables {
+  lobbyId: number;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: FetchLobbies
 // ====================================================
 

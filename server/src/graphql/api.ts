@@ -199,7 +199,7 @@ export const graphqlRoot: Resolvers<Context> = {
       return true
     },
     makeMove: async (_, { input }, ctx) => {
-      console.log('making move start ')
+      console.log(input.lobbyId)
       const lobby = check(await Lobby.findOne({ where: { id: input.lobbyId } }), 'makeMove: lobby does not exist')
       if (lobby.state != LobbyState.InGame) {
         console.log('Lobby State mismatch')
@@ -219,7 +219,7 @@ export const graphqlRoot: Resolvers<Context> = {
       move.moveType = input.moveType
       move.player = player
 
-      // TODO: check if move is valid
+      const returnVal = true
       await move.save()
       switch (input.moveType) {
         case 'SelectTile':
@@ -245,9 +245,15 @@ export const graphqlRoot: Resolvers<Context> = {
           serverMove.lobby = lobby
           serverMove.moveType = MoveType.SpawnTiles
           let word = ''
+          for (let i = 0; i < inputTiles1.length; i++) {
+            word = word + inputTiles1[i].letter
+          }
+          if (!dictionary.isInDictionary(word.toLowerCase())) {
+            console.log(word.toLowerCase() + ' not dictionary')
+            return false //no need to save move or creat new tiles, invalid submit
+          } else console.log(word.toLowerCase() + ' is in dictionary: ')
           inputTiles1.forEach(async tile => {
             // save a copy of the tile for Submit move
-            word = word + tile.letter
             const newTile = new Tile()
             newTile.letter = tile.letter.toUpperCase()
             newTile.location = tile.location
@@ -263,9 +269,9 @@ export const graphqlRoot: Resolvers<Context> = {
             spawnedTile.move = serverMove
             spawnedTile.value = 1
             spawnedTile.tileType = TileType.Normal
-            await spawnedTile.save().catch(() => console.log('broke here 2'))
+            await spawnedTile.save().catch(() => console.log('Broke saving new spawned Tile in Submit'))
           })
-          console.log(word.toLowerCase() + ' in dictionary: ' + dictionary.isInDictionary(word.toLowerCase()))
+
           await serverMove.save()
           break
         case 'Scramble':
@@ -280,7 +286,7 @@ export const graphqlRoot: Resolvers<Context> = {
             spawnedTile.move = serverMove2
             spawnedTile.value = 1
             spawnedTile.tileType = TileType.Normal
-            //await spawnedTile.save()
+            //await spawnedTile.save().catch(() => console.log('Broke saving new spawned Tile in Scrable'))
           }
           await serverMove2.save()
           break
@@ -301,7 +307,7 @@ export const graphqlRoot: Resolvers<Context> = {
           break
       }
       await move.save()
-      return true
+      return returnVal
     },
   },
   Subscription: {

@@ -9,28 +9,27 @@ import {
   Submit
 } from '../../../../server/src/graphql/schema.types'
 import { getApolloClient } from '../../graphql/apolloClient'
+import { MakeMove } from '../../graphql/query.gen'
 
 const makeMoveMutation = gql`
   mutation MakeMove($input: MoveInput!) {
     makeMove(input: $input)
   }
 `
-interface MakeMove {
-  success: boolean
-}
+
 export function submitMove(input: Submit) {
   const temp = []
   for (let i = 0; i < input.tiles.length; i++) {
     temp.push({
       letter: input.tiles[i].letter,
-      pointValue: input.tiles[i].pointValue,
+      pointValue: input.tiles[i].value,
       tileType: input.tiles[i].tileType,
       location: input.tiles[i].location,
     })
   }
   const t: MoveInput = {
     playerId: input.player.id,
-    lobbyId: (input.player.lobby ? input.player.lobby.id : -1),
+    lobbyId: input.player.lobby ? input.player.lobby.id : -1,
     time: input.time,
     moveType: input.moveType,
     tiles: temp,
@@ -44,7 +43,7 @@ export function submitMove(input: Submit) {
 export function randomizeMove(input: Scramble) {
   const t: MoveInput = {
     playerId: input.player.id,
-    lobbyId: (input.player.lobby ? input.player.lobby.id : -1),
+    lobbyId: input.player.lobby ? input.player.lobby.id : -1,
     time: input.time,
     moveType: input.moveType,
     pointValue: 0,
@@ -60,14 +59,14 @@ export function selectMove(input: SelectTile) {
   for (let i = 0; i < input.tiles.length; i++) {
     temp.push({
       letter: input.tiles[i].letter,
-      pointValue: input.tiles[i].pointValue,
+      pointValue: input.tiles[i].value,
       tileType: input.tiles[i].tileType,
       location: input.tiles[i].location,
     })
   }
   const t: MoveInput = {
     playerId: input.player.id,
-    lobbyId: (input.player.lobby ? input.player.lobby.id : -1),
+    lobbyId: input.player.lobby ? input.player.lobby.id : -1,
     time: input.time,
     moveType: input.moveType,
     tiles: temp,
@@ -84,14 +83,14 @@ export function deselectMove(input: DeselectTile) {
   for (let i = 0; i < input.tiles.length; i++) {
     temp.push({
       letter: input.tiles[i].letter,
-      pointValue: input.tiles[i].pointValue,
+      pointValue: input.tiles[i].value,
       tileType: input.tiles[i].tileType,
       location: input.tiles[i].location,
     })
   }
   const t: MoveInput = {
     playerId: input.player.id,
-    lobbyId: (input.player.lobby ? input.player.lobby.id : -1),
+    lobbyId: input.player.lobby ? input.player.lobby.id : -1,
     time: input.time,
     moveType: input.moveType,
     tiles: temp,
@@ -102,3 +101,54 @@ export function deselectMove(input: DeselectTile) {
     variables: { input: t },
   })
 }
+
+export const fetchLobbyMoves = gql`
+  query Lobby($lobbyId: Int!) {
+    lobby(lobbyId: $lobbyId) {
+      state
+      maxUsers
+      players {
+        id
+      }
+      moves {
+        time
+        moveType
+        ... on DeselectTile {
+          tiles {
+            letter
+            location
+          }
+        }
+        ... on SelectTile {
+          tiles {
+            letter
+            location
+          }
+        }
+        ... on Submit {
+          tiles {
+            letter
+            location
+            value
+          }
+        }
+        ... on SpawnTiles {
+          player {
+            id
+          }
+          tiles {
+            letter
+            location
+            id
+            value
+            tileType
+            __typename
+          }
+        }
+        player {
+          id
+        }
+      }
+    }
+  }
+`
