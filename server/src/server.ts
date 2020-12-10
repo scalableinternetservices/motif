@@ -62,6 +62,18 @@ server.express.get(
 
 const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000 // 30 days
 
+// server.express.post(
+//   '/q/playerCount',
+//   asyncRoute(async (req, res) => {
+//     console.log('POST /q/playerCount')
+//     const conn = await getConnection()
+//     const sql = new SQL(conn)
+//     const count = await sql.query('SELECT COUNT(id) AS count FROM player WHERE lobbyId=?', req.body.id)
+//     res.status(200).type('json').send(count[0])
+//     conn.release()
+//   })
+// )
+
 server.express.post(
   '/auth/createUser',
   asyncRoute(async (req, res) => {
@@ -302,11 +314,21 @@ async function bgProcess() {
   const conn = await getConnection()
   const sql = new SQL(conn)
   setInterval(async () => {
+    const date = new Date()
     const result = await sql.query(
       'UPDATE lobby SET state="REPLAY" WHERE state="IN_GAME"\
-       AND TIMESTAMPDIFF(second, `startTime`, NOW()) > gameTime*60;'
+       AND TIMESTAMPDIFF(second, `startTime`, ?) > gameTime*60;',
+      date
     )
-    if (result.affectedRows > 0) console.log(result.affectedRows + ' games marked as expired')
+    if (result.affectedRows > 0) {
+      console.log(result.affectedRows + ' games marked as expired')
+      const res2 = await sql.query(
+        'DELETE p FROM player p INNER JOIN lobby ON p.lobbyId = lobby.id WHERE lobby.state="REPLAY";'
+      )
+      if (res2.affectedRows > 0) {
+        console.log(res2.affectedRows + ' players removed from finished games')
+      }
+    }
   }, 1000)
   conn.release()
 }

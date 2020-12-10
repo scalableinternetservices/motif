@@ -65,9 +65,8 @@ export function getConnection() {
 
 export async function getSQLConnection() {
   const conn = await getConnection()
-  return conn
+  return new SQL(conn)
 }
-
 /**
  * Promisified {@code mysql.query}.
  */

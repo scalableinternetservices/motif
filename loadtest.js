@@ -9,12 +9,12 @@ export const options = {
       executor: 'ramping-arrival-rate',
       startRate: '50',
       timeUnit: '1s',
-      preAllocatedVUS: 20,
-      maxVUs: 100,
+      preAllocatedVUS: 50,
+      maxVUs: 500,
       stages: [
-        { target: 10, duration: '1s' },
-        // { target: 20, duration: '10s' },
-        // { target: 0, duration: '10s' },
+        { target: 100, duration: '30s' },
+        { target: 200, duration: '30s' },
+        { target: 0, duration: '30s' },
       ],
     },
   },
@@ -32,6 +32,10 @@ const name = `${randomString(10)}`
 const email = `${randomString(10)}@ucla.edu`
 
 export default function () {
+  // route to user login
+  http.get(`${BASE_URL}/app/UserLogin`)
+  sleep(Math.random() * 3)
+
   // create user
   const body = JSON.stringify({ email, name })
   let createUserRes = http.post(
@@ -73,6 +77,18 @@ export default function () {
   );
   const lobby_id = createLobbyRes.json('data').createLobby
   check(createLobbyRes, { 'created lobby': (r) => r.status == 200 });
+
+  // join same lobby
+  let joinLobbyRes = http.post(
+    `${BASE_URL}/graphql`,
+    `{"operationName":"JoinLobby","variables":{"userId":${id},"lobbyId":${lobby_id}},"query":"mutation JoinLobby($userId: Int!, $lobbyId: Int!) {  joinLobby(userId: $userId, lobbyId: $lobbyId)}"}`,
+    {
+      headers: {
+      'Content-Type': 'application/json',
+     },
+    }
+  );
+  check(joinLobbyRes, { 'joined lobby': (r) => r.status == 200 });
 
   // route to lobby page
   http.get(`${BASE_URL}/app/LobbyWait/lobby?lobbyId=${lobby_id}`)
