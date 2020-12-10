@@ -51,6 +51,7 @@ export function BoardPage(props: BoardPageProps) {
   })
   console.log('player id: ' + data?.user?.player?.id)
   userId = data?.user?.player?.id ? data?.user?.player?.id : 1
+  gametime = props.timeLimit ? props.timeLimit * 60 : 60
   if (!loading) {
     return (
       <Page>
@@ -59,7 +60,7 @@ export function BoardPage(props: BoardPageProps) {
             <UpdateEnemyBoards lobbyId={lobby.id} />
           </div>
           <div className="column">
-            <Game playerID={userId} timeLimit={props.timeLimit ? props.timeLimit * 60 : 60} lobbyinfo={lobby} />
+            <Game playerID={userId} timeLimit={gametime} lobbyinfo={lobby} />
           </div>
           <div className="column">
             <div className="chat">
@@ -111,21 +112,26 @@ let userScore = 0
 const enemyPlayers = 2
 const enemyScores = [0, 0]
 const active: boolean[][] = [[], []]
-
+let gametime = 300
+const time = new Date().getTime()
+const ms = 1000
 function UpdateEnemyBoards(p: uProps) {
   const lobbyid = p.lobbyId
-  const { loading, data } = useQuery<LobbyFetch, FetchLobbyVariables>(fetchLobbyMoves, {
+  const timeElapsed = (new Date().getTime() - time) / ms
+
+  const { loading, data, stopPolling } = useQuery<LobbyFetch, FetchLobbyVariables>(fetchLobbyMoves, {
     variables: { lobbyId: lobbyid },
     pollInterval: 1000,
     fetchPolicy: 'cache-first',
   })
-
+  console.log(timeElapsed + ' ' + gametime)
+  if (timeElapsed > gametime) stopPolling()
   let len = 0
   let moves: MoveTypes[] = []
   if (data == null) {
     console.log('lobby query returned null' + loading)
   } else if (data?.lobby != null && data?.lobby.moves != null) {
-    //console.log(data?.lobby.moves)
+    console.log(data?.lobby.moves)
     len = data?.lobby ? data?.lobby.moves.length : 0
     moves = data?.lobby.moves ? data?.lobby.moves : []
 
@@ -192,6 +198,7 @@ function UpdateEnemyBoards(p: uProps) {
       }
     }
   }
+
   const enemyTiles = [[<div key={0}></div>]]
   enemyTiles.pop()
   for (let p = 0; p < enemyPlayers; p++) {
