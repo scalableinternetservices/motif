@@ -1,7 +1,7 @@
 import { useQuery, useSubscription } from '@apollo/client'
 import { navigate, RouteComponentProps } from '@reach/router'
 import * as React from 'react'
-import { FetchLobbies, LobbiesSubscription } from '../../../graphql/query.gen'
+import { FetchActiveLobbies, LobbiesSubscription } from '../../../graphql/query.gen'
 import { Button } from '../../../style/button'
 import { Input } from '../../../style/input'
 import { style } from '../../../style/styled'
@@ -11,7 +11,7 @@ import { AppRouteParams } from '../../nav/route'
 import { handleError } from '../../toast/error'
 import { Page } from '../Page'
 import { CreateLobby } from './CreateLobby'
-import { fetchLobbies, subscribeLobbies } from './fetchLobbies'
+import { fetchActiveLobbies, subscribeLobbies } from './fetchLobbies'
 import { joinLobby } from './mutateLobbies'
 
 interface LobbySearchProps extends RouteComponentProps, AppRouteParams {}
@@ -108,19 +108,19 @@ function LobbyList(p: UserInfo) {
 
   //$POLL: (Un)Comment the pollInterval field to enable polling for this query
   //Query for lobbies from the database and display them in a list
-  const { loading, data } = useQuery<FetchLobbies>(fetchLobbies, {
+  const { loading, data } = useQuery<FetchActiveLobbies>(fetchActiveLobbies, {
     fetchPolicy: 'cache-and-network',
     //pollInterval: 5000, //Comment out when using subscription
   })
 
   //Make the list of lobbies stateful
-  const [lobbyList, setLobbyList] = React.useState(data?.lobbies)
+  const [lobbyList, setLobbyList] = React.useState(data?.activeLobbies)
 
   //Make sure to update the list of lobbies when data changes
   // eg. when query gets null from cache and something else from db
   React.useEffect(() => {
-    if (data?.lobbies) {
-      setLobbyList(data.lobbies)
+    if (data?.activeLobbies) {
+      setLobbyList(data.activeLobbies)
     }
   }, [data])
 
@@ -138,7 +138,7 @@ function LobbyList(p: UserInfo) {
   if (loading) {
     return <div>loading...</div>
   }
-  if (!data || data.lobbies?.length == 0) {
+  if (!data || data.activeLobbies?.length == 0) {
     return <div>no lobbies</div>
   }
 

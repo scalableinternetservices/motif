@@ -20,6 +20,9 @@ export function renderApp(req: Request, res: Response, schema: any) {
           lobbies: {
             merge: true,
           },
+          activeLobbies: {
+            merge: true,
+          },
         },
       },
       Lobby: {

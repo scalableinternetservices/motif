@@ -20,6 +20,7 @@ export interface Query {
   survey?: Maybe<Survey>
   lobbies?: Maybe<Array<Lobby>>
   lobby?: Maybe<Lobby>
+  activeLobbies?: Maybe<Array<Lobby>>
   user?: Maybe<User>
   users: Array<Maybe<User>>
   username?: Maybe<Scalars['String']>
@@ -419,6 +420,7 @@ export type QueryResolvers<
   >
   lobbies?: Resolver<Maybe<Array<ResolversTypes['Lobby']>>, ParentType, ContextType>
   lobby?: Resolver<Maybe<ResolversTypes['Lobby']>, ParentType, ContextType, RequireFields<QueryLobbyArgs, 'lobbyId'>>
+  activeLobbies?: Resolver<Maybe<Array<ResolversTypes['Lobby']>>, ParentType, ContextType>
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'userId'>>
   users?: Resolver<Array<Maybe<ResolversTypes['User']>>, ParentType, ContextType>
   username?: Resolver<
@@ -567,7 +569,7 @@ export type TileResolvers<
   ParentType extends ResolversParentTypes['Tile'] = ResolversParentTypes['Tile']
 > = {
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  value?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  pointValue?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   location?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   letter?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   tileType?: Resolver<ResolversTypes['TileType'], ParentType, ContextType>

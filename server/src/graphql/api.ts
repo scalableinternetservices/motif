@@ -54,6 +54,10 @@ export const graphqlRoot: Resolvers<Context> = {
     surveys: () => Survey.find(),
     lobbies: async () => (await Lobby.find()) as any,
     lobby: async (_, { lobbyId }) => ((await Lobby.findOne({ where: { id: lobbyId } })) || null) as any,
+    activeLobbies: async () =>
+      (await Lobby.find({
+        where: [{ state: LobbyState.Private }, { state: LobbyState.Public }],
+      })) as any,
     user: async (_, { userId }) => ((await User.findOne({ where: { id: userId } })) || null) as any,
     users: async () => (await User.find()) as any,
     username: async (_, { playerId }) =>
@@ -118,7 +122,11 @@ export const graphqlRoot: Resolvers<Context> = {
       }
 
       // Get all lobbies and pass as payload for lobbiesUpdates subscripton
-      const lobbies = check(await Lobby.find())
+      const lobbies = check(
+        await Lobby.find({
+          where: [{ state: LobbyState.Private }, { state: LobbyState.Public }],
+        })
+      )
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
       const updatedLobby = check(await Lobby.findOne(newLobby.id))
@@ -166,7 +174,11 @@ export const graphqlRoot: Resolvers<Context> = {
       }
 
       //Get all lobbies and pass as payload for lobbiesUpdates subscripton
-      const lobbies = check(await Lobby.find())
+      const lobbies = check(
+        await Lobby.find({
+          where: [{ state: LobbyState.Private }, { state: LobbyState.Public }],
+        })
+      )
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
       //pass the current updated lobby as payload for lobbyUpdates subscription
@@ -201,7 +213,11 @@ export const graphqlRoot: Resolvers<Context> = {
       await Player.remove(player)
 
       // //Get all lobbies and pass as payload for lobbiesUpdates subscripton
-      const lobbies = check(await Lobby.find())
+      const lobbies = check(
+        await Lobby.find({
+          where: [{ state: LobbyState.Private }, { state: LobbyState.Public }],
+        })
+      )
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
       return true
@@ -220,11 +236,14 @@ export const graphqlRoot: Resolvers<Context> = {
       if (lobby.state != LobbyState.Private && lobby.state != LobbyState.Public) return false
       lobby.state = LobbyState.InGame
       lobby.startTime = new Date()
-      console.log(lobby.startTime)
       await lobby.save()
 
       //Get all lobbies and pass as payload for lobbiesUpdates subscripton
-      const lobbies = check(await Lobby.find())
+      const lobbies = check(
+        await Lobby.find({
+          where: [{ state: LobbyState.Private }, { state: LobbyState.Public }],
+        })
+      )
       ctx.pubsub.publish('LOBBIES_UPDATE', lobbies)
 
       //pass the current updated lobby as payload for lobbyUpdates subscription

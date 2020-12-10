@@ -27,6 +27,7 @@ type Query {
   lobbies: [Lobby!] # get all lobbies
   lobby (lobbyId: Int!): Lobby
 
+  activeLobbies: [Lobby!]
   user(userId: Int!): User
   users: [User]!
   username(playerId: Int!): String
@@ -131,7 +132,7 @@ type Player {
 enum TileType {Normal, Double, Dud}
 type Tile {
   id: Int!
-  value: Int!
+  pointValue: Int!
   location: Int!
   letter: String!
   tileType: TileType!

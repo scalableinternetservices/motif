@@ -13,6 +13,19 @@ export const fetchLobbies = gql`
     }
   }
 `
+export const fetchActiveLobbies = gql`
+  query FetchActiveLobbies {
+    activeLobbies {
+      id
+      maxUsers
+      gameTime
+      state
+      players {
+        id
+      }
+    }
+  }
+`
 
 export const fetchLobby = gql`
   query FetchLobby($lobbyId: Int!) {
