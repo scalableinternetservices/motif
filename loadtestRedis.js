@@ -90,6 +90,30 @@ export default function () {
   http.get(`${BASE_URL}/app/Lobby`)
   sleep(Math.random() * 3)
 
+  // route to lobby search
+  http.get(`${BASE_URL}/app/LobbySearch`)
+  sleep(Math.random() * 3)
+
+  // route to lobby page
+  http.get(`${BASE_URL}/app/Lobby`)
+  sleep(Math.random() * 3)
+
+  // route to lobby search
+  http.get(`${BASE_URL}/app/LobbySearch`)
+  sleep(Math.random() * 3)
+
+  // route to lobby page
+  http.get(`${BASE_URL}/app/Lobby`)
+  sleep(Math.random() * 3)
+
+    // route to lobby search
+  http.get(`${BASE_URL}/app/LobbySearch`)
+  sleep(Math.random() * 3)
+
+  // route to lobby page
+  http.get(`${BASE_URL}/app/Lobby`)
+  sleep(Math.random() * 3)
+
   // start game
   let startGameRes = http.post(
     `${BASE_URL}/graphql`,

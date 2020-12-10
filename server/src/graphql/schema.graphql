@@ -27,6 +27,7 @@ type Query {
   lobbies: [Lobby!] # get all lobbies
   lobby (lobbyId: Int!): Lobby
 
+  activeLobbies: [Lobby!]
   user(userId: Int!): User
   users: [User]!
   username(playerId: Int!): String

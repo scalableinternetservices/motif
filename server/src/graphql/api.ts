@@ -69,6 +69,28 @@ export const graphqlRoot: Resolvers<Context> = {
     self: (_, args, ctx) => ctx.user as any,
     survey: async (_, { surveyId }) => (await Survey.findOne({ where: { id: surveyId } })) || null,
     surveys: () => Survey.find(),
+    activeLobbies: async (_, args, ctx) => {
+      const redisRes = await ctx.redis.hvals('LOBBIES')
+      if (redisRes.length != 0) {
+        console.log(redisRes)
+        const res: any[] = []
+        redisRes.forEach(item => {
+          if (item != '') {
+            const lobby = JSON.parse(item)
+            if (lobby.state == LobbyState.Public || lobby.state == LobbyState.Private) {
+              res.push(lobby)
+            }
+          }
+        })
+        return res
+      } else {
+        const lobbies = await Lobby.find({ where: [{ state: LobbyState.Private }, { state: LobbyState.Public }] })
+        lobbies.forEach(
+          async lobby => await ctx.redis.hset('LOBBIES', `${lobby.id}`, JSON.stringify(lobby, getCircularReplacer()))
+        )
+        return lobbies
+      }
+    },
     lobbies: async (_, args, ctx) => {
       const redisRes = await ctx.redis.hvals('LOBBIES')
       if (redisRes.length != 0) {

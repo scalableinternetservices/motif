@@ -86,6 +86,33 @@ export interface FetchLobbies {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: FetchActiveLobbies
+// ====================================================
+
+export interface FetchActiveLobbies_activeLobbies_players {
+  __typename: "Player";
+  id: number;
+}
+
+export interface FetchActiveLobbies_activeLobbies {
+  __typename: "Lobby";
+  id: number;
+  maxUsers: number;
+  gameTime: number;
+  state: LobbyState;
+  players: FetchActiveLobbies_activeLobbies_players[];
+}
+
+export interface FetchActiveLobbies {
+  activeLobbies: FetchActiveLobbies_activeLobbies[] | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: FetchLobby
 // ====================================================
 
