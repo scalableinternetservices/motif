@@ -19,7 +19,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { checkEqual, Unpromise } from '../../common/src/util'
 import { Config } from './config'
 import { migrate } from './db/migrate'
-import { getConnection, initORM, SQL } from './db/sql'
+import { initORM } from './db/sql'
 import { Session } from './entities/Session'
 import { User } from './entities/User'
 import { getSchema, graphqlRoot, pubsub } from './graphql/api'
@@ -309,30 +309,30 @@ initORM()
   )
   .catch(err => console.error(err))
 
-// checks for games that should be over
-async function bgProcess() {
-  const conn = await getConnection()
-  const sql = new SQL(conn)
-  setInterval(async () => {
-    const date = new Date()
-    const result = await sql.query(
-      'UPDATE lobby SET state="REPLAY" WHERE state="IN_GAME"\
-       AND TIMESTAMPDIFF(second, `startTime`, ?) > gameTime*60;',
-      date
-    )
-    if (result.affectedRows > 0) {
-      console.log(result.affectedRows + ' games marked as expired')
-      const res2 = await sql.query(
-        'DELETE p FROM player p INNER JOIN lobby ON p.lobbyId = lobby.id WHERE lobby.state="REPLAY";'
-      )
-      if (res2.affectedRows > 0) {
-        console.log(res2.affectedRows + ' players removed from finished games')
-      }
-    }
-  }, 1000)
-  conn.release()
-}
+// // checks for games that should be over
+// async function bgProcess() {
+//   const conn = await getConnection()
+//   const sql = new SQL(conn)
+//   setInterval(async () => {
+//     const date = new Date()
+//     const result = await sql.query(
+//       'UPDATE lobby SET state="REPLAY" WHERE state="IN_GAME"\
+//        AND TIMESTAMPDIFF(second, `startTime`, ?) > gameTime*60;',
+//       date
+//     )
+//     if (result.affectedRows > 0) {
+//       console.log(result.affectedRows + ' games marked as expired')
+//       const res2 = await sql.query(
+//         'DELETE p FROM player p INNER JOIN lobby ON p.lobbyId = lobby.id WHERE lobby.state="REPLAY";'
+//       )
+//       if (res2.affectedRows > 0) {
+//         console.log(res2.affectedRows + ' players removed from finished games')
+//       }
+//     }
+//   }, 1000)
+//   conn.release()
+// }
 
-bgProcess().catch(error => {
-  console.error(error)
-})
+// bgProcess().catch(error => {
+//   console.error(error)
+// })
