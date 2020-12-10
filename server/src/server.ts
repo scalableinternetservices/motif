@@ -12,6 +12,8 @@ import cors from 'cors'
 import { json, raw, RequestHandler, static as expressStatic } from 'express'
 import { getOperationAST, parse as parseGraphql, specifiedRules, subscribe as gqlSubscribe, validate } from 'graphql'
 import { GraphQLServer } from 'graphql-yoga'
+// @ts-ignore
+import beeline from 'honeycomb-beeline'
 import { forAwaitEach, isAsyncIterable } from 'iterall'
 import path from 'path'
 import 'reflect-metadata'
@@ -280,6 +282,8 @@ server.express.post('/graphqlsubscription/disconnect', (req, res) => {
 server.express.post(
   '/graphql',
   asyncRoute(async (req, res, next) => {
+    beeline.addContext({ 'graphql.query': req.body })
+    beeline.addContext({ 'graphql.operationName': req.body.operationName })
     const authToken = req.cookies.authToken || req.header('x-authtoken')
     if (authToken) {
       const session = await Session.findOne({ where: { authToken }, relations: ['user'] })
