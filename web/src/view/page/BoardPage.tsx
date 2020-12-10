@@ -116,8 +116,8 @@ function UpdateEnemyBoards(p: uProps) {
   const lobbyid = p.lobbyId
   const { loading, data } = useQuery<LobbyFetch, FetchLobbyVariables>(fetchLobbyMoves, {
     variables: { lobbyId: lobbyid },
-    pollInterval: 500,
-    fetchPolicy: 'network-only',
+    pollInterval: 1000,
+    fetchPolicy: 'cache-first',
   })
 
   let len = 0

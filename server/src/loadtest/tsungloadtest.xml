@@ -11,19 +11,19 @@
       <users arrivalrate="10" unit="second"/>
     </arrivalphase>
     <arrivalphase phase="2" duration="10" unit="second">
-      <users arrivalrate="20" unit="second"/>
+      <users arrivalrate="15" unit="second"/>
     </arrivalphase>
     <arrivalphase phase="3" duration="10" unit="second">
-      <users arrivalrate="40" unit="second"/>
+      <users arrivalrate="20" unit="second"/>
     </arrivalphase>
     <arrivalphase phase="4" duration="10" unit="second">
-      <users arrivalrate="80" unit="second"/>
+      <users arrivalrate="40" unit="second"/>
     </arrivalphase>
      <arrivalphase phase="5" duration="10" unit="second">
-      <users arrivalrate="120" unit="second"/>
+      <users arrivalrate="80" unit="second"/>
     </arrivalphase>
    <arrivalphase phase="6" duration="50" unit="second">
-      <users arrivalrate="160" unit="second"/>
+      <users arrivalrate="90" unit="second"/>
     </arrivalphase>
    <!-- <arrivalphase phase="7" duration="50" unit="second">
       <users arrivalrate="6" unit="second"/>
@@ -47,18 +47,20 @@
     </option>
   </options>
   <sessions>
-    <session name="board loading" type="ts_http" probability="100">
+  <!--
+    <session name="board loading" type="ts_http" probability="1">
+      <request>
+        <http url='/app/LobbySearch' method = "GET"/>
+      </request>
+      <thinktime random='true' value='1'/>
+
+    </session> -->
+        <session name="board loading" type="ts_http" probability="100">
       <!-- Get main page -->
       <request>
         <http url='/app/board' method = "GET"/>
       </request>
       <thinktime random='true' value='1'/>
-
-      <!-- Get tutorial page -->
-      <!--<request>
-        <http url='/tutorial'/>
-      </request>
-      <thinktime random='true' value='1'/> -->
     </session>
   </sessions>
 </tsung>

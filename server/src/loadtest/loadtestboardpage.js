@@ -8,9 +8,9 @@ export const options = {
   scenarios: {
     scenario1: {
       executor: 'ramping-arrival-rate',
-      startRate: '20',
+      startRate: '10',
       //timeUnit: '1s',
-      preAllocatedVUS: 20,
+      preAllocatedVUS: 65,
       maxVUs: 100,
       gracefulStop: '110s',
       stages: [
@@ -33,17 +33,18 @@ export default function () {
 
   // route to board page
   http.get(`${BASE_URL}/app/board`)
-  sleep(2)
+  sleep(5)
 
   // click move
-  let makeMoveRes = http.post(
-    `${BASE_URL}/graphql`,
-    `{"operationName":"MakeMove","variables":{"input":{"playerId":1,"lobbyId":1,"time":21783,"moveType":"Submit","tiles":[{"letter":"S","pointValue":1,"tileType":"Normal","location":1},{"letter":"E","pointValue":1,"tileType":"Normal","location":2},{"letter":"E","pointValue":1,"tileType":"Normal","location":3}],"pointValue":3}},"query":"mutation MakeMove($input: MoveInput!) {  makeMove(input: $input)}"}`,
-    {
-      headers: {
-      'Content-Type': 'application/json',
-     },
-    }
-  );
-  check(makeMoveRes, { 'move made': (r) => r.status == 200 });
+  // let makeMoveRes = http.post(
+  //   `${BASE_URL}/graphql`,
+  //   `{"operationName":"MakeMove","variables":{"input":{"playerId":1,"lobbyId":1,"time":6828,"moveType":"DeselectTile","tiles":[{"letter":"E","pointValue":1,"tileType":"Normal","location":0}],"pointValue":0}},"query":"mutation MakeMove($input: MoveInput!) {makeMove(input: $input)}"}`,
+  //   {
+  //     headers: {
+  //     'Content-Type': 'application/json',
+  //    },
+  //   }
+  // );
+  //check(makeMoveRes, { 'move made': (r) => r.status == 200 });
+  //sleep(1);
 }
