@@ -5,6 +5,7 @@ import { PubSub } from 'graphql-yoga'
 import path from 'path'
 import { getRandomLetter } from '../../../common/src/gameUtils'
 import { check } from '../../../common/src/util'
+import { getConnection, SQL } from '../db/sql'
 import { Lobby } from '../entities/Lobby'
 import { Move } from '../entities/Move'
 import { Player } from '../entities/Player'
@@ -96,25 +97,31 @@ export const graphqlRoot: Resolvers<Context> = {
         player.lobby = newLobby
         await player.save()
       } else {
-        const oldLobby = await Lobby.findOne(player.lobbyId)
+        const conn = await getConnection()
+        const sql = new SQL(conn)
+        const row = await sql.query(
+          'SELECT lobby.id, lobby.state, COUNT(player.id) AS count FROM lobby JOIN player on lobby.id = player.lobbyId WHERE lobby.id=?',
+          player.lobbyId
+        )
         player.lobby = newLobby
         await player.save()
-        if (oldLobby) {
+        if (row) {
+          const oldLobby = row[0]
           console.log('LOG: Removing player from old lobby ' + oldLobby.id)
-          const oldPlayers = await Player.find({ where: { lobbyId: oldLobby.id } })
-          if (oldPlayers.length < 1) {
+          const oldPlayers = oldLobby.count
+          if (oldPlayers <= 1) {
             console.log('LOG: Deleting empty lobby ' + oldLobby.id)
             if (oldLobby.state != LobbyState.InGame) {
-              await Lobby.remove(oldLobby)
+              await sql.query('DELETE FROM lobby WHERE id=?', oldLobby.id)
             } else {
-              oldLobby.state = LobbyState.Replay
-              await oldLobby.save()
+              await sql.query('UPDATE lobby SET state=? WHERE id=?', [LobbyState.Replay, oldLobby.id])
             }
           } else {
             const updatedOldLobby = check(await Lobby.findOne(oldLobby.id))
             ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
           }
         }
+        conn.release()
       }
 
       // Get all lobbies and pass as payload for lobbiesUpdates subscripton
@@ -142,26 +149,35 @@ export const graphqlRoot: Resolvers<Context> = {
         player.lobby = newLobby
         await player.save()
       } else {
-        const oldLobby = await Lobby.findOne(player.lobbyId)
-        player.lobby = newLobby
-        await player.save()
-
-        // if player exists already, check to see if old lobbies need to be cleaned up
-        if (oldLobby) {
-          console.log('LOG: Removing player from old lobby ' + oldLobby.id)
-          const oldPlayers = await Player.find({ where: { lobbyId: oldLobby.id } })
-          if (oldPlayers.length < 1) {
-            console.log('LOG: Deleting empty lobby ' + oldLobby.id)
-            if (oldLobby.state != LobbyState.InGame) {
-              await Lobby.remove(oldLobby)
+        if (player.lobbyId != lobbyId) {
+          const conn = await getConnection()
+          const sql = new SQL(conn)
+          const row = await sql.query(
+            'SELECT lobby.id, lobby.state, COUNT(player.id) AS count FROM lobby JOIN player on lobby.id = player.lobbyId WHERE lobby.id=?',
+            player.lobbyId
+          )
+          player.lobby = newLobby
+          await player.save()
+          if (row) {
+            const oldLobby = row[0]
+            console.log('LOG: Removing player from old lobby ' + oldLobby.id)
+            const oldPlayers = oldLobby.count
+            if (oldPlayers <= 1) {
+              console.log('LOG: Deleting empty lobby ' + oldLobby.id)
+              if (oldLobby.state != LobbyState.InGame) {
+                await sql.query('DELETE FROM lobby WHERE id=?', oldLobby.id)
+              } else {
+                await sql.query('UPDATE lobby SET state=? WHERE id=?', [LobbyState.Replay, oldLobby.id])
+              }
             } else {
-              oldLobby.state = LobbyState.Replay
-              await oldLobby.save()
+              const updatedOldLobby = check(await Lobby.findOne(oldLobby.id))
+              ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
             }
-          } else {
-            const updatedOldLobby = check(await Lobby.findOne(oldLobby.id))
-            ctx.pubsub.publish('LOBBY_UPDATE_' + oldLobby.id, updatedOldLobby) //send update to old lobby
           }
+          conn.release()
+        } else {
+          player.lobby = newLobby
+          await player.save()
         }
       }
 
@@ -177,28 +193,34 @@ export const graphqlRoot: Resolvers<Context> = {
     },
     leaveLobby: async (_, { userId }, ctx) => {
       const player = check(await Player.findOne({ where: { userId: userId } }))
-      const lobby = await Lobby.findOne(player.lobbyId)
 
-      if (!lobby) return false
+      if (!player.lobbyId) return false
 
-      const players = await Player.find({ where: { lobbyId: lobby.id } })
-      if (players.length <= 1) {
+      const conn = await getConnection()
+      const sql = new SQL(conn)
+      const row = await sql.query(
+        'SELECT lobby.id, lobby.state, COUNT(player.id) AS count FROM lobby JOIN player on lobby.id = player.lobbyId WHERE lobby.id=?',
+        player.lobbyId
+      )
+      const lobby = row[0]
+      const players = lobby.count
+      // delete as Player, since user no longer in any lobbies
+      await Player.remove(player)
+
+      if (players <= 1) {
         console.log('LOG: Deleting empty lobby ' + lobby.id)
         // delete lobbies that have not started
         if (lobby.state != LobbyState.InGame) {
-          await Lobby.remove(lobby)
+          await sql.query('DELETE FROM lobby WHERE id=?', lobby.id)
         } else {
           lobby.state = LobbyState.Replay
-          await lobby.save()
+          await sql.query('UPDATE lobby SET state=? WHERE id=?', [LobbyState.Replay, lobby.id])
         }
       } else {
         //No need to update the subscribers of the lobby if the lobby is removed
-        const updatedLobby = check(await Lobby.findOne({ where: { id: lobby.id } }))
-        //pass the current updated lobby as payload for lobbyUpdates subscription
-        ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedLobby)
+        const updatedOldLobby = check(await Lobby.findOne(lobby.id))
+        ctx.pubsub.publish('LOBBY_UPDATE_' + lobby.id, updatedOldLobby) //send update to old lobby
       }
-      // delete as Player, since user no longer in any lobbies
-      await Player.remove(player)
 
       // //Get all lobbies and pass as payload for lobbiesUpdates subscripton
       const lobbies = check(await Lobby.find())
